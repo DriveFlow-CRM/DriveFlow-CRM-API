@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DriveFlow_CRM_API</RootNamespace>
     <UserSecretsId>a922d2e6-8f0d-40b9-8ef7-9eddc86ff39e</UserSecretsId>
