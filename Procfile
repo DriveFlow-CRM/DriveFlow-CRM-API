@@ -1,1 +1,1 @@
-web: cd bin/Release/net8.0/linux-x64/publish && ./DriveFlow-CRM-API --urls http://*:$PORT
+web: cd bin/publish && ./DriveFlow-CRM-API --urls http://*:$PORT
