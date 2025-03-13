@@ -1,1 +1,1 @@
-web: dotnet DriveFlow-CRM-API.dll --urls http://*:$PORT
+web: cd bin/publish && ./DriveFlow-CRM-API --urls http://*:$PORT
