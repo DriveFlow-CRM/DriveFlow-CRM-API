@@ -1,25 +1,43 @@
+using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql;
+using DotNetEnv;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Load environment variables from .env file
+Env.Load();
 
+// Add services to the container
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Check if we're in Heroku
+var jawsDbUrl = Environment.GetEnvironmentVariable("JAWSDB_URL");
+if (!string.IsNullOrEmpty(jawsDbUrl))
+{
+    // Parse for Heroku
+    var uri = new Uri(jawsDbUrl);
+    connectionString = $"Server={uri.Host};Database={uri.AbsolutePath.Trim('/')};User ID={uri.UserInfo.Split(':')[0]};Password={uri.UserInfo.Split(':')[1]};Port={uri.Port};SSL Mode=Required;";
+}
+
+// Database setup
+builder.Services.AddDbContext<AppDbContext>(options => 
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString),
+        mySqlOptions => mySqlOptions.EnableRetryOnFailure()));
+
+// Add controllers
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.Logger.LogInformation("Using connection string: {0}", connectionString);
+
+// Configure the HTTP request pipeline
+app.UseRouting();
+
+app.UseEndpoints(endpoints =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
+    // Use our controllers
+    endpoints.MapControllers();
+});
 
 app.Run();

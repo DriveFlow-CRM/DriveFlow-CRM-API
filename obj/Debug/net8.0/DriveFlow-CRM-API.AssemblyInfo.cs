@@ -10,10 +10,11 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("a922d2e6-8f0d-40b9-8ef7-9eddc86ff39e")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("DriveFlow-CRM-API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b010e9931852b220e7767269e4a517e72868603c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+14d79638c02439278d5652d6b6eb5f24bb4c4b0a")]
 [assembly: System.Reflection.AssemblyProductAttribute("DriveFlow-CRM-API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DriveFlow-CRM-API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

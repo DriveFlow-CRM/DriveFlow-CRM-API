@@ -1,0 +1,1 @@
+web: dotnet DriveFlow-CRM-API.dll --urls http://*:$PORT
