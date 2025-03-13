@@ -1,7 +1,14 @@
 {
-  "buildpacks": [
-    {
-      "url": "heroku/dotnet"
+    "buildpacks": [
+      {
+        "url": "heroku/dotnet"
+      }
+    ],
+    "environments": {
+      "test": {
+        "scripts": {
+          "test": "echo 'No tests'"
+        }
+      }
     }
-  ]
-}
+  }
