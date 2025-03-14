@@ -1,25 +1,31 @@
 {
   "format": 1,
   "restore": {
-    "/Users/thecyberbro/git/DriveFlow-CRM-API/DriveFlow-CRM-API.csproj": {}
+    "C:\\Users\\Teodora\\teme fac\\DriveFlow-CRM-API\\DriveFlow-CRM-API.csproj": {}
   },
   "projects": {
-    "/Users/thecyberbro/git/DriveFlow-CRM-API/DriveFlow-CRM-API.csproj": {
+    "C:\\Users\\Teodora\\teme fac\\DriveFlow-CRM-API\\DriveFlow-CRM-API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/thecyberbro/git/DriveFlow-CRM-API/DriveFlow-CRM-API.csproj",
+        "projectUniqueName": "C:\\Users\\Teodora\\teme fac\\DriveFlow-CRM-API\\DriveFlow-CRM-API.csproj",
         "projectName": "DriveFlow-CRM-API",
-        "projectPath": "/Users/thecyberbro/git/DriveFlow-CRM-API/DriveFlow-CRM-API.csproj",
-        "packagesPath": "/Users/thecyberbro/.nuget/packages/",
-        "outputPath": "/Users/thecyberbro/git/DriveFlow-CRM-API/obj/",
+        "projectPath": "C:\\Users\\Teodora\\teme fac\\DriveFlow-CRM-API\\DriveFlow-CRM-API.csproj",
+        "packagesPath": "C:\\Users\\Teodora\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Teodora\\teme fac\\DriveFlow-CRM-API\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/Users/thecyberbro/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Teodora\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -56,7 +62,7 @@
             "Microsoft.NET.ILLink.Tasks": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[8.0.13, )",
+              "version": "[8.0.14, )",
               "autoReferenced": true
             },
             "Pomelo.EntityFrameworkCore.MySql": {
@@ -81,20 +87,20 @@
           "warn": true,
           "downloadDependencies": [
             {
-              "name": "Microsoft.AspNetCore.App.Runtime.linux-x64",
-              "version": "[8.0.13, 8.0.13]"
+              "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
+              "version": "[8.0.14, 8.0.14]"
             },
             {
-              "name": "Microsoft.NETCore.App.Crossgen2.osx-arm64",
-              "version": "[8.0.13, 8.0.13]"
+              "name": "Microsoft.NETCore.App.Crossgen2.win-x64",
+              "version": "[8.0.14, 8.0.14]"
             },
             {
-              "name": "Microsoft.NETCore.App.Host.linux-x64",
-              "version": "[8.0.13, 8.0.13]"
+              "name": "Microsoft.NETCore.App.Runtime.win-x64",
+              "version": "[8.0.14, 8.0.14]"
             },
             {
-              "name": "Microsoft.NETCore.App.Runtime.linux-x64",
-              "version": "[8.0.13, 8.0.13]"
+              "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
+              "version": "[8.0.14, 8.0.14]"
             }
           ],
           "frameworkReferences": {
@@ -105,11 +111,11 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.406/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.407/PortableRuntimeIdentifierGraph.json"
         }
       },
       "runtimes": {
-        "linux-x64": {
+        "win-x64": {
           "#import": []
         }
       }

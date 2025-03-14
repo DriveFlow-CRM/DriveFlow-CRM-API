@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace DriveFlow_CRM_API.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/weatherforecast")]
 public class WeatherForecastController : ControllerBase
 {
     private static readonly string[] Summaries = new[]
@@ -21,19 +22,72 @@ public class WeatherForecastController : ControllerBase
         _context = context;
     }
 
-    [HttpGet(Name = "GetWeatherForecast")]
+    [HttpGet("all", Name = "GetWeatherForecasts")]
     public IActionResult Get()
     {
-        var weatherForecasts = Enumerable.Range(1, 5).Select(index => new WeatherForecast
+        var weatherForecasts = _context.WeatherForecasts.ToList();
+        return Ok(weatherForecasts);
+    }
+
+    [HttpGet("{id}", Name = "GetWeatherForecastById")]
+    public ActionResult<WeatherForecast> Get(int id)
+    {
+        var forecast = _context.WeatherForecasts.Find(id);
+        if (forecast == null)
         {
-            Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            TemperatureC = Random.Shared.Next(-20, 55),
-            Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-        }).ToArray();
+            return NotFound();
+        }
+        return forecast;
+    }
 
-        // Simple query to test database connection
-        var dbTestResult = _context.WeatherForecasts.FirstOrDefault();
+    [HttpPost("create", Name = "CreateWeatherForecast")]
+    public ActionResult<WeatherForecast> Post([FromBody] WeatherForecast forecast)
+    {
+        _context.WeatherForecasts.Add(forecast);
+        _context.SaveChanges();
+        return CreatedAtAction(nameof(Get), new { id = forecast.Id }, forecast);
+    }
 
-        return Ok(new { WeatherForecasts = weatherForecasts, DbTestResult = dbTestResult });
+    [HttpPut("update/{id}", Name = "UpdateWeatherForecast")]
+    public IActionResult Put(int id, [FromBody] WeatherForecast forecast)
+    {
+        if (id != forecast.Id)
+        {
+            return BadRequest();
+        }
+
+        _context.Entry(forecast).State = EntityState.Modified;
+        try
+        {
+            _context.SaveChanges();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!_context.WeatherForecasts.Any(e => e.Id == id))
+            {
+                return NotFound();
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        return NoContent();
+    }
+
+    [HttpDelete("delete/{id}", Name = "DeleteWeatherForecast")]
+    public IActionResult Delete(int id)
+    {
+        var forecast = _context.WeatherForecasts.Find(id);
+        if (forecast == null)
+        {
+            return NotFound();
+        }
+
+        _context.WeatherForecasts.Remove(forecast);
+        _context.SaveChanges();
+
+        return NoContent();
     }
 }

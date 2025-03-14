@@ -27,6 +27,9 @@ namespace DriveFlow_CRM_API.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
+                    b.Property<string>("Location")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Summary")
                         .HasColumnType("longtext");
 
