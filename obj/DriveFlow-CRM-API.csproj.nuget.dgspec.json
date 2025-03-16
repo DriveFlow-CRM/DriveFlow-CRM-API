@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Teodora\\teme fac\\DriveFlow-CRM-API\\DriveFlow-CRM-API.csproj": {}
+    "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Teodora\\teme fac\\DriveFlow-CRM-API\\DriveFlow-CRM-API.csproj": {
+    "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Teodora\\teme fac\\DriveFlow-CRM-API\\DriveFlow-CRM-API.csproj",
+        "projectUniqueName": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API.csproj",
         "projectName": "DriveFlow-CRM-API",
-        "projectPath": "C:\\Users\\Teodora\\teme fac\\DriveFlow-CRM-API\\DriveFlow-CRM-API.csproj",
-        "packagesPath": "C:\\Users\\Teodora\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Teodora\\teme fac\\DriveFlow-CRM-API\\obj\\",
+        "projectPath": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API.csproj",
+        "packagesPath": "C:\\Users\\cemil\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Teodora\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\cemil\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -53,7 +53,25 @@
               "target": "Package",
               "version": "[3.1.1, )"
             },
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.AspNetCore.Identity.UI": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
             "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
               "target": "Package",
@@ -64,6 +82,10 @@
               "target": "Package",
               "version": "[8.0.14, )",
               "autoReferenced": true
+            },
+            "Microsoft.VisualStudio.Web.CodeGeneration.Design": {
+              "target": "Package",
+              "version": "[8.0.0, )"
             },
             "Pomelo.EntityFrameworkCore.MySql": {
               "target": "Package",
