@@ -4,6 +4,29 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DriveFlow-CRM-API", "DriveFlow-CRM-API.csproj", "{FE75C3DA-9CBE-9C56-6595-D80966E6B0BE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Authentication", "Authentication", "{320CFC55-3201-4BEC-9E22-380703755539}"
+	ProjectSection(SolutionItems) = preProject
+		RefreshTokenService.cs = RefreshTokenService.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tokens", "Tokens", "{8B101A8B-055B-4451-A745-E9CD8F05D077}"
+	ProjectSection(SolutionItems) = preProject
+		ITokenGenerator.cs = ITokenGenerator.cs
+		JwtAccessTokenGenerator.cs = JwtAccessTokenGenerator.cs
+		JwtRefreshTokenGenerator.cs = JwtRefreshTokenGenerator.cs
+		TokenGeneratorFactory.cs = TokenGeneratorFactory.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Handlers", "Handlers", "{1ED1CFB8-06F5-4239-BD89-14C6ECA04C73}"
+	ProjectSection(SolutionItems) = preProject
+		CoreUserClaimsHandler.cs = CoreUserClaimsHandler.cs
+		ITokenClaimHandler.cs = ITokenClaimHandler.cs
+		RoleClaimsHandler.cs = RoleClaimsHandler.cs
+		SchoolClaimHandler.cs = SchoolClaimHandler.cs
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DriveFlow.Tests", "..\DriveFlow.Tests\DriveFlow.Tests.csproj", "{3D92B967-819F-422F-9B7A-96DCD6EEFF7B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,9 +37,17 @@ Global
 		{FE75C3DA-9CBE-9C56-6595-D80966E6B0BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE75C3DA-9CBE-9C56-6595-D80966E6B0BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE75C3DA-9CBE-9C56-6595-D80966E6B0BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D92B967-819F-422F-9B7A-96DCD6EEFF7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D92B967-819F-422F-9B7A-96DCD6EEFF7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D92B967-819F-422F-9B7A-96DCD6EEFF7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D92B967-819F-422F-9B7A-96DCD6EEFF7B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8B101A8B-055B-4451-A745-E9CD8F05D077} = {320CFC55-3201-4BEC-9E22-380703755539}
+		{1ED1CFB8-06F5-4239-BD89-14C6ECA04C73} = {8B101A8B-055B-4451-A745-E9CD8F05D077}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7D27B907-E6F8-4755-9672-3CAAC181F534}

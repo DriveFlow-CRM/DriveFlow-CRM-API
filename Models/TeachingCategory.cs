@@ -1,40 +1,74 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;  
+using Microsoft.EntityFrameworkCore;                 
 
-namespace DriveFlow_CRM_API.Models
+namespace DriveFlow_CRM_API.Models;                 
+
+// ─────────────────────── TeachingCategory entity ───────────────────────
+
+/// <summary>
+/// A teaching category offered by an <see cref="AutoSchool"/> (e.g. “B Manual”).
+/// </summary>
+/// <remarks>
+/// • FK <see cref="AutoSchoolId"/> is **required**; deleting the school cascades.<br/>
+/// • FK <see cref="LicenseId"/> is **optional**; deleting the licence sets it to <c>null</c>.<br/>
+/// • Deleting a category cascades to the join-table
+///   <see cref="ApplicationUserTeachingCategory"/> but <b>does not</b> delete files
+///   (their FK is set to <c>null</c>).<br/>
+/// • <see cref="Code"/> is unique inside one school.
+/// </remarks>
+[Index(nameof(AutoSchoolId), nameof(Code), IsUnique = true)]
+public class TeachingCategory
 {
-    public class TeachingCategory
-    {
-        [Key]
-        public int TeachingCategoryId { get; set; }
+    // ─────────────── Keys & status ───────────────
 
-        [Required]
-        public string CategoryName { get; set; } = null!;
+    /// <summary>Primary key.</summary>
+    [Key]
+    public int TeachingCategoryId { get; set; }
 
-        [Required]
-        public decimal SessionCost { get; set; }
+    /// <summary>Short code (“B”, “C+E”…), unique per school.</summary>
+    [Required, StringLength(10)]
+    public string Code { get; set; } = null!;
 
-        [Required]
-        public int SessionDuration { get; set; }
+    /// <summary>Cost per driving session (≥ 0).</summary>
+    [Range(0, double.MaxValue)]
+    public decimal SessionCost { get; set; }
 
-        [Required]
-        public decimal ScholarshipPrice { get; set; }
+    /// <summary>Duration of one session, in minutes (≥ 0).</summary>
+    [Range(0, int.MaxValue)]
+    public int SessionDuration { get; set; }
 
-        [Required]
-        public int AutoSchoolId { get; set; }
+    /// <summary>Total price of the scholarship pack, if any (≥ 0).</summary>
+    [Range(0, double.MaxValue)]
+    public decimal ScholarshipPrice { get; set; }
 
-        [ForeignKey(nameof(AutoSchoolId))]
-        public virtual AutoSchool? AutoSchool { get; set; }
+    /// <summary>Minimum number of driving lessons required (≥ 0).</summary>
+    [Range(0, int.MaxValue)]
+    public int MinDrivingLessonsReq { get; set; }
 
-        public virtual ICollection<ApplicationUserTeachingCategory>? ApplicationUserTeachingCategories { get; set; }
-        public virtual ICollection<File>? Files { get; set; }
-        public virtual ICollection<Vehicle>? Vehicles { get; set; }
+    // ─────────────── Relationships ───────────────
 
-        // Added the Type field with validation for all standard driving license categories.
-        [Required]
-        [RegularExpression("^(AM|A1|A2|A|B1|B|BE|C1|C1E|C|CE|D1|D1E|D|DE)$")]
-        public string Type { get; set; } = null!;
+    /// <summary>FK to the owning <see cref="AutoSchool"/> (mandatory).</summary>
+    [ForeignKey(nameof(AutoSchool))]
+    public int AutoSchoolId { get; set; }
 
-    }
+    /// <summary>Navigation to the auto-school.</summary>
+    public virtual AutoSchool AutoSchool { get; set; } = null!;
+
+    /// <summary>FK to the required <see cref="License"/> (optional).</summary>
+    [ForeignKey(nameof(License))]
+    public int? LicenseId { get; set; }
+
+    /// <summary>Navigation to the driving-license type.</summary>
+    public virtual License? License { get; set; }
+
+    /// <summary>Files linked to this category (set-null on delete).</summary>
+    public virtual ICollection<File> Files { get; set; } = new List<File>();
+
+    /// <summary>
+    /// Join entities that map students/instructors to this category
+    /// (cascades on delete).
+    /// </summary>
+    public virtual ICollection<ApplicationUserTeachingCategory> ApplicationUserTeachingCategories
+    { get; set; } = new List<ApplicationUserTeachingCategory>();
 }

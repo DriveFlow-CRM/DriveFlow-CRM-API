@@ -1,0 +1,132 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "DriveFlow CRM API",
+    "description": "REST endpoints for the DriveFlow platform.",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/Auth": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Authenticates a user and returns an access-token plus a refresh-token.",
+        "description": "<list type=\"bullet\">\r\n  <item>\r\n    <description>\r\n                Secret key is read from `JWT_KEY` (env) or `Jwt:Key` (appsettings).\r\n              </description>\r\n  </item>\r\n  <item>\r\n    <description>\r\n      <b>Sample request</b>:\r\n```\r\n                POST /api/auth\r\n\r\n                {\r\n\r\n                  \"email\": \"student@test.com\",\r\n\r\n                  \"password\": \"Student231!\"\r\n\r\n                }\r\n                ```</description>\r\n  </item>\r\n</list>",
+        "requestBody": {
+          "description": "Credentials (e-mail & password).",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful – returns tokens and user metadata."
+          },
+          "401": {
+            "description": "E-mail or password incorrect."
+          },
+          "404": {
+            "description": "Account not found."
+          }
+        }
+      }
+    },
+    "/api/Auth/refresh": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Exchanges a valid refresh‑token for a new access‑token.",
+        "requestBody": {
+          "description": "Payload containing the refresh‑token.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "New access‑token issued."
+          },
+          "401": {
+            "description": "Refresh‑token invalid or user no longer exists."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "E‑mail address (UserName in Identity).",
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "description": "Account password in plain text.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "DTO used for login credentials."
+      },
+      "RefreshDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "description": "The previously issued refresh‑token.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "DTO used to request a new access‑token using a refresh‑token."
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "JWT in header – format: **Bearer &lt;token&gt;**",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
+}

@@ -1,28 +1,42 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;   
+             
 
-namespace DriveFlow_CRM_API.Models
+namespace DriveFlow_CRM_API.Models;                  
+
+// ───────────────────────  Instructor availability ───────────────────────
+
+/// <summary>
+/// Time slot in which an <see cref="ApplicationUser"/> acting as instructor
+/// is available for driving lessons.
+/// </summary>
+/// <remarks>
+/// • Optional many-to-one toward the instructor (<see cref="ApplicationUser"/>); an availability can exist
+///   without being assigned yet.<br/>
+/// • No special cascade rules are required; EF Core conventions handle the FK
+///   (deleting the instructor sets <see cref="InstructorId"/> to <c>null</c>).
+/// </remarks>
+public class InstructorAvailability
 {
-    public class InstructorAvailability
-    {
-        [Key]
-        public int InstructorAvailabilityId { get; set; }
+    /// <summary>Primary key.</summary>
+    [Key]
+    public int IntervalId { get; set; }
 
-        [Required]
-        public DateTime Date { get; set; }
+    /// <summary>Date of the availability slot (local time).</summary>
+    public DateTime Date { get; set; }
 
-        [Required]
-        public TimeSpan StartHour { get; set; }
+    /// <summary>Start hour of the slot.</summary>
+    public TimeSpan StartHour { get; set; }
 
-        [Required]
-        public TimeSpan EndHour { get; set; }
+    /// <summary>End hour of the slot.</summary>
+    public TimeSpan EndHour { get; set; }
 
+    // ─────────────── Relationships ───────────────
 
-        [ForeignKey(nameof(ApplicationUserId))]
-        [Required]
-        public string ApplicationUserId { get; set; }
+    /// <summary>Foreign key to the instructor (optional).</summary>
+    [ForeignKey(nameof(Instructor))]
+    public string? InstructorId { get; set; }
 
-        public virtual ApplicationUser? ApplicationUser { get; set; }
-    }
+    /// <summary>Navigation to the instructor (M : 1).</summary>
+    public virtual ApplicationUser? Instructor { get; set; }
 }

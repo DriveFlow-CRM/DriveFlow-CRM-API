@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DriveFlow-CRM-API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+547ab2ad2028e4d46ea1ea7de4a70a227471369b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+147445032109ce1607d4c4218c1d3a2e57366a57")]
 [assembly: System.Reflection.AssemblyProductAttribute("DriveFlow-CRM-API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DriveFlow-CRM-API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

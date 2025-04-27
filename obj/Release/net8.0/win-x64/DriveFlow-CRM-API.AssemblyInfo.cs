@@ -11,11 +11,12 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.AspNetCore.Identity.UI.UIFrameworkAttribute("Bootstrap5")]
 [assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("a922d2e6-8f0d-40b9-8ef7-9eddc86ff39e")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("DriveFlow-CRM-API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6044ed6ee35209d655614e5475754c9482992c80")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+147445032109ce1607d4c4218c1d3a2e57366a57")]
 [assembly: System.Reflection.AssemblyProductAttribute("DriveFlow-CRM-API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DriveFlow-CRM-API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
