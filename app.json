@@ -12,7 +12,7 @@
   },
   "buildpacks": [
     {
-      "url": "heroku/dotnet"
+      "url": "https://github.com/jincod/dotnetcore-buildpack"
     }
   ],
   "formation": {
