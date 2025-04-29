@@ -1,16 +1,16 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0.407 AS build
 WORKDIR /source
 
-# Copy only the API project, not tests
+# Copy only the API project
 COPY DriveFlow-CRM-API/ ./
 
 # Configure NuGet properly
 RUN mkdir -p /root/.nuget/NuGet && \
     echo '<?xml version="1.0" encoding="utf-8"?><configuration><packageSources><clear /><add key="nuget.org" value="https://api.nuget.org/v3/index.json" /></packageSources></configuration>' > /root/.nuget/NuGet/NuGet.Config
 
-# Build the project
-RUN dotnet restore
-RUN dotnet publish -c Release -o /app -p:PublishTrimmed=false -p:PublishSingleFile=false
+# Build the project directly without using the solution file
+RUN dotnet restore DriveFlow-CRM-API.csproj
+RUN dotnet publish DriveFlow-CRM-API.csproj -c Release -o /app -p:PublishTrimmed=false -p:PublishSingleFile=false
 
 # Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
