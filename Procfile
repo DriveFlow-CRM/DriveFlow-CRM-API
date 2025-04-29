@@ -1,1 +1,1 @@
-web: cd DriveFlow-CRM-API && dotnet run --urls=http://+:$PORT 
+web: cp -f .env DriveFlow-CRM-API/.env 2>/dev/null || true && cd DriveFlow-CRM-API && dotnet run --urls=http://+:$PORT 
