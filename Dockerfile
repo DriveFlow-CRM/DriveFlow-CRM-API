@@ -1,32 +1,29 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0.407 AS build
 WORKDIR /app
 
-# Copy csproj and restore dependencies
+# Copy just what's needed for build
 COPY DriveFlow-CRM-API/*.csproj ./
 RUN dotnet restore
 
-# Copy everything else and build
+# Copy and publish only the project file
 COPY DriveFlow-CRM-API/. ./
-RUN dotnet publish -c Release -o out
+RUN dotnet publish DriveFlow-CRM-API.csproj -c Release -o /app/publish --no-restore
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build /app/out .
+COPY --from=build /app/publish .
 
-# Copy environment file if exists and set up a startup script
-RUN echo '#!/bin/bash \n\
+# Simple startup script for environment variables
+RUN echo '#!/bin/sh \n\
 if [ -f /.env ]; then \n\
-  mkdir -p ./DriveFlow-CRM-API \n\
-  cp /.env ./DriveFlow-CRM-API/.env \n\
+  mkdir -p /app/DriveFlow-CRM-API \n\
+  cp /.env /app/DriveFlow-CRM-API/.env \n\
 fi \n\
-exec dotnet DriveFlow-CRM-API.dll' > /app/start.sh && \
-chmod +x /app/start.sh
+dotnet DriveFlow-CRM-API.dll' > /app/start.sh && chmod +x /app/start.sh
 
-ENV PORT=8080
-EXPOSE 8080
-
-# Set environment variables for Heroku compatibility
+# Heroku uses PORT environment variable
 ENV ASPNETCORE_URLS=http://+:${PORT}
 
+# Run the app
 CMD /app/start.sh 

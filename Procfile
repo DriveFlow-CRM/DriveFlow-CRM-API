@@ -1,1 +1,0 @@
-web: cd $HOME/app/bin/Release/net8.0/linux-x64/publish || cd $HOME/app/bin/Release/net8.0/publish || cd $HOME/heroku_output && ASPNETCORE_URLS=http://+:$PORT dotnet DriveFlow-CRM-API.dll 
