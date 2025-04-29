@@ -1,1 +1,1 @@
-web: cd bin/publish && ./DriveFlow-CRM-API --urls http://*:$PORT
+web: cd DriveFlow-CRM-API/bin/publish && chmod +x DriveFlow-CRM-API && ./DriveFlow-CRM-API --urls http://*:$PORT
