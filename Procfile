@@ -1,1 +1,1 @@
-web: docker build -t driveflow-crm-api . && docker run -p $PORT:$PORT -e PORT=$PORT driveflow-crm-api 
+web: cd DriveFlow-CRM-API && dotnet run --urls=http://+:$PORT 
