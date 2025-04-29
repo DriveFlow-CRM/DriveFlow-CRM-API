@@ -1,1 +1,1 @@
-web: cd DriveFlow-CRM-API/bin/publish && chmod +x DriveFlow-CRM-API && ./DriveFlow-CRM-API --urls http://*:$PORT
+web: docker build -t driveflow-crm-api . && docker run -p $PORT:$PORT -e PORT=$PORT driveflow-crm-api 
