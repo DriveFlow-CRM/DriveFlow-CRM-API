@@ -10,18 +10,15 @@ RUN mkdir -p /root/.nuget/NuGet && \
 
 # Build the project directly without using the solution file
 RUN dotnet restore DriveFlow-CRM-API.csproj
-RUN dotnet publish DriveFlow-CRM-API.csproj -c Release -o /app -p:PublishTrimmed=false -p:PublishSingleFile=false
+RUN dotnet publish DriveFlow-CRM-API.csproj -c Release -o /app -p:PublishTrimmed=false -p:PublishSingleFile=false -p:TreatWarningsAsErrors=false
 
 # Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app .
 
-# Create needed directories
-RUN mkdir -p /app/DriveFlow-CRM-API
-
 # Create startup script
-RUN echo '#!/bin/bash\necho "Starting application..."\nif [ -f /.env ]; then\n  echo "Found .env file, copying to application directory"\n  cp /.env /app/DriveFlow-CRM-API/.env\nfi\nexport ASPNETCORE_ENVIRONMENT=Production\nexec dotnet DriveFlow-CRM-API.dll' > /app/start.sh && chmod +x /app/start.sh
+RUN echo '#!/bin/bash\necho "Starting application..."\nif [ -f /.env ]; then\n  echo "Found .env file, copying to application directory"\n  cp /.env /app/.env\nfi\nexport ASPNETCORE_ENVIRONMENT=Production\nexec dotnet DriveFlow-CRM-API.dll' > /app/start.sh && chmod +x /app/start.sh
 
 # Configure for Heroku
 ENV PORT=8080
