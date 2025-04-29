@@ -12,6 +12,9 @@
     <RootNamespace>DriveFlow_CRM_API</RootNamespace>
     <UserSecretsId>a922d2e6-8f0d-40b9-8ef7-9eddc86ff39e</UserSecretsId>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <PublishTrimmed>true</PublishTrimmed>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
  <PropertyGroup>

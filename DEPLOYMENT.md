@@ -1,13 +1,17 @@
-# Simple Heroku Deployment Guide
+# Optimized Heroku Deployment Guide
 
-## Environment Variable Handling
+## Deployment Overview
 
-This project uses a two-step approach for environment variables:
+This project uses several optimizations to ensure reliable deployment to Heroku:
 
-1. **Local Development**: Environment variables are read from `DriveFlow-CRM-API/.env`
-2. **Heroku Deployment**: 
-   - Environment variables are set in Heroku's config
-   - The Procfile automatically copies `.env` to `DriveFlow-CRM-API/.env` at startup
+1. **Size Optimization**: 
+   - `.slugignore` to exclude unnecessary files
+   - Build optimizations in the project file
+   - Custom build script for minimal output size
+
+2. **Environment Variables**:
+   - Environment variables are handled through Heroku config
+   - Automatically copied to the correct location at runtime
 
 ## Deployment Steps
 
@@ -30,6 +34,34 @@ git push heroku main
 
 ```bash
 heroku logs --tail -a drive-flow-crm-api
+```
+
+## Manual Build (if needed)
+
+If you need to build manually:
+
+```bash
+# Run the custom build script
+./build.sh
+
+# Deploy manually
+heroku builds:create -a drive-flow-crm-api
+```
+
+## Troubleshooting
+
+### Slug Size Issues
+
+If you still have slug size issues:
+1. Use `heroku plugins:install heroku-builds`
+2. Run `heroku builds:output -a drive-flow-crm-api` to see what's taking space
+3. Add more patterns to `.slugignore`
+
+### Database Migrations
+
+To run migrations manually:
+```bash
+heroku run --app drive-flow-crm-api "cd $HOME/heroku_output && dotnet DriveFlow-CRM-API.dll -- migrate"
 ```
 
 ## How It Works

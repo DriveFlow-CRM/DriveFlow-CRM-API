@@ -1,0 +1,24 @@
+{
+  "name": "DriveFlow CRM API",
+  "description": "REST API for the DriveFlow CRM platform",
+  "scripts": {
+    "postdeploy": "cp -f .env DriveFlow-CRM-API/.env 2>/dev/null || true"
+  },
+  "env": {
+    "ASPNETCORE_ENVIRONMENT": {
+      "description": "Environment setting for the application",
+      "value": "Production"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/dotnet"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  }
+} 
