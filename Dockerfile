@@ -3,11 +3,15 @@ WORKDIR /app
 
 # Copy just what's needed for build
 COPY DriveFlow-CRM-API/*.csproj ./
-RUN dotnet restore
+# Fix NuGet package resolution by clearing NuGet.Config and using Linux paths
+RUN mkdir -p /root/.nuget/NuGet
+RUN echo '<?xml version="1.0" encoding="utf-8"?><configuration><packageSources><clear /><add key="nuget.org" value="https://api.nuget.org/v3/index.json" /></packageSources></configuration>' > /root/.nuget/NuGet/NuGet.Config
+# Restore dependencies
+RUN dotnet restore --force
 
 # Copy and publish only the project file
 COPY DriveFlow-CRM-API/. ./
-RUN dotnet publish DriveFlow-CRM-API.csproj -c Release -o /app/publish --no-restore
+RUN dotnet publish DriveFlow-CRM-API.csproj -c Release -o /app/publish
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
