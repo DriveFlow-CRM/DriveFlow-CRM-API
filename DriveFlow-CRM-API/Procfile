@@ -1,0 +1,1 @@
+web: cd bin/publish && ./DriveFlow-CRM-API --urls http://*:$PORT
