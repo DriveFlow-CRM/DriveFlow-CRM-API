@@ -1,0 +1,1624 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DriveFlow-CRM-API</name>
+    </assembly>
+    <members>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.AccessDeniedModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Areas.Identity.Pages.Account.AccessDeniedModel.OnGet">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ConfirmEmailModel.StatusMessage">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ConfirmEmailChangeModel.StatusMessage">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ExternalLoginModel.Input">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ExternalLoginModel.ProviderDisplayName">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ExternalLoginModel.ReturnUrl">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ExternalLoginModel.ErrorMessage">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ExternalLoginModel.InputModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ExternalLoginModel.InputModel.Email">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ForgotPasswordModel.Input">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ForgotPasswordModel.InputModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ForgotPasswordModel.InputModel.Email">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ForgotPasswordConfirmation">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ForgotPasswordConfirmation.OnGet">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LockoutModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LockoutModel.OnGet">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginModel.Input">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginModel.ExternalLogins">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginModel.ReturnUrl">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginModel.ErrorMessage">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginModel.InputModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginModel.InputModel.Email">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginModel.InputModel.Password">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginModel.InputModel.RememberMe">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginWith2faModel.Input">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginWith2faModel.RememberMe">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginWith2faModel.ReturnUrl">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginWith2faModel.InputModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginWith2faModel.InputModel.TwoFactorCode">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginWith2faModel.InputModel.RememberMachine">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginWithRecoveryCodeModel.Input">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginWithRecoveryCodeModel.ReturnUrl">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginWithRecoveryCodeModel.InputModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.LoginWithRecoveryCodeModel.InputModel.RecoveryCode">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ChangePasswordModel.Input">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ChangePasswordModel.StatusMessage">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ChangePasswordModel.InputModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ChangePasswordModel.InputModel.OldPassword">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ChangePasswordModel.InputModel.NewPassword">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ChangePasswordModel.InputModel.ConfirmPassword">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.DeletePersonalDataModel.Input">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.DeletePersonalDataModel.InputModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.DeletePersonalDataModel.InputModel.Password">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.DeletePersonalDataModel.RequirePassword">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.Disable2faModel.StatusMessage">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.EmailModel.Email">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.EmailModel.IsEmailConfirmed">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.EmailModel.StatusMessage">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.EmailModel.Input">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.EmailModel.InputModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.EmailModel.InputModel.NewEmail">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.EnableAuthenticatorModel.SharedKey">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.EnableAuthenticatorModel.AuthenticatorUri">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.EnableAuthenticatorModel.RecoveryCodes">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.EnableAuthenticatorModel.StatusMessage">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.EnableAuthenticatorModel.Input">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.EnableAuthenticatorModel.InputModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.EnableAuthenticatorModel.InputModel.Code">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ExternalLoginsModel.CurrentLogins">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ExternalLoginsModel.OtherLogins">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ExternalLoginsModel.ShowRemoveButton">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ExternalLoginsModel.StatusMessage">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.GenerateRecoveryCodesModel.RecoveryCodes">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.GenerateRecoveryCodesModel.StatusMessage">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.IndexModel.Username">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.IndexModel.StatusMessage">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.IndexModel.Input">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.IndexModel.InputModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.IndexModel.InputModel.PhoneNumber">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.Index">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.Email">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.ChangePassword">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.DownloadPersonalData">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.DeletePersonalData">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.ExternalLogins">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.PersonalData">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.TwoFactorAuthentication">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.IndexNavClass(Microsoft.AspNetCore.Mvc.Rendering.ViewContext)">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.EmailNavClass(Microsoft.AspNetCore.Mvc.Rendering.ViewContext)">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.ChangePasswordNavClass(Microsoft.AspNetCore.Mvc.Rendering.ViewContext)">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.DownloadPersonalDataNavClass(Microsoft.AspNetCore.Mvc.Rendering.ViewContext)">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.DeletePersonalDataNavClass(Microsoft.AspNetCore.Mvc.Rendering.ViewContext)">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.ExternalLoginsNavClass(Microsoft.AspNetCore.Mvc.Rendering.ViewContext)">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.PersonalDataNavClass(Microsoft.AspNetCore.Mvc.Rendering.ViewContext)">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.TwoFactorAuthenticationNavClass(Microsoft.AspNetCore.Mvc.Rendering.ViewContext)">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ManageNavPages.PageNavClass(Microsoft.AspNetCore.Mvc.Rendering.ViewContext,System.String)">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ResetAuthenticatorModel.StatusMessage">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.SetPasswordModel.Input">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.SetPasswordModel.StatusMessage">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.SetPasswordModel.InputModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.SetPasswordModel.InputModel.NewPassword">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.SetPasswordModel.InputModel.ConfirmPassword">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ShowRecoveryCodesModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ShowRecoveryCodesModel.RecoveryCodes">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ShowRecoveryCodesModel.StatusMessage">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.ShowRecoveryCodesModel.OnGet">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.TwoFactorAuthenticationModel.HasAuthenticator">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.TwoFactorAuthenticationModel.RecoveryCodesLeft">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.TwoFactorAuthenticationModel.Is2faEnabled">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.TwoFactorAuthenticationModel.IsMachineRemembered">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.Manage.TwoFactorAuthenticationModel.StatusMessage">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.RegisterModel.Input">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.RegisterModel.ReturnUrl">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.RegisterModel.ExternalLogins">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.RegisterModel.InputModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.RegisterModel.InputModel.Email">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.RegisterModel.InputModel.Password">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.RegisterModel.InputModel.ConfirmPassword">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.RegisterConfirmationModel.Email">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.RegisterConfirmationModel.DisplayConfirmAccountLink">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.RegisterConfirmationModel.EmailConfirmationUrl">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ResendEmailConfirmationModel.Input">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ResendEmailConfirmationModel.InputModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ResendEmailConfirmationModel.InputModel.Email">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ResetPasswordModel.Input">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ResetPasswordModel.InputModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ResetPasswordModel.InputModel.Email">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ResetPasswordModel.InputModel.Password">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ResetPasswordModel.InputModel.ConfirmPassword">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ResetPasswordModel.InputModel.Code">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ResetPasswordConfirmationModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Areas.Identity.Pages.Account.ResetPasswordConfirmationModel.OnGet">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Areas.Identity.Pages.ErrorModel">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.ErrorModel.RequestId">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Areas.Identity.Pages.ErrorModel.ShowRequestId">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Areas.Identity.Pages.ErrorModel.OnGet">
+            <summary>
+                This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+                directly from your code. This API may change or be removed in future releases.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Authentication.Tokens.Handlers.CoreUserClaimsHandler">
+            <summary>Adds sub, userId, userEmail.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Authentication.Tokens.Handlers.ITokenClaimHandler">
+            <summary>
+            Link in the JWT claim-building pipeline.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Authentication.Tokens.Handlers.ITokenClaimHandler.SetNext(DriveFlow_CRM_API.Authentication.Tokens.Handlers.ITokenClaimHandler)">
+            <summary>Sets the next handler in the chain.</summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Authentication.Tokens.Handlers.ITokenClaimHandler.Handle(Microsoft.AspNetCore.Identity.IdentityUser,System.Collections.Generic.IList{System.String},System.Int32,System.Collections.Generic.ICollection{System.Security.Claims.Claim})">
+            <summary>Adds custom claims for the specified user.</summary>
+            <param name="user">Identity user whose claims are built.</param>
+            <param name="roles">Roles already resolved for the user.</param>
+            <param name="schoolId">School context identifier.</param>
+            <param name="claims">Mutable collection to which new claims are appended.</param>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Authentication.Tokens.Handlers.TokenClaimHandlerBase">
+            <summary>
+            Base class that wires the chain and forwards to the next handler.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Authentication.Tokens.Handlers.TokenClaimHandlerBase.SetNext(DriveFlow_CRM_API.Authentication.Tokens.Handlers.ITokenClaimHandler)">
+            <inheritdoc/>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Authentication.Tokens.Handlers.TokenClaimHandlerBase.Handle(Microsoft.AspNetCore.Identity.IdentityUser,System.Collections.Generic.IList{System.String},System.Int32,System.Collections.Generic.ICollection{System.Security.Claims.Claim})">
+            <inheritdoc/>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Authentication.Tokens.Handlers.RoleClaimsHandler">
+            <summary>Adds one <c>role</c> claim per role.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Authentication.Tokens.Handlers.SchoolClaimHandler">
+            <summary>Adds <c>schoolId</c> claim.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Authentication.Tokens.ITokenGenerator">
+            <summary>
+            Defines a component that can generate a signed security token
+            (typically a JWT) for an <see cref="T:Microsoft.AspNetCore.Identity.IdentityUser" />.
+            </summary>
+            <remarks>
+            Implementations such as <c>JwtAccessTokenGenerator</c> or
+            <c>JwtRefreshTokenGenerator</c> decide how the token is built,
+            what claims are included, and how it is cryptographically signed.
+            </remarks>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Authentication.Tokens.ITokenGenerator.GenerateToken(Microsoft.AspNetCore.Identity.IdentityUser,System.Collections.Generic.IList{System.String},System.Int32)">
+            <summary>
+            Creates a token that represents <paramref name="user" />.
+            </summary>
+            <param name="user">Identity account for which the token is issued.</param>
+            <param name="roles">Roles assigned to the user and embedded as claims.</param>
+            <param name="schoolId">
+            Optional school identifier to include as a custom claim (use <c>0</c> if n/a).
+            </param>
+            <returns>The serialized token string (e.g., compact JWT).</returns>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Authentication.Tokens.JwtAccessTokenGenerator">
+            <summary>
+            Generates a signed JWT <strong>access-token</strong> for a given user and
+            their roles.  Secret is taken from the <c>JWT_KEY</c> environment variable;
+            if absent it falls back to <c>Jwt:Key</c> from configuration files.
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:DriveFlow_CRM_API.Authentication.Tokens.JwtAccessTokenGenerator.#ctor(Microsoft.Extensions.Configuration.IConfiguration,System.Collections.Generic.IEnumerable{DriveFlow_CRM_API.Authentication.Tokens.Handlers.ITokenClaimHandler})" -->
+        <member name="T:DriveFlow_CRM_API.Authentication.Tokens.JwtRefreshTokenGenerator">
+            <summary>
+            Generates signed JWT <strong>refresh-tokens</strong> for ASP.NET Core Identity users.
+            </summary>
+            <remarks>
+            <para>
+            The secret signing key is read from <c>JWT_KEY</c> (environment variable) and
+            falls back to <c>Jwt:Key</c> in <c>appsettings.json</c>.  
+            Expiration in days is taken from <c>Jwt:RefreshExpiresDays</c>; if missing,
+            the factory defaults to seven days.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Authentication.Tokens.JwtRefreshTokenGenerator.#ctor(Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>Initializes the generator with application configuration.</summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Authentication.Tokens.JwtRefreshTokenGenerator.GenerateToken(Microsoft.AspNetCore.Identity.IdentityUser,System.Collections.Generic.IList{System.String},System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="T:DriveFlow_CRM_API.Authentication.Tokens.TokenType">
+            <summary>
+            Distinguishes between the two JWT flavours issued by the API.
+            </summary>
+        </member>
+        <member name="F:DriveFlow_CRM_API.Authentication.Tokens.TokenType.Access">
+            <summary>Short-lived token placed in the <c>Authorization</c> header.</summary>
+        </member>
+        <member name="F:DriveFlow_CRM_API.Authentication.Tokens.TokenType.Refresh">
+            <summary>Long-lived token used to obtain a fresh <see cref="F:DriveFlow_CRM_API.Authentication.Tokens.TokenType.Access"/> token.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Authentication.Tokens.TokenGeneratorFactory">
+            <summary>
+            Factory that creates a concrete <see cref="T:DriveFlow_CRM_API.Authentication.Tokens.ITokenGenerator"/> for the requested
+            <see cref="T:DriveFlow_CRM_API.Authentication.Tokens.TokenType" />.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Authentication.Tokens.TokenGeneratorFactory.Create(DriveFlow_CRM_API.Authentication.Tokens.TokenType,System.IServiceProvider)">
+            <summary>
+            Returns an <see cref="T:DriveFlow_CRM_API.Authentication.Tokens.ITokenGenerator" /> implementation suited to
+            <paramref name="type" />.
+            </summary>
+            <param name="type">
+            Kind of token to generate (<see cref="F:DriveFlow_CRM_API.Authentication.Tokens.TokenType.Access" /> or
+            <see cref="F:DriveFlow_CRM_API.Authentication.Tokens.TokenType.Refresh" />).
+            </param>
+            <param name="sp">
+            <see cref="T:System.IServiceProvider" /> – used to resolve configuration and the claim
+            handlers (Chain of Responsibility) registered in DI.
+            </param>
+            <returns>
+            An instance of <see cref="T:DriveFlow_CRM_API.Authentication.Tokens.JwtAccessTokenGenerator" /> or
+            <see cref="T:DriveFlow_CRM_API.Authentication.Tokens.JwtRefreshTokenGenerator" />.
+            </returns>
+            <exception cref="T:System.NotSupportedException">
+            Thrown if an unrecognised <paramref name="type" /> is supplied.
+            </exception>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Authentication.IRefreshTokenService">
+            <summary>
+            Contract for persisting and validating refresh-tokens that belong to an
+            <see cref="T:DriveFlow_CRM_API.Models.ApplicationUser" />.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Authentication.IRefreshTokenService.StoreAsync(DriveFlow_CRM_API.Models.ApplicationUser,System.String,System.DateTime)">
+            <summary>Saves a refresh-token together with its UTC expiration timestamp.</summary>
+            <param name="user">The account that owns the token.</param>
+            <param name="token">JWT refresh-token string.</param>
+            <param name="expires">Absolute expiration time in UTC.</param>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Authentication.IRefreshTokenService.ValidateAsync(DriveFlow_CRM_API.Models.ApplicationUser,System.String)">
+            <summary>
+            Validates that <paramref name="token" /> matches the stored value and is not expired.
+            </summary>
+            <param name="user">The account that owns the token.</param>
+            <param name="token">Refresh-token provided by the client.</param>
+            <returns><see langword="true"/> if the token matches and is still valid.</returns>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Authentication.RefreshTokenService">
+            <inheritdoc cref="T:DriveFlow_CRM_API.Authentication.IRefreshTokenService" />
+        </member>
+        <member name="M:DriveFlow_CRM_API.Authentication.RefreshTokenService.#ctor(Microsoft.AspNetCore.Identity.UserManager{DriveFlow_CRM_API.Models.ApplicationUser})">
+            <summary>DI constructor—receives the Identity <see cref="T:Microsoft.AspNetCore.Identity.UserManager`1" />.</summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Authentication.RefreshTokenService.StoreAsync(DriveFlow_CRM_API.Models.ApplicationUser,System.String,System.DateTime)">
+            <inheritdoc />
+        </member>
+        <member name="M:DriveFlow_CRM_API.Authentication.RefreshTokenService.ValidateAsync(DriveFlow_CRM_API.Models.ApplicationUser,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="T:DriveFlow_CRM_API.Migrations.InitializareBazaDeDate">
+            <inheritdoc />
+        </member>
+        <member name="M:DriveFlow_CRM_API.Migrations.InitializareBazaDeDate.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DriveFlow_CRM_API.Migrations.InitializareBazaDeDate.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DriveFlow_CRM_API.Migrations.InitializareBazaDeDate.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.Address">
+            <summary>
+                Physical address located in a <see cref="P:DriveFlow_CRM_API.Models.Address.City"/>; it can optionally be
+                linked one-to-one to an <see cref="T:DriveFlow_CRM_API.Models.AutoSchool"/> (AutoSchool holds the FK).
+            </summary>
+            <remarks>
+                • <see cref="P:DriveFlow_CRM_API.Models.Address.Postcode"/> is unique across all addresses.  
+                • Required FK <see cref="P:DriveFlow_CRM_API.Models.Address.CityId"/> ⇒ deleting a city cascades to its addresses.  
+                • The optional 1 : 1 relation Address ↔ AutoSchool is configured in <c>OnModelCreating</c>.
+            </remarks>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Address.AddressId">
+            <summary>Primary key.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Address.StreetName">
+            <summary>Street name.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Address.AddressNumber">
+            <summary>Street / house number (optional).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Address.Postcode">
+            <summary>Postal code (unique, optional).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Address.CityId">
+            <summary>Required foreign key to the parent city.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Address.City">
+            <summary>Navigation to the parent <see cref="P:DriveFlow_CRM_API.Models.Address.City"/>.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.ApplicationUser">
+            <summary>
+            Platform user. Identity roles (<c>SuperAdmin</c>, <c>SchoolAdmin</c>,
+            <c>Instructor</c>, <c>Student</c>) decide at runtime what operations are allowed,
+            but the database schema remains a single <see cref="T:DriveFlow_CRM_API.Models.ApplicationUser"/> table.
+            </summary>
+            <remarks>
+            • Optional FK <see cref="P:DriveFlow_CRM_API.Models.ApplicationUser.AutoSchoolId"/> — only school-level roles belong to a school.<br/>
+            • One-to-many toward <see cref="T:DriveFlow_CRM_API.Models.File"/>, <see cref="T:DriveFlow_CRM_API.Models.InstructorAvailability"/>,
+              and the bridge entity <see cref="T:DriveFlow_CRM_API.Models.ApplicationUserTeachingCategory"/>.<br/>
+            • Deleting the user sets those FKs to <c>null</c>
+              (<c>DeleteBehavior.SetNull</c> in <c>OnModelCreating</c>).
+            </remarks>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.ApplicationUser.FirstName">
+            <summary>User’s given name.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.ApplicationUser.LastName">
+            <summary>User’s family name.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.ApplicationUser.Cnp">
+            <summary>National identifier (CNP, 13 digits).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.ApplicationUser.AutoSchoolId">
+            <summary>FK to the driving school this user belongs to (optional).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.ApplicationUser.AutoSchool">
+            <summary>Navigation to the owning <see cref="P:DriveFlow_CRM_API.Models.ApplicationUser.AutoSchool"/>.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.ApplicationUser.StudentFiles">
+            <summary>
+            Files owned by the user in their <b>Student</b> role
+            (medical record, criminal record, contract etc.).
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.ApplicationUser.InstructorFiles">
+            <summary>
+            Files uploaded by the user in their <b>Instructor</b> role
+            (lesson sheets, attendance, grading documents).
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.ApplicationUser.InstructorAvailabilities">
+            <summary>Availability slots (only relevant for instructors).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.ApplicationUser.ApplicationUserTeachingCategories">
+            <summary>Bridge rows that link the user to teaching categories.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.ApplicationUserTeachingCategory">
+            <summary>
+            Join-entity that links an <see cref="T:DriveFlow_CRM_API.Models.ApplicationUser"/> (student or instructor)
+            to a <see cref="P:DriveFlow_CRM_API.Models.ApplicationUserTeachingCategory.TeachingCategory"/>.
+            </summary>
+            <remarks>
+            • Deleting the user (instructor / student) <b>cascades</b> to this row.<br/>
+            • Deleting the teaching category cascades as well.<br/>
+            • No additional columns, just the two foreign keys.
+            </remarks>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.ApplicationUserTeachingCategory.ApplicationUserTeachingCategoryId">
+            <summary>Surrogate primary key.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.ApplicationUserTeachingCategory.UserId">
+            <summary>FK to the linked <see cref="T:DriveFlow_CRM_API.Models.ApplicationUser"/> (required).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.ApplicationUserTeachingCategory.User">
+            <summary>Navigation to the user (student / instructor).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.ApplicationUserTeachingCategory.TeachingCategoryId">
+            <summary>FK to the linked <see cref="P:DriveFlow_CRM_API.Models.ApplicationUserTeachingCategory.TeachingCategory"/> (required).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.ApplicationUserTeachingCategory.TeachingCategory">
+            <summary>Navigation to the teaching category.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.Appointment">
+            <summary>
+            Driving-lesson appointment scheduled between a student and an instructor.
+            </summary>
+            <remarks>
+            • Optional FK <see cref="P:DriveFlow_CRM_API.Models.Appointment.FileId"/> references a single <see cref="P:DriveFlow_CRM_API.Models.Appointment.File"/>
+              (e.g. lesson report or signed attendance sheet).<br/>
+            • No special cascade rules: deleting an appointment does <b>not</b> affect the file
+              and vice-versa (EF conventions handle the FK).
+            </remarks>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Appointment.AppointmentId">
+            <summary>Primary key.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Appointment.Date">
+            <summary>Date of the lesson (local time).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Appointment.StartHour">
+            <summary>Lesson start time.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Appointment.EndHour">
+            <summary>Lesson end time.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Appointment.FileId">
+            <summary>Optional FK to the associated file (report, document, etc.).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Appointment.File">
+            <summary>Navigation to the attached file.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.AutoSchool">
+            <summary>
+            Driving school (AutoSchool) entity.  
+            Holds business details and connects to users, vehicles, teaching categories
+            and requests.
+            </summary>
+            <remarks>
+            • <see cref="P:DriveFlow_CRM_API.Models.AutoSchool.PhoneNumber"/> and <see cref="P:DriveFlow_CRM_API.Models.AutoSchool.Email"/> are unique.<br/>
+            • Optional FK <see cref="P:DriveFlow_CRM_API.Models.AutoSchool.AddressId"/> → <see cref="P:DriveFlow_CRM_API.Models.AutoSchool.Address"/>.<br/>
+            • Deleting an AutoSchool cascades to Users, Vehicles, TeachingCategories, Requests
+              (configured in <c>OnModelCreating</c>).
+            </remarks>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.AutoSchool.AutoSchoolId">
+            <summary>Primary key.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.AutoSchool.Name">
+            <summary>School name.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.AutoSchool.Description">
+            <summary>Description (optional).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.AutoSchool.WebSite">
+            <summary>Website URL (optional).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.AutoSchool.PhoneNumber">
+            <summary>Contact phone number (unique).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.AutoSchool.Email">
+            <summary>Contact e-mail address (unique, RFC-5322 regex).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.AutoSchool.Status">
+            <summary>Operational status of the school.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.AutoSchool.AddressId">
+            <summary>Optional FK to the headquarters <see cref="P:DriveFlow_CRM_API.Models.AutoSchool.Address"/>.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.AutoSchool.Address">
+            <summary>Navigation to headquarters address.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.AutoSchool.ApplicationUsers">
+            <summary>All users (students / instructors / admins) linked to this school.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.AutoSchool.Vehicles">
+            <summary>Fleet of vehicles owned by the school.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.AutoSchool.TeachingCategories">
+            <summary>Teaching categories the school is certified for (at least one).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.AutoSchool.Requests">
+            <summary>Requests submitted for this school.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.AutoSchoolStatus">
+            <summary>Status values for <see cref="T:DriveFlow_CRM_API.Models.AutoSchool"/>.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.City">
+            <summary>
+            City that belongs to a <see cref="P:DriveFlow_CRM_API.Models.City.County"/> and can hold
+            multiple <see cref="T:DriveFlow_CRM_API.Models.Address"/> entries.
+            </summary>
+            <remarks>
+            • <see cref="P:DriveFlow_CRM_API.Models.City.Name"/> is globally unique.<br/>
+            • Required FK <see cref="P:DriveFlow_CRM_API.Models.City.CountyId"/> ⇒ deleting a county cascades to its cities.<br/>
+            • Relationship City (1) → Address (M) is configured in <c>OnModelCreating</c>.
+            </remarks>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.City.CityId">
+            <summary>Primary key.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.City.Name">
+            <summary>City name (unique).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.City.CountyId">
+            <summary>Foreign key to the parent <see cref="P:DriveFlow_CRM_API.Models.City.County"/> (required).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.City.County">
+            <summary>Navigation to the parent county.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.City.Addresses">
+            <summary>All addresses located in this city.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.County">
+            <summary>
+            Administrative unit that may contain multiple cities.
+            </summary>
+            <remarks>
+            Uniqueness of <see cref="P:DriveFlow_CRM_API.Models.County.Name"/> and <see cref="P:DriveFlow_CRM_API.Models.County.Abbreviation"/> is enforced
+            via indexes declared both here and in <c>OnModelCreating</c>.
+            </remarks>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.County.CountyId">
+            <summary>Primary key.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.County.Name">
+            <summary>Full county name (unique).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.County.Abbreviation">
+            <summary>Short code, e.g. “AB” (unique).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.County.Cities">
+            <summary>
+            Cities that belong to this county (1 : M, cascade delete).
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.File">
+            <summary>
+            File entity that stores any document uploaded to the platform:
+            invoices, lesson sheets, vehicle papers, etc.
+            </summary>
+            <remarks>
+            • One-to-one with <see cref="T:DriveFlow_CRM_API.Models.Payment"/> via <c>PaymentId</c>; deleting this file cascades to its payment.<br/>
+            • One-to-many with <see cref="T:DriveFlow_CRM_API.Models.Appointment"/>; deleting the file cascades to its appointments.<br/>
+            • Optional many-to-one toward <see cref="P:DriveFlow_CRM_API.Models.File.Vehicle"/>, <see cref="P:DriveFlow_CRM_API.Models.File.TeachingCategory"/>,
+              and an <see cref="T:DriveFlow_CRM_API.Models.ApplicationUser"/> acting as instructor.<br/>
+            • Mandatory many-to-one toward a student (<see cref="T:DriveFlow_CRM_API.Models.ApplicationUser"/>).<br/>
+            • Other optional links are set to <c>null</c> when the related entity is deleted.
+            </remarks>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.File.FileId">
+            <summary>Primary key.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.File.ScholarshipStartDate">
+            <summary>Date when scholarship starts, if relevant.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.File.CriminalRecordExpiryDate">
+            <summary>Criminal-record certificate expiry.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.File.MedicalRecordExpiryDate">
+            <summary>Medical record expiry.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.File.Status">
+            <summary>Current processing status of the file.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.File.Appointments">
+            <summary>Appointments backed by this file (1 : M, cascade).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.File.VehicleId">
+            <summary>Foreign key to the linked <see cref="P:DriveFlow_CRM_API.Models.File.Vehicle"/> (optional).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.File.Vehicle">
+            <summary>Navigation to the vehicle (M : 1, set-null).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.File.TeachingCategoryId">
+            <summary>Foreign key to the linked <see cref="P:DriveFlow_CRM_API.Models.File.TeachingCategory"/> (optional).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.File.TeachingCategory">
+            <summary>Navigation to the teaching category (M : 1, set-null).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.File.StudentId">
+            <summary>Foreign key to the student who owns this file (required).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.File.Student">
+            <summary>Navigation to the student (M : 1).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.File.InstructorId">
+            <summary>Foreign key to the instructor (optional).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.File.Instructor">
+            <summary>Navigation to the instructor (M : 1, set-null).</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.FileStatus">
+            <summary>Status values for <see cref="T:DriveFlow_CRM_API.Models.File"/>.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.InstructorAvailability">
+            <summary>
+            Time slot in which an <see cref="T:DriveFlow_CRM_API.Models.ApplicationUser"/> acting as instructor
+            is available for driving lessons.
+            </summary>
+            <remarks>
+            • Optional many-to-one toward the instructor (<see cref="T:DriveFlow_CRM_API.Models.ApplicationUser"/>); an availability can exist
+              without being assigned yet.<br/>
+            • No special cascade rules are required; EF Core conventions handle the FK
+              (deleting the instructor sets <see cref="P:DriveFlow_CRM_API.Models.InstructorAvailability.InstructorId"/> to <c>null</c>).
+            </remarks>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.InstructorAvailability.IntervalId">
+            <summary>Primary key.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.InstructorAvailability.Date">
+            <summary>Date of the availability slot (local time).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.InstructorAvailability.StartHour">
+            <summary>Start hour of the slot.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.InstructorAvailability.EndHour">
+            <summary>End hour of the slot.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.InstructorAvailability.InstructorId">
+            <summary>Foreign key to the instructor (optional).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.InstructorAvailability.Instructor">
+            <summary>Navigation to the instructor (M : 1).</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.License">
+            <summary>
+            Driving-licence category (e.g. “A”, “B”, “C”).  
+            A licence can be referenced by multiple <see cref="T:DriveFlow_CRM_API.Models.Vehicle"/> and
+            multiple <see cref="T:DriveFlow_CRM_API.Models.TeachingCategory"/> rows.
+            </summary>
+            <remarks>
+            • <see cref="P:DriveFlow_CRM_API.Models.License.Type"/> is unique (A, B, C …).<br/>
+            • Deleting a licence sets the FK to <c>null</c> in <see cref="T:DriveFlow_CRM_API.Models.Vehicle"/> and
+              <see cref="T:DriveFlow_CRM_API.Models.TeachingCategory"/> (configured in <c>OnModelCreating</c>).
+            </remarks>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.License.LicenseId">
+            <summary>Primary key.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.License.Type">
+            <summary>Licence code (A, B, C …).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.License.Vehicles">
+            <summary>Vehicles that require this licence.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.License.TeachingCategories">
+            <summary>Teaching categories associated with this licence.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.Payment">
+            <summary>
+            Represents a payment made by a student (either the base scholarship
+            fee or individual driving-session payments).
+            </summary>
+            <remarks>
+            • One-to-one with <see cref="P:DriveFlow_CRM_API.Models.Payment.File"/> (receipt / invoice).<br/>
+            • <see cref="P:DriveFlow_CRM_API.Models.Payment.FileId"/> is the FK; deleting the parent <c>File</c> cascades
+              and deletes this <c>Payment</c>.
+            </remarks>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Payment.PaymentId">
+            <summary>Primary key.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Payment.ScholarshipBasePayment">
+            <summary><c>true</c> = base-scholarship payment; <c>false</c> = per-lesson.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Payment.SessionsPayed">
+            <summary>Number of driving sessions covered by this payment (≥ 0).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Payment.FileId">
+            <summary>Foreign key to the attached receipt/invoice file.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Payment.File">
+            <summary>Navigation property to the receipt/invoice file.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.Request">
+            <summary>
+            Contact request submitted by a prospective student to an
+            <see cref="P:DriveFlow_CRM_API.Models.Request.AutoSchool"/>.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Request.RequestId">
+            <summary>Primary key.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Request.FirstName">
+            <summary>First name of the applicant.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Request.LastName">
+            <summary>Last name of the applicant.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Request.PhoneNumber">
+            <summary>Contact phone number.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Request.DrivingCategory">
+            <summary>Desired driving category (“B”, “C” …).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Request.RequestDate">
+            <summary>Date and time when the request was created.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Request.AutoSchoolId">
+            <summary>
+            Optional FK to the targeted <see cref="P:DriveFlow_CRM_API.Models.Request.AutoSchool"/>. Deleting the school cascades
+            by convention (FK non-nullable); no custom rule required.
+            </summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Request.AutoSchool">
+            <summary>Navigation to the auto-school.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.SeedData">
+            <summary>
+            Seeds default roles and users for the DriveFlow CRM database.
+            This method is invoked from Program.cs at application startup.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Models.SeedData.Initialize(System.IServiceProvider)">
+            <summary>
+            Inserts initial data only if the AspNetRoles table is empty.
+            Idempotent so it can be executed multiple times safely.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.TeachingCategory">
+            <summary>
+            A teaching category offered by an <see cref="P:DriveFlow_CRM_API.Models.TeachingCategory.AutoSchool"/> (e.g. “B Manual”).
+            </summary>
+            <remarks>
+            • FK <see cref="P:DriveFlow_CRM_API.Models.TeachingCategory.AutoSchoolId"/> is **required**; deleting the school cascades.<br/>
+            • FK <see cref="P:DriveFlow_CRM_API.Models.TeachingCategory.LicenseId"/> is **optional**; deleting the licence sets it to <c>null</c>.<br/>
+            • Deleting a category cascades to the join-table
+              <see cref="T:DriveFlow_CRM_API.Models.ApplicationUserTeachingCategory"/> but <b>does not</b> delete files
+              (their FK is set to <c>null</c>).<br/>
+            • <see cref="P:DriveFlow_CRM_API.Models.TeachingCategory.Code"/> is unique inside one school.
+            </remarks>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.TeachingCategory.TeachingCategoryId">
+            <summary>Primary key.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.TeachingCategory.Code">
+            <summary>Short code (“B”, “C+E”…), unique per school.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.TeachingCategory.SessionCost">
+            <summary>Cost per driving session (≥ 0).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.TeachingCategory.SessionDuration">
+            <summary>Duration of one session, in minutes (≥ 0).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.TeachingCategory.ScholarshipPrice">
+            <summary>Total price of the scholarship pack, if any (≥ 0).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.TeachingCategory.MinDrivingLessonsReq">
+            <summary>Minimum number of driving lessons required (≥ 0).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.TeachingCategory.AutoSchoolId">
+            <summary>FK to the owning <see cref="P:DriveFlow_CRM_API.Models.TeachingCategory.AutoSchool"/> (mandatory).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.TeachingCategory.AutoSchool">
+            <summary>Navigation to the auto-school.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.TeachingCategory.LicenseId">
+            <summary>FK to the required <see cref="P:DriveFlow_CRM_API.Models.TeachingCategory.License"/> (optional).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.TeachingCategory.License">
+            <summary>Navigation to the driving-license type.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.TeachingCategory.Files">
+            <summary>Files linked to this category (set-null on delete).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.TeachingCategory.ApplicationUserTeachingCategories">
+            <summary>
+            Join entities that map students/instructors to this category
+            (cascades on delete).
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.Vehicle">
+            <summary>
+            Vehicle owned (optionally) by an <see cref="P:DriveFlow_CRM_API.Models.Vehicle.AutoSchool"/>; stores
+            technical data and may have related files (photos, docs).
+            </summary>
+            <remarks>
+            • <see cref="P:DriveFlow_CRM_API.Models.Vehicle.LicensePlateNumber"/> is unique.<br/>
+            • Optional FK <see cref="P:DriveFlow_CRM_API.Models.Vehicle.LicenseId"/> → <see cref="P:DriveFlow_CRM_API.Models.Vehicle.License"/> (M : 1).<br/>
+            • Relationship Vehicle (1) → File (M) is configured in <c>OnModelCreating</c>.
+            </remarks>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Vehicle.VehicleId">
+            <summary>Primary key.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Vehicle.LicensePlateNumber">
+            <summary>Unique licence-plate number.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Vehicle.TransmissionType">
+            <summary>Transmission type.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Vehicle.Color">
+            <summary>Paint colour.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Vehicle.ItpExpiryDate">
+            <summary>Technical inspection expiry (ITP).</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Vehicle.InsuranceExpiryDate">
+            <summary>Comprehensive insurance expiry.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Vehicle.RcaExpiryDate">
+            <summary>Liability insurance (RCA) expiry.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Vehicle.LicenseId">
+            <summary>Optional FK to the required driving-license type.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Vehicle.License">
+            <summary>Navigation to the driving-license entity.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Vehicle.AutoSchoolId">
+            <summary>Optional FK to the owning <see cref="P:DriveFlow_CRM_API.Models.Vehicle.AutoSchool"/>.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Vehicle.AutoSchool">
+            <summary>Navigation to the auto-school.</summary>
+        </member>
+        <member name="P:DriveFlow_CRM_API.Models.Vehicle.Files">
+            <summary>Files (documents, photos) attached to this vehicle.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Models.TransmissionType">
+            <summary>Manual / Automatic transmission.</summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.ApplicationDbContextFactory">
+            <summary>
+            Design-time factory for <see cref="T:ApplicationDbContext"/> used by EF Core
+            tooling (<c>dotnet ef migrations add</c>, <c>dotnet ef database update</c>).
+            Implementing <see cref="T:Microsoft.EntityFrameworkCore.Design.IDesignTimeDbContextFactory`1"/> prevents the
+            “Unable to create a DbContext” error by telling EF Core exactly how to build
+            the context when the application entry point is not executed.
+            </summary>
+            <remarks>
+            <list type="bullet">
+              <item>
+                <description>Reads the JawsDB connection URI from the environment
+                variable <c>JAWSDB_URL</c>.</description>
+              </item>
+              <item>
+                <description>Converts that URI into a regular MySQL connection string and
+                configures Pomelo via
+                <see cref="!:RelationalDatabaseFacadeExtensions.UseMySql(DbContextOptionsBuilder,string,Action&lt;MySqlDbContextOptionsBuilder&gt;)"/>,
+                letting <see cref="M:Microsoft.EntityFrameworkCore.ServerVersion.AutoDetect(System.String)"/> pick the correct
+                dialect.</description>
+              </item>
+              <item>
+                <description>Throws <see cref="T:System.InvalidOperationException"/> if
+                <c>JAWSDB_URL</c> is missing so design-time operations fail fast.</description>
+              </item>
+            </list>
+            </remarks>
+        </member>
+        <member name="M:DriveFlow_CRM_API.ApplicationDbContextFactory.CreateDbContext(System.String[])">
+            <inheritdoc />
+            <exception cref="T:System.InvalidOperationException">
+            Thrown when <c>JAWSDB_URL</c> is not defined.
+            </exception>
+        </member>
+        <!-- Badly formed XML comment ignored for member "T:AuthController" -->
+        <member name="M:AuthController.#ctor(Microsoft.AspNetCore.Identity.UserManager{DriveFlow_CRM_API.Models.ApplicationUser},Microsoft.AspNetCore.Identity.SignInManager{DriveFlow_CRM_API.Models.ApplicationUser},DriveFlow_CRM_API.Authentication.Tokens.ITokenGenerator,DriveFlow_CRM_API.Authentication.IRefreshTokenService,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Constructor injected by the framework with request‑scoped services.
+            </summary>
+        </member>
+        <member name="M:AuthController.LoginAsync(LoginDto)">
+            <summary>
+            Authenticates a user and returns an access-token plus a refresh-token.
+            </summary>
+            <remarks>
+            <list type="bullet">
+              <item><description>
+                Secret key is read from <c>JWT_KEY</c> (env) or <c>Jwt:Key</c> (appsettings).
+              </description></item>
+              <item><description>
+                <b>Sample request</b>:<br/>
+                <code>
+                POST /api/auth<br/>
+                {<br/>
+                  &quot;email&quot;: &quot;student@test.com&quot;,<br/>
+                  &quot;password&quot;: &quot;Student231!&quot;<br/>
+                }
+                </code>
+              </description></item>
+            </list>
+            </remarks>
+            <param name="dto">Credentials (e-mail &amp; password).</param>
+            <response code="200">Login successful – returns tokens and user metadata.</response>
+            <response code="401">E-mail or password incorrect.</response>
+            <response code="404">Account not found.</response>
+        </member>
+        <member name="M:AuthController.RefreshAsync(RefreshDto)">
+            <summary>
+            Exchanges a valid refresh‑token for a new access‑token.
+            </summary>
+            <param name="dto">Payload containing the refresh‑token.</param>
+            <response code="200">New access‑token issued.</response>
+            <response code="401">Refresh‑token invalid or user no longer exists.</response>
+        </member>
+        <member name="T:LoginDto">
+            <summary>
+            DTO used for login credentials.
+            </summary>
+            <param name="Email">E‑mail address (UserName in Identity).</param>
+            <param name="Password">Account password in plain text.</param>
+        </member>
+        <member name="M:LoginDto.#ctor(System.String,System.String)">
+            <summary>
+            DTO used for login credentials.
+            </summary>
+            <param name="Email">E‑mail address (UserName in Identity).</param>
+            <param name="Password">Account password in plain text.</param>
+        </member>
+        <member name="P:LoginDto.Email">
+            <summary>E‑mail address (UserName in Identity).</summary>
+        </member>
+        <member name="P:LoginDto.Password">
+            <summary>Account password in plain text.</summary>
+        </member>
+        <member name="T:RefreshDto">
+            <summary>
+            DTO used to request a new access‑token using a refresh‑token.
+            </summary>
+            <param name="RefreshToken">The previously issued refresh‑token.</param>
+        </member>
+        <member name="M:RefreshDto.#ctor(System.String)">
+            <summary>
+            DTO used to request a new access‑token using a refresh‑token.
+            </summary>
+            <param name="RefreshToken">The previously issued refresh‑token.</param>
+        </member>
+        <member name="P:RefreshDto.RefreshToken">
+            <summary>The previously issued refresh‑token.</summary>
+        </member>
+        <member name="T:ApplicationDbContext">
+            <summary>
+                Entity Framework Core context for DriveFlow CRM. Combines ASP.NET Core
+                Identity tables (via <see cref="T:Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityDbContext`1"/>) with the
+                domain entities specific to the platform.
+            </summary>
+        </member>
+        <member name="P:ApplicationDbContext.Counties">
+            <summary>Romanian counties.</summary>
+        </member>
+        <member name="P:ApplicationDbContext.Cities">
+            <summary>Cities associated with a <see cref="T:DriveFlow_CRM_API.Models.County"/>.</summary>
+        </member>
+        <member name="P:ApplicationDbContext.Addresses">
+            <summary>Physical addresses.</summary>
+        </member>
+        <member name="P:ApplicationDbContext.AutoSchools">
+            <summary>Driving schools registered on the platform.</summary>
+        </member>
+        <member name="P:ApplicationDbContext.Requests">
+            <summary>User‑submitted requests (enrolment, category upgrade, etc.).</summary>
+        </member>
+        <member name="P:ApplicationDbContext.Vehicles">
+            <summary>Vehicles owned or used by an <see cref="T:DriveFlow_CRM_API.Models.AutoSchool"/>.</summary>
+        </member>
+        <member name="P:ApplicationDbContext.Payments">
+            <summary>Payments and invoices.</summary>
+        </member>
+        <member name="P:ApplicationDbContext.Licenses">
+            <summary>Driving licences.</summary>
+        </member>
+        <member name="P:ApplicationDbContext.Files">
+            <summary>Uploaded documents (medical, criminal record, contracts…).</summary>
+        </member>
+        <member name="P:ApplicationDbContext.ApplicationUsers">
+            <summary>Platform users (students, instructors, admins).</summary>
+        </member>
+        <member name="P:ApplicationDbContext.TeachingCategories">
+            <summary>Teaching categories (A, B, C…).</summary>
+        </member>
+        <member name="P:ApplicationDbContext.ApplicationUserTeachingCategories">
+            <summary>Join table between users and the categories they teach.</summary>
+        </member>
+        <member name="P:ApplicationDbContext.InstructorAvailabilities">
+            <summary>Instructor availability time slots.</summary>
+        </member>
+        <member name="P:ApplicationDbContext.Appointments">
+            <summary>Driving lessons and exam appointments.</summary>
+        </member>
+        <member name="M:ApplicationDbContext.OnModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>
