@@ -3,6 +3,10 @@
 # Environment files
 .env
 **/secrets.json
+.vs/
+appsettings.Development.json
+**/appsettings.Local.json
+**/secrets.json
 
 # User-specific files
 *.rsuser
@@ -105,3 +109,4 @@ _ReSharper*/
 *.db
 *.sqlite
 *.sqlite3
+
