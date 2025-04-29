@@ -1,42 +1,50 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0.407 AS build
 WORKDIR /app
 
-# Copy just what's needed for build
-COPY DriveFlow-CRM-API/*.csproj ./
-# Fix NuGet package resolution by clearing NuGet.Config and using Linux paths
+# Copy the whole project first to ensure all files are available
+COPY . .
+
+# Setup NuGet properly
 RUN mkdir -p /root/.nuget/NuGet
 RUN echo '<?xml version="1.0" encoding="utf-8"?><configuration><packageSources><clear /><add key="nuget.org" value="https://api.nuget.org/v3/index.json" /></packageSources></configuration>' > /root/.nuget/NuGet/NuGet.Config
-# Restore dependencies
-RUN dotnet restore --force
 
-# Copy and publish only the project file
-COPY DriveFlow-CRM-API/. ./
+# Restore and build the project without trimming
+WORKDIR /app/DriveFlow-CRM-API
+RUN dotnet restore
+RUN dotnet publish -c Release -o /app/out --no-restore -p:PublishSingleFile=false -p:PublishTrimmed=false -p:DebugSymbols=false -p:DebugType=None
 
-# Disable trimming since it's causing problems
-RUN dotnet publish DriveFlow-CRM-API.csproj -c Release -o /app/publish --no-restore -p:PublishTrimmed=false -p:SelfContained=false
+# Check build output
+RUN ls -la /app/out
 
-# Check what was built
-RUN ls -la /app/publish
-
-# Build runtime image
+# Final stage with runtime only
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build /app/publish .
+COPY --from=build /app/out .
 
-# List all files to debug
+# Setup environment directories
+RUN mkdir -p /app/DriveFlow-CRM-API
+
+# Check final image contents
 RUN ls -la /app
 
-# Simple startup script that runs our application and copies env vars
-RUN echo '#!/bin/sh \n\
-mkdir -p /app/DriveFlow-CRM-API \n\
-if [ -f /.env ]; then \n\
-  cp /.env /app/DriveFlow-CRM-API/.env \n\
-fi \n\
-ls -la \n\
-dotnet DriveFlow-CRM-API.dll' > /app/start.sh && chmod +x /app/start.sh
+# Create a startup script that handles environment and reports errors
+RUN echo '#!/bin/bash\n\
+echo "Starting application..."\n\
+if [ -f /.env ]; then\n\
+  echo "Found .env file, copying to application directory"\n\
+  cp /.env /app/DriveFlow-CRM-API/.env\n\
+fi\n\
+echo "Contents of /app:"\n\
+ls -la /app\n\
+echo "Running with ASPNETCORE_URLS=$ASPNETCORE_URLS"\n\
+export ASPNETCORE_ENVIRONMENT=Production\n\
+dotnet DriveFlow-CRM-API.dll || { echo "Application failed to start. Error code: $?"; exit 1; }\n\
+' > /app/start.sh && chmod +x /app/start.sh
 
-# Heroku uses PORT environment variable
+# Configure the port and environment
+ENV PORT=8080
 ENV ASPNETCORE_URLS=http://+:${PORT}
+EXPOSE ${PORT}
 
-# Run the app
-CMD /app/start.sh 
+# Run the application
+CMD ["/bin/bash", "/app/start.sh"] 
