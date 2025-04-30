@@ -3,10 +3,6 @@
 # Environment files
 .env
 **/secrets.json
-.vs/
-appsettings.Development.json
-**/appsettings.Local.json
-**/secrets.json
 
 # User-specific files
 *.rsuser
@@ -62,6 +58,19 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+
+# More specific ignores for .NET / VS generated files
+**/[Bb]in/**
+**/[Oo]bj/**
+**/*.nuget.dgspec.json
+**/project.assets.json
+**/project.nuget.cache
+**/*.AssemblyInfo.cs
+**/*.AssemblyInfoInputs.cache
+**/*.GeneratedMSBuildEditorConfig.editorconfig
+**/*.assets.cache
+**/*.csproj.AssemblyReference.cache
+**/CoverletSourceRootsMapping_*
 
 # Local configuration files
 appsettings.Development.json
