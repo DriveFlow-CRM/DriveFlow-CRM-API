@@ -772,6 +772,257 @@
                 directly from your code. This API may change or be removed in future releases.
             </summary>
         </member>
+        <member name="T:DriveFlow_CRM_API.Auth.SameSchoolHandler">
+            <summary>
+            Validates that the <c>schoolId</c> contained in the JWT matches the one in the URL
+            (works with both MVC filters and endpoint routing).
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Auth.SameSchoolRequirement">
+            <summary>
+            Requirement: the user must belong to the same school as in the route.
+            </summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Controllers.SchoolAdminController.#ctor(ApplicationDbContext,Microsoft.AspNetCore.Identity.UserManager{DriveFlow_CRM_API.Models.ApplicationUser},Microsoft.AspNetCore.Identity.RoleManager{Microsoft.AspNetCore.Identity.IdentityRole})">
+            <summary>Constructor invoked per request by DI.</summary>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Controllers.SchoolAdminController.CreateInstructorAsync(System.Int32,DriveFlow_CRM_API.Controllers.InstructorCreateDto)">
+             <summary>
+             Creates a new instructor and links them to the selected teaching categories.
+             </summary>
+             <remarks>
+             <para><strong>Sample request body</strong></para>
+            
+             ```json
+             {
+               "firstName": "Marius",
+               "lastName":  "Popescu",
+               "email":     "marius.popescu@school.ro",
+               "phone":     "0723446789",
+               "password":  "*Parola193",
+               "teachingCategoryIds": [1, 2, 3]
+             }
+             ```
+             </remarks>
+             <param name="schoolId">School identifier from the route.</param>
+             <param name="dto">
+             Instructor details together with <c>teachingCategoryIds</c>.
+             </param>
+             <response code="201">Instructor created successfully.</response>
+             <response code="400">
+             Validation failed (password strength, duplicate e-mail, invalid IDs).
+             </response>
+             <response code="401">No valid JWT supplied.</response>
+             <response code="403">
+             Authenticated user does not belong to the specified school.
+             </response>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Controllers.SchoolAdminController.CreateStudentAsync(System.Int32,DriveFlow_CRM_API.Controllers.StudentCreateDto)">
+             <summary>
+             Creates a new <c>Student</c> together with the related <c>File</c> and <c>Payment</c> records.
+             <c>Payment</c> and <c>StudentFile</c>.
+             </summary>
+             <remarks>
+             <para><strong>Sample request body</strong></para>
+            
+             ```json
+             {
+               "student": {
+                 "firstName": "Ioana",
+                 "lastName":  "Marin",
+                 "email":     "ioana.marin@student.ro",
+                 "cnp":       "2990101223344",
+                 "phone":     "0734567890",
+                 "password":  "*Studentpass1"
+               },
+               "payment": {
+                 "scholarshipBasePayment": true,
+                 "sessionsPayed": 0
+               },
+               "file": {
+                 "scholarshipStartDate":    "2024-04-25",
+                 "criminalRecordExpiryDate": "2025-04-25",
+                 "medicalRecordExpiryDate":  "2024-10-25",
+                 "status":        "Draft",
+                 "instructorId":  null,
+                 "vehicleId":     null,
+                 "teachingCategoryId": null
+               }
+             }
+             ```
+             </remarks>
+             <param name="schoolId">School identifier from the route.</param>
+             <param name="dto">Composite payload (<see cref="T:DriveFlow_CRM_API.Controllers.StudentCreateDto"/>).</param>
+             <response code="201">Student created successfully.</response>
+             <response code="400">Validation failed (duplicate CNP, negative sessions, etc.).</response>
+             <response code="401">No valid JWT supplied.</response>
+             <response code="403">Authenticated user does not belong to the specified school.</response>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Controllers.SchoolAdminController.GetUserAsync(System.Int32,System.String)">
+            <summary>
+            Returns a single user (Student or Instructor).  
+            For instructors the response also includes all teaching categories.
+            </summary>
+            <param name="schoolId">School identifier from the route.</param>
+            <param name="userId">
+            The string ID of the user (exact value returned by the list-users endpoint).
+            </param>
+            <response code="200">User found and returned.</response>
+            <response code="400">Invalid ID supplied or user has an unsupported role.</response>
+            <response code="401">No valid JWT supplied.</response>
+            <response code="403">Authenticated admin does not belong to the specified school.</response>
+            <response code="404">User not found.</response>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Controllers.SchoolAdminController.GetUsersAsync(System.Int32)">
+            <summary>
+            Lists every user (Student or Instructor) that belongs to the given school.
+            </summary>
+            <param name="schoolId">School identifier from the route.</param>
+            <response code="200">Array with all users in the school.</response>
+            <response code="401">No valid JWT supplied.</response>
+            <response code="403">Authenticated admin does not belong to the specified school.</response>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Controllers.SchoolAdminController.GetUsersByTypeAsync(System.Int32,System.String)">
+            <summary>
+            Returns all users of the specified type (<c>Student</c> or <c>Instructor</c>)
+            that belong to the given school.
+            </summary>
+            <param name="schoolId">School identifier from the route.</param>
+            <param name="type">Required role name: <c>Instructor</c> or <c>Student</c>.</param>
+            <response code="200">Array of users matching the requested role.</response>
+            <response code="400">Missing or invalid type parameter.</response>
+            <response code="401">No valid JWT supplied.</response>
+            <response code="403">Authenticated admin does not belong to the specified school.</response>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Controllers.SchoolAdminController.UpdateStudentAsync(System.Int32,System.String,DriveFlow_CRM_API.Controllers.UpdateStudentDto)">
+             <summary>
+             Updates basic data for an existing student.  
+             If <c>password</c> is supplied, it is reset via Identity.
+             </summary>
+             <remarks>
+             <para><strong>Sample request body</strong></para>
+            
+             ```json
+             {
+               "firstName": "Ioana",
+               "lastName":  "Marin",
+               "email":     "ioana.updated@student.ro",
+               "cnp":       "2990101223344",
+               "phone":     "0734567899",
+               "password":  "*Newpass123"
+             }
+             ```
+             </remarks>
+             <param name="schoolId">School identifier from the route.</param>
+             <param name="userId">Student’s GUID string from the route.</param>
+             <param name="dto">Fields to update.</param>
+             <response code="200">Student updated successfully.</response>
+             <response code="400">Validation failed.</response>
+             <response code="401">No valid JWT supplied.</response>
+             <response code="403">Student belongs to a different school.</response>
+             <response code="404">Student not found.</response>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Controllers.SchoolAdminController.UpdateInstructorAsync(System.Int32,System.String,DriveFlow_CRM_API.Controllers.UpdateInstructorDto)">
+             <summary>
+             Updates an instructor’s personal data and replaces their teaching-category list.
+             </summary>
+             <remarks>
+             <para><strong>Sample request body</strong></para>
+            
+             ```json
+             {
+               "firstName": "Vasile",
+               "lastName":  "Alexandru",
+               "email":     "andrei.popescu@school.ro",
+               "phone":     "0723456789",
+               "password":  "*Parola123",
+               "teachingCategoryIds": [1]
+             }
+             ```
+             Any scalar field you omit (e.g. <c>phone</c>) is left unchanged.  
+             <c>teachingCategoryIds</c> is a definitive list: the existing links are fully replaced.
+             </remarks>
+             <param name="schoolId">School identifier from the route.</param>
+             <param name="userId">Instructor’s GUID string from the route.</param>
+             <param name="dto">Fields to update.</param>
+             <response code="200">Instructor updated successfully.</response>
+             <response code="400">Validation failed.</response>
+             <response code="401">No valid JWT supplied.</response>
+             <response code="403">Instructor belongs to a different school.</response>
+             <response code="404">Instructor not found.</response>
+        </member>
+        <member name="M:DriveFlow_CRM_API.Controllers.SchoolAdminController.DeleteUserAsync(System.Int32,System.String)">
+            <summary>
+            Deletes a student or instructor that belongs to the specified school.  
+            SchoolAdmin accounts cannot be removed.
+            </summary>
+            <param name="schoolId">School identifier from the route.</param>
+            <param name="userId">User GUID returned by the list-users endpoint.</param>
+            <response code="204">User deleted.</response>
+            <response code="400">Cannot delete SchoolAdmin or validation failed.</response>
+            <response code="401">No valid JWT supplied.</response>
+            <response code="403">User belongs to a different school.</response>
+            <response code="404">User not found.</response>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Controllers.InstructorCreateDto">
+            <summary>
+            Payload sent to <see cref="M:DriveFlow_CRM_API.Controllers.SchoolAdminController.CreateInstructorAsync(System.Int32,DriveFlow_CRM_API.Controllers.InstructorCreateDto)"/>.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Controllers.StudentCreateDto">
+            <summary>
+            Composite payload sent to <see cref="M:DriveFlow_CRM_API.Controllers.SchoolAdminController.CreateStudentAsync(System.Int32,DriveFlow_CRM_API.Controllers.StudentCreateDto)"/>.
+            Contains nested objects for the student, the first file, and the initial payment.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Controllers.StudentDto">
+            <summary>
+            Personal data for a student inside <see cref="T:DriveFlow_CRM_API.Controllers.StudentCreateDto"/>.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Controllers.PaymentDto">
+            <summary>
+            Payment section of <see cref="T:DriveFlow_CRM_API.Controllers.StudentCreateDto"/>.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Controllers.FileDto">
+            <summary>
+            Initial file section of <see cref="T:DriveFlow_CRM_API.Controllers.StudentCreateDto"/>.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Controllers.StudentUserDto">
+            <summary>
+            Response shape when the fetched user has role <c>Student</c>.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Controllers.InstructorUserDto">
+            <summary>
+            Response shape when the fetched user has role <c>Instructor</c>.
+            Includes the categories they teach.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Controllers.TeachingCategoryDto">
+            <summary>
+            Details for a single teaching category returned in <see cref="T:DriveFlow_CRM_API.Controllers.InstructorUserDto"/>.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Controllers.UserListItemDto">
+            <summary>
+            Lightweight representation used by <see cref="!:GetUsersAsync"/>.
+            <c>Cnp</c> is included only for students (null for instructors).
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Controllers.UpdateStudentDto">
+            <summary>
+            Body used by <see cref="!:UpdateStudentAsync"/>.
+            </summary>
+        </member>
+        <member name="T:DriveFlow_CRM_API.Controllers.UpdateInstructorDto">
+            <summary>
+            Body used by <see cref="!:UpdateInstructorAsync"/>.
+            Omitted properties are ignored (current value kept).
+            </summary>
+        </member>
         <member name="T:DriveFlow_CRM_API.Authentication.Tokens.Handlers.CoreUserClaimsHandler">
             <summary>Adds sub, userId, userEmail.</summary>
         </member>
@@ -842,19 +1093,24 @@
             Generates signed JWT <strong>refresh-tokens</strong> for ASP.NET Core Identity users.
             </summary>
             <remarks>
-            <para>
-            The secret signing key is read from <c>JWT_KEY</c> (environment variable) and
-            falls back to <c>Jwt:Key</c> in <c>appsettings.json</c>.  
-            Expiration in days is taken from <c>Jwt:RefreshExpiresDays</c>; if missing,
-            the factory defaults to seven days.
-            </para>
+            <list type="bullet">
+              <item>The signing key is read from the <c>JWT_KEY</c> environment variable, or <c>Jwt:Key</c> in <c>appsettings.json</c>.</item>
+              <item><c>Jwt:Issuer</c>, <c>Jwt:Audience</c> and a positive integer <c>Jwt:RefreshExpiresDays</c> are required.</item>
+              <item>The token includes only <c>sub</c>, <c>jti</c> and a <c>typ=refresh</c> claim.</item>
+            </list>
             </remarks>
         </member>
         <member name="M:DriveFlow_CRM_API.Authentication.Tokens.JwtRefreshTokenGenerator.#ctor(Microsoft.Extensions.Configuration.IConfiguration)">
-            <summary>Initializes the generator with application configuration.</summary>
+            <summary>Creates the generator and validates configuration.</summary>
+            <exception cref="T:System.InvalidOperationException">
+            Thrown when any mandatory JWT setting is missing or invalid.
+            </exception>
         </member>
         <member name="M:DriveFlow_CRM_API.Authentication.Tokens.JwtRefreshTokenGenerator.GenerateToken(Microsoft.AspNetCore.Identity.IdentityUser,System.Collections.Generic.IList{System.String},System.Int32)">
             <inheritdoc />
+            <exception cref="T:System.ArgumentNullException">
+            Thrown when <paramref name="user"/> or <paramref name="roles"/> is <c>null</c>.
+            </exception>
         </member>
         <member name="T:DriveFlow_CRM_API.Authentication.Tokens.TokenType">
             <summary>
@@ -1500,30 +1756,30 @@
             </summary>
         </member>
         <member name="M:AuthController.LoginAsync(LoginDto)">
-            <summary>
-            Authenticates a user and returns an access-token plus a refresh-token.
-            </summary>
-            <remarks>
-            <list type="bullet">
-              <item><description>
-                Secret key is read from <c>JWT_KEY</c> (env) or <c>Jwt:Key</c> (appsettings).
-              </description></item>
-              <item><description>
-                <b>Sample request</b>:<br/>
-                <code>
-                POST /api/auth<br/>
-                {<br/>
-                  &quot;email&quot;: &quot;student@test.com&quot;,<br/>
-                  &quot;password&quot;: &quot;Student231!&quot;<br/>
-                }
-                </code>
-              </description></item>
-            </list>
-            </remarks>
-            <param name="dto">Credentials (e-mail &amp; password).</param>
-            <response code="200">Login successful – returns tokens and user metadata.</response>
-            <response code="401">E-mail or password incorrect.</response>
-            <response code="404">Account not found.</response>
+             <summary>
+             Authenticates a user and returns an access-token plus a refresh-token.
+             </summary>
+             <remarks>
+             <list type="bullet">
+               <item><description>
+                 Secret key is read from <c>JWT_KEY</c> (env) or <c>Jwt:Key</c> (appsettings).
+               </description></item>
+               <item><description>
+                 <strong>Sample request body</strong>:
+               </description></item>
+             </list>
+            
+             ```json
+             {
+               "email":    "student@test.com",
+               "password": "Student231!"
+             }
+             ```
+             </remarks>
+             <param name="dto">Credentials (e-mail &amp; password).</param>
+             <response code="200">Login successful – returns tokens and user metadata.</response>
+             <response code="401">E-mail or password incorrect.</response>
+             <response code="404">Account not found.</response>
         </member>
         <member name="M:AuthController.RefreshAsync(RefreshDto)">
             <summary>

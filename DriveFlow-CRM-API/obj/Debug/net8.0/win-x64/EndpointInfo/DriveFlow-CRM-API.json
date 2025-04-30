@@ -12,7 +12,7 @@
           "Auth"
         ],
         "summary": "Authenticates a user and returns an access-token plus a refresh-token.",
-        "description": "<list type=\"bullet\">\r\n  <item>\r\n    <description>\r\n                Secret key is read from `JWT_KEY` (env) or `Jwt:Key` (appsettings).\r\n              </description>\r\n  </item>\r\n  <item>\r\n    <description>\r\n      <b>Sample request</b>:\r\n```\r\n                POST /api/auth\r\n\r\n                {\r\n\r\n                  \"email\": \"student@test.com\",\r\n\r\n                  \"password\": \"Student231!\"\r\n\r\n                }\r\n                ```</description>\r\n  </item>\r\n</list>",
+        "description": "<list type=\"bullet\">\r\n  <item>\r\n    <description>\r\n                 Secret key is read from `JWT_KEY` (env) or `Jwt:Key` (appsettings).\r\n               </description>\r\n  </item>\r\n  <item>\r\n    <description>\r\n      <strong>Sample request body</strong>:\r\n               </description>\r\n  </item>\r\n</list>\r\n            \r\n             ```json\r\n             {\r\n               \"email\":    \"student@test.com\",\r\n               \"password\": \"Student231!\"\r\n             }\r\n             ```",
         "requestBody": {
           "description": "Credentials (e-mail & password).",
           "content": {
@@ -81,10 +81,502 @@
           }
         }
       }
+    },
+    "/api/SchoolAdmin/autoschool/{schoolId}/create/instructor": {
+      "post": {
+        "tags": [
+          "SchoolAdmin"
+        ],
+        "summary": "Creates a new instructor and links them to the selected teaching categories.",
+        "description": "\r\n\r\n  <strong>Sample request body</strong>\r\n\r\n            \r\n             ```json\r\n             {\r\n               \"firstName\": \"Marius\",\r\n               \"lastName\":  \"Popescu\",\r\n               \"email\":     \"marius.popescu@school.ro\",\r\n               \"phone\":     \"0723446789\",\r\n               \"password\":  \"*Parola193\",\r\n               \"teachingCategoryIds\": [1, 2, 3]\r\n             }\r\n             ```",
+        "parameters": [
+          {
+            "name": "schoolId",
+            "in": "path",
+            "description": "School identifier from the route.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Instructor details together with `teachingCategoryIds`.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstructorCreateDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstructorCreateDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstructorCreateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "201": {
+            "description": "Instructor created successfully."
+          },
+          "400": {
+            "description": "Validation failed (password strength, duplicate e-mail, invalid IDs)."
+          },
+          "401": {
+            "description": "No valid JWT supplied."
+          },
+          "403": {
+            "description": "Authenticated user does not belong to the specified school."
+          }
+        }
+      }
+    },
+    "/api/SchoolAdmin/autoschool/{schoolId}/create/student": {
+      "post": {
+        "tags": [
+          "SchoolAdmin"
+        ],
+        "summary": "Creates a new `Student` together with the related `File` and `Payment` records.\r\n`Payment` and `StudentFile`.",
+        "description": "\r\n\r\n  <strong>Sample request body</strong>\r\n\r\n            \r\n             ```json\r\n             {\r\n               \"student\": {\r\n                 \"firstName\": \"Ioana\",\r\n                 \"lastName\":  \"Marin\",\r\n                 \"email\":     \"ioana.marin@student.ro\",\r\n                 \"cnp\":       \"2990101223344\",\r\n                 \"phone\":     \"0734567890\",\r\n                 \"password\":  \"*Studentpass1\"\r\n               },\r\n               \"payment\": {\r\n                 \"scholarshipBasePayment\": true,\r\n                 \"sessionsPayed\": 0\r\n               },\r\n               \"file\": {\r\n                 \"scholarshipStartDate\":    \"2024-04-25\",\r\n                 \"criminalRecordExpiryDate\": \"2025-04-25\",\r\n                 \"medicalRecordExpiryDate\":  \"2024-10-25\",\r\n                 \"status\":        \"Draft\",\r\n                 \"instructorId\":  null,\r\n                 \"vehicleId\":     null,\r\n                 \"teachingCategoryId\": null\r\n               }\r\n             }\r\n             ```",
+        "parameters": [
+          {
+            "name": "schoolId",
+            "in": "path",
+            "description": "School identifier from the route.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Composite payload (DriveFlow_CRM_API.Controllers.StudentCreateDto).",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentCreateDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentCreateDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentCreateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "201": {
+            "description": "Student created successfully."
+          },
+          "400": {
+            "description": "Validation failed (duplicate CNP, negative sessions, etc.)."
+          },
+          "401": {
+            "description": "No valid JWT supplied."
+          },
+          "403": {
+            "description": "Authenticated user does not belong to the specified school."
+          }
+        }
+      }
+    },
+    "/api/SchoolAdmin/autoschool/{schoolId}/getUser/{userId}": {
+      "get": {
+        "tags": [
+          "SchoolAdmin"
+        ],
+        "summary": "Returns a single user (Student or Instructor).  \r\nFor instructors the response also includes all teaching categories.",
+        "parameters": [
+          {
+            "name": "schoolId",
+            "in": "path",
+            "description": "School identifier from the route.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "The string ID of the user (exact value returned by the list-users endpoint).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User found and returned."
+          },
+          "400": {
+            "description": "Invalid ID supplied or user has an unsupported role."
+          },
+          "401": {
+            "description": "No valid JWT supplied."
+          },
+          "403": {
+            "description": "Authenticated admin does not belong to the specified school."
+          },
+          "404": {
+            "description": "User not found."
+          }
+        }
+      }
+    },
+    "/api/SchoolAdmin/autoschool/{schoolId}/getUsers": {
+      "get": {
+        "tags": [
+          "SchoolAdmin"
+        ],
+        "summary": "Lists every user (Student or Instructor) that belongs to the given school.",
+        "parameters": [
+          {
+            "name": "schoolId",
+            "in": "path",
+            "description": "School identifier from the route.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array with all users in the school."
+          },
+          "401": {
+            "description": "No valid JWT supplied."
+          },
+          "403": {
+            "description": "Authenticated admin does not belong to the specified school."
+          }
+        }
+      }
+    },
+    "/api/SchoolAdmin/autoschool/{schoolId}/getUsers/{type}": {
+      "get": {
+        "tags": [
+          "SchoolAdmin"
+        ],
+        "summary": "Returns all users of the specified type (`Student` or `Instructor`)\r\nthat belong to the given school.",
+        "parameters": [
+          {
+            "name": "schoolId",
+            "in": "path",
+            "description": "School identifier from the route.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "type",
+            "in": "path",
+            "description": "Required role name: `Instructor` or `Student`.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of users matching the requested role."
+          },
+          "400": {
+            "description": "Missing or invalid type parameter."
+          },
+          "401": {
+            "description": "No valid JWT supplied."
+          },
+          "403": {
+            "description": "Authenticated admin does not belong to the specified school."
+          }
+        }
+      }
+    },
+    "/api/SchoolAdmin/autoschool/{schoolId}/update/student/{userId}": {
+      "put": {
+        "tags": [
+          "SchoolAdmin"
+        ],
+        "summary": "Updates basic data for an existing student.  \r\nIf `password` is supplied, it is reset via Identity.",
+        "description": "\r\n\r\n  <strong>Sample request body</strong>\r\n\r\n            \r\n             ```json\r\n             {\r\n               \"firstName\": \"Ioana\",\r\n               \"lastName\":  \"Marin\",\r\n               \"email\":     \"ioana.updated@student.ro\",\r\n               \"cnp\":       \"2990101223344\",\r\n               \"phone\":     \"0734567899\",\r\n               \"password\":  \"*Newpass123\"\r\n             }\r\n             ```",
+        "parameters": [
+          {
+            "name": "schoolId",
+            "in": "path",
+            "description": "School identifier from the route.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Student’s GUID string from the route.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Fields to update.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStudentDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStudentDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStudentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Student updated successfully."
+          },
+          "400": {
+            "description": "Validation failed."
+          },
+          "401": {
+            "description": "No valid JWT supplied."
+          },
+          "403": {
+            "description": "Student belongs to a different school."
+          },
+          "404": {
+            "description": "Student not found."
+          }
+        }
+      }
+    },
+    "/api/SchoolAdmin/autoschool/{schoolId}/update/instructor/{userId}": {
+      "put": {
+        "tags": [
+          "SchoolAdmin"
+        ],
+        "summary": "Updates an instructor’s personal data and replaces their teaching-category list.",
+        "description": "\r\n\r\n  <strong>Sample request body</strong>\r\n\r\n            \r\n             ```json\r\n             {\r\n               \"firstName\": \"Vasile\",\r\n               \"lastName\":  \"Alexandru\",\r\n               \"email\":     \"andrei.popescu@school.ro\",\r\n               \"phone\":     \"0723456789\",\r\n               \"password\":  \"*Parola123\",\r\n               \"teachingCategoryIds\": [1]\r\n             }\r\n             ```\r\n             Any scalar field you omit (e.g. `phone`) is left unchanged.  \r\n             `teachingCategoryIds` is a definitive list: the existing links are fully replaced.",
+        "parameters": [
+          {
+            "name": "schoolId",
+            "in": "path",
+            "description": "School identifier from the route.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Instructor’s GUID string from the route.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Fields to update.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInstructorDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInstructorDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInstructorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Instructor updated successfully."
+          },
+          "400": {
+            "description": "Validation failed."
+          },
+          "401": {
+            "description": "No valid JWT supplied."
+          },
+          "403": {
+            "description": "Instructor belongs to a different school."
+          },
+          "404": {
+            "description": "Instructor not found."
+          }
+        }
+      }
+    },
+    "/api/SchoolAdmin/autoschool/{schoolId}/deleteUser/{userId}": {
+      "delete": {
+        "tags": [
+          "SchoolAdmin"
+        ],
+        "summary": "Deletes a student or instructor that belongs to the specified school.  \r\nSchoolAdmin accounts cannot be removed.",
+        "parameters": [
+          {
+            "name": "schoolId",
+            "in": "path",
+            "description": "School identifier from the route.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "User GUID returned by the list-users endpoint.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "204": {
+            "description": "User deleted."
+          },
+          "400": {
+            "description": "Cannot delete SchoolAdmin or validation failed."
+          },
+          "401": {
+            "description": "No valid JWT supplied."
+          },
+          "403": {
+            "description": "User belongs to a different school."
+          },
+          "404": {
+            "description": "User not found."
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "FileDto": {
+        "type": "object",
+        "properties": {
+          "scholarshipStartDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "criminalRecordExpiryDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "medicalRecordExpiryDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "instructorId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "vehicleId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "teachingCategoryId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Initial file section of DriveFlow_CRM_API.Controllers.StudentCreateDto."
+      },
+      "InstructorCreateDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "nullable": true
+          },
+          "teachingCategoryIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Payload sent to M:DriveFlow_CRM_API.Controllers.SchoolAdminController.CreateInstructorAsync(System.Int32,DriveFlow_CRM_API.Controllers.InstructorCreateDto)."
+      },
       "LoginDto": {
         "type": "object",
         "properties": {
@@ -102,6 +594,20 @@
         "additionalProperties": false,
         "description": "DTO used for login credentials."
       },
+      "PaymentDto": {
+        "type": "object",
+        "properties": {
+          "scholarshipBasePayment": {
+            "type": "boolean"
+          },
+          "sessionsPayed": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Payment section of DriveFlow_CRM_API.Controllers.StudentCreateDto."
+      },
       "RefreshDto": {
         "type": "object",
         "properties": {
@@ -113,6 +619,119 @@
         },
         "additionalProperties": false,
         "description": "DTO used to request a new access‑token using a refresh‑token."
+      },
+      "StudentCreateDto": {
+        "type": "object",
+        "properties": {
+          "student": {
+            "$ref": "#/components/schemas/StudentDto"
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentDto"
+          },
+          "file": {
+            "$ref": "#/components/schemas/FileDto"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Composite payload sent to M:DriveFlow_CRM_API.Controllers.SchoolAdminController.CreateStudentAsync(System.Int32,DriveFlow_CRM_API.Controllers.StudentCreateDto).\r\nContains nested objects for the student, the first file, and the initial payment."
+      },
+      "StudentDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "cnp": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Personal data for a student inside DriveFlow_CRM_API.Controllers.StudentCreateDto."
+      },
+      "UpdateInstructorDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "nullable": true
+          },
+          "teachingCategoryIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Body used by !:UpdateInstructorAsync.\r\nOmitted properties are ignored (current value kept)."
+      },
+      "UpdateStudentDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "cnp": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Body used by !:UpdateStudentAsync."
       }
     },
     "securitySchemes": {

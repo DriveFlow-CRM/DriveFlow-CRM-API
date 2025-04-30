@@ -51,7 +51,14 @@ public sealed class JwtAccessTokenGenerator : ITokenGenerator
 
     public string GenerateToken(IdentityUser user, IList<string> roles, int schoolId)
     {
-        // ─────────────────────────────── Retrieve settings ───────────────────────────────
+       // ─────────────── Guard-clauses: invalid input ───────────────
+        if (user is null)
+            throw new ArgumentNullException(nameof(user));
+
+        if (roles is null)
+            throw new ArgumentNullException(nameof(roles));
+        
+       // ─────────────────────────────── Retrieve settings ───────────────────────────────
         var secret = _cfg["JWT_KEY"] ?? _cfg["Jwt:Key"];
         if (string.IsNullOrWhiteSpace(secret) || secret.Length < 32)
             throw new InvalidOperationException(

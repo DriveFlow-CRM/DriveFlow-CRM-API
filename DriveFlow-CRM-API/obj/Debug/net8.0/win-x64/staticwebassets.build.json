@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "WpjZnHc6ZWgO0gUNUZVu+tdJ4OAMT+uaJepU0BEUqw0=",
+  "Hash": "GqIamvOqKIRThqFtisN3XaiP8vXEPxTle5XzDMZfXFE=",
   "Source": "DriveFlow-CRM-API",
   "BasePath": "_content/DriveFlow-CRM-API",
   "Mode": "Default",
@@ -10,7 +10,7 @@
     {
       "Name": "DriveFlow-CRM-API\\wwwroot",
       "Source": "DriveFlow-CRM-API",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "Pattern": "**"
     }
@@ -1157,10 +1157,10 @@
       "OriginalItemSpec": "C:\\Users\\cemil\\.nuget\\packages\\microsoft.aspnetcore.identity.ui\\8.0.0\\staticwebassets\\V5\\lib\\jquery-validation-unobtrusive\\LICENSE.txt"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\css\\site.css",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\css\\site.css",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "css/site.css",
       "AssetKind": "All",
@@ -1176,10 +1176,10 @@
       "OriginalItemSpec": "wwwroot\\css\\site.css"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\favicon.ico",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\favicon.ico",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "favicon.ico",
       "AssetKind": "All",
@@ -1195,10 +1195,10 @@
       "OriginalItemSpec": "wwwroot\\favicon.ico"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\js\\site.js",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\js\\site.js",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "js/site.js",
       "AssetKind": "All",
@@ -1214,10 +1214,10 @@
       "OriginalItemSpec": "wwwroot\\js\\site.js"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap.css",
       "AssetKind": "All",
@@ -1233,10 +1233,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap.css.map",
       "AssetKind": "All",
@@ -1252,10 +1252,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap.min.css",
       "AssetKind": "All",
@@ -1271,10 +1271,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/bootstrap/dist/css/bootstrap.min.css.map",
       "AssetKind": "All",
@@ -1290,10 +1290,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/bootstrap/dist/js/bootstrap.js",
       "AssetKind": "All",
@@ -1309,10 +1309,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/bootstrap/dist/js/bootstrap.min.js",
       "AssetKind": "All",
@@ -1328,10 +1328,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\bootstrap\\LICENSE",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\bootstrap\\LICENSE",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/bootstrap/LICENSE",
       "AssetKind": "All",
@@ -1347,10 +1347,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\bootstrap\\LICENSE"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery\\dist\\jquery.js",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery\\dist\\jquery.js",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/jquery/dist/jquery.js",
       "AssetKind": "All",
@@ -1366,10 +1366,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery\\dist\\jquery.js"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery\\dist\\jquery.min.js",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery\\dist\\jquery.min.js",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/jquery/dist/jquery.min.js",
       "AssetKind": "All",
@@ -1385,10 +1385,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery\\dist\\jquery.min.js"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/jquery/dist/jquery.min.map",
       "AssetKind": "All",
@@ -1404,10 +1404,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery\\dist\\jquery.min.map"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery\\LICENSE.txt",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery\\LICENSE.txt",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/jquery/LICENSE.txt",
       "AssetKind": "All",
@@ -1423,10 +1423,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery\\LICENSE.txt"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.js",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.js",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/jquery-validation/dist/additional-methods.js",
       "AssetKind": "All",
@@ -1442,10 +1442,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery-validation\\dist\\additional-methods.js"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.min.js",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.min.js",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/jquery-validation/dist/additional-methods.min.js",
       "AssetKind": "All",
@@ -1461,10 +1461,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery-validation\\dist\\additional-methods.min.js"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.js",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.js",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/jquery-validation/dist/jquery.validate.js",
       "AssetKind": "All",
@@ -1480,10 +1480,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.js"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.min.js",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.min.js",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/jquery-validation/dist/jquery.validate.min.js",
       "AssetKind": "All",
@@ -1499,10 +1499,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.min.js"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery-validation\\LICENSE.md",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery-validation\\LICENSE.md",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/jquery-validation/LICENSE.md",
       "AssetKind": "All",
@@ -1518,10 +1518,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery-validation\\LICENSE.md"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js",
       "AssetKind": "All",
@@ -1537,10 +1537,10 @@
       "OriginalItemSpec": "wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js"
     },
     {
-      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js",
+      "Identity": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js",
       "SourceId": "DriveFlow-CRM-API",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow\\DriveFlow-CRM-API\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\cemil\\OneDrive\\Desktop\\DriveFlow-CRM-API\\DriveFlow-CRM-API\\wwwroot\\",
       "BasePath": "_content/DriveFlow-CRM-API",
       "RelativePath": "lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js",
       "AssetKind": "All",
