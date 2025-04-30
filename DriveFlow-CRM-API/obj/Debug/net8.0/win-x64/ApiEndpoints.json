@@ -30,5 +30,178 @@
       }
     ],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DriveFlow_CRM_API.Controllers.SchoolAdminController",
+    "Method": "CreateInstructorAsync",
+    "RelativePath": "api/SchoolAdmin/autoschool/{schoolId}/create/instructor",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "schoolId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "DriveFlow_CRM_API.Controllers.InstructorCreateDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DriveFlow_CRM_API.Controllers.SchoolAdminController",
+    "Method": "CreateStudentAsync",
+    "RelativePath": "api/SchoolAdmin/autoschool/{schoolId}/create/student",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "schoolId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "DriveFlow_CRM_API.Controllers.StudentCreateDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DriveFlow_CRM_API.Controllers.SchoolAdminController",
+    "Method": "DeleteUserAsync",
+    "RelativePath": "api/SchoolAdmin/autoschool/{schoolId}/deleteUser/{userId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "schoolId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "userId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DriveFlow_CRM_API.Controllers.SchoolAdminController",
+    "Method": "GetUserAsync",
+    "RelativePath": "api/SchoolAdmin/autoschool/{schoolId}/getUser/{userId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "schoolId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "userId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DriveFlow_CRM_API.Controllers.SchoolAdminController",
+    "Method": "GetUsersAsync",
+    "RelativePath": "api/SchoolAdmin/autoschool/{schoolId}/getUsers",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "schoolId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DriveFlow_CRM_API.Controllers.SchoolAdminController",
+    "Method": "GetUsersByTypeAsync",
+    "RelativePath": "api/SchoolAdmin/autoschool/{schoolId}/getUsers/{type}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "schoolId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "type",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DriveFlow_CRM_API.Controllers.SchoolAdminController",
+    "Method": "UpdateInstructorAsync",
+    "RelativePath": "api/SchoolAdmin/autoschool/{schoolId}/update/instructor/{userId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "schoolId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "userId",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "DriveFlow_CRM_API.Controllers.UpdateInstructorDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DriveFlow_CRM_API.Controllers.SchoolAdminController",
+    "Method": "UpdateStudentAsync",
+    "RelativePath": "api/SchoolAdmin/autoschool/{schoolId}/update/student/{userId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "schoolId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "userId",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "DriveFlow_CRM_API.Controllers.UpdateStudentDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
   }
 ]

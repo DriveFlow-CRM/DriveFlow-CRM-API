@@ -29,10 +29,12 @@ using System.IdentityModel.Tokens.Jwt;
 /// Tokens are signed according to the algorithm configured in <c>Jwt:Algorithm</c>
 /// (default <c>HS256</c>). All timestamps are expressed in UTC.
 /// </remarks>
+
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
+    // ───────────────────────────── fields & ctor ─────────────────────────────
     private readonly UserManager<ApplicationUser> _users;
     private readonly SignInManager<ApplicationUser> _signIn;
     private readonly ITokenGenerator _tok;       // Access‑token generator
@@ -66,40 +68,41 @@ public class AuthController : ControllerBase
     ///     Secret key is read from <c>JWT_KEY</c> (env) or <c>Jwt:Key</c> (appsettings).
     ///   </description></item>
     ///   <item><description>
-    ///     <b>Sample request</b>:<br/>
-    ///     <code>
-    ///     POST /api/auth<br/>
-    ///     {<br/>
-    ///       &quot;email&quot;: &quot;student@test.com&quot;,<br/>
-    ///       &quot;password&quot;: &quot;Student231!&quot;<br/>
-    ///     }
-    ///     </code>
+    ///     <strong>Sample request body</strong>:
     ///   </description></item>
     /// </list>
+    ///
+    /// ```json
+    /// {
+    ///   "email":    "student@test.com",
+    ///   "password": "Student231!"
+    /// }
+    /// ```
     /// </remarks>
     /// <param name="dto">Credentials (e-mail &amp; password).</param>
     /// <response code="200">Login successful – returns tokens and user metadata.</response>
     /// <response code="401">E-mail or password incorrect.</response>
     /// <response code="404">Account not found.</response>
+
     [HttpPost]
     public async Task<IActionResult> LoginAsync(LoginDto dto)
     {
         // 1. Locate the account
         var user = await _users.FindByEmailAsync(dto.Email);
         if (user is null)
-            return NotFound(new { error = 404, message = "Nu exista cont!" });
+            return NotFound(new { error = 404, message = "Account not found!" });
 
         // 2. Verify password
         var valid = await _signIn.CheckPasswordSignInAsync(user, dto.Password, lockoutOnFailure: false);
         if (!valid.Succeeded)
-            return Unauthorized(new { error = 401, message = "Emailul sau parola e gresita!" });
+            return Unauthorized(new { error = 401, message = "Incorrect email or password!" });
 
         // 3. Fetch the single role assigned to this account
         var roles = await _users.GetRolesAsync(user);
         var role = roles.Count > 0 ? roles[0] : "Student"; // Fallback for safety
 
         // 4. Domain‑specific data (placeholder until school relationship exists)
-        var schoolId = 0;
+        var schoolId = user.AutoSchoolId ?? 0;
 
         // 5. Generate ACCESS token
         var accessTok = _tok.GenerateToken(user, roles, schoolId);
@@ -156,7 +159,7 @@ public class AuthController : ControllerBase
 
         // 3. Issue a new ACCESS token
         var roles = await _users.GetRolesAsync(user);
-        var schoolId = 0; // Same placeholder as above
+        var schoolId = user.AutoSchoolId ?? 0;
         var newAccess = _tok.GenerateToken(user, roles, schoolId);
 
         // Optional header for convenience
@@ -165,6 +168,7 @@ public class AuthController : ControllerBase
         return Ok(new { token = newAccess });
     }
 }
+// ─────────────────────── DTOs ───────────────────────
 
 /// <summary>
 /// DTO used for login credentials.

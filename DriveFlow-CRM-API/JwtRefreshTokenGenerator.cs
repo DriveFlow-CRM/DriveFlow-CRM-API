@@ -2,62 +2,85 @@
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-namespace DriveFlow_CRM_API.Authentication.Tokens;
-
-/// <summary>
-/// Generates signed JWT <strong>refresh-tokens</strong> for ASP.NET Core Identity users.
-/// </summary>
-/// <remarks>
-/// <para>
-/// The secret signing key is read from <c>JWT_KEY</c> (environment variable) and
-/// falls back to <c>Jwt:Key</c> in <c>appsettings.json</c>.  
-/// Expiration in days is taken from <c>Jwt:RefreshExpiresDays</c>; if missing,
-/// the factory defaults to seven days.
-/// </para>
-/// </remarks>
+namespace DriveFlow_CRM_API.Authentication.Tokens
+{
+    /// <summary>
+    /// Generates signed JWT <strong>refresh-tokens</strong> for ASP.NET Core Identity users.
+    /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    ///   <item>The signing key is read from the <c>JWT_KEY</c> environment variable, or <c>Jwt:Key</c> in <c>appsettings.json</c>.</item>
+    ///   <item><c>Jwt:Issuer</c>, <c>Jwt:Audience</c> and a positive integer <c>Jwt:RefreshExpiresDays</c> are required.</item>
+    ///   <item>The token includes only <c>sub</c>, <c>jti</c> and a <c>typ=refresh</c> claim.</item>
+    /// </list>
+    /// </remarks>
     public sealed class JwtRefreshTokenGenerator : ITokenGenerator
     {
-        private readonly IConfiguration _cfg;
+        private const int MinSecretLength = 32;      // 256-bit HMAC
+        private readonly string _issuer;
+        private readonly string _audience;
+        private readonly string _secret;
+        private readonly int _expiresDays;
 
-        /// <summary>Initializes the generator with application configuration.</summary>
-        public JwtRefreshTokenGenerator(IConfiguration cfg) => _cfg = cfg;
+        /// <summary>Creates the generator and validates configuration.</summary>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when any mandatory JWT setting is missing or invalid.
+        /// </exception>
+        public JwtRefreshTokenGenerator(IConfiguration cfg)
+        {
+            _secret = cfg["JWT_KEY"] ?? cfg["Jwt:Key"]
+                      ?? throw new InvalidOperationException("JWT secret key is missing.");
+
+            if (_secret.Length < MinSecretLength)
+                throw new InvalidOperationException(
+                    $"JWT secret must be at least {MinSecretLength} characters.");
+
+            IConfigurationSection jwt = cfg.GetSection("Jwt");
+
+            _issuer = jwt["Issuer"]
+                        ?? throw new InvalidOperationException("Jwt:Issuer is missing.");
+            _audience = jwt["Audience"]
+                        ?? throw new InvalidOperationException("Jwt:Audience is missing.");
+
+            if (!int.TryParse(jwt["RefreshExpiresDays"], out _expiresDays) || _expiresDays <= 0)
+                throw new InvalidOperationException(
+                    "Jwt:RefreshExpiresDays must be a positive integer.");
+        }
 
         /// <inheritdoc />
+        /// <exception cref="ArgumentNullException">
+        /// Thrown when <paramref name="user"/> or <paramref name="roles"/> is <c>null</c>.
+        /// </exception>
         public string GenerateToken(IdentityUser user, IList<string> roles, int schoolId)
         {
-            // ─────────────── Retrieve signing settings ───────────────
-            var secret = _cfg["JWT_KEY"] ?? _cfg["Jwt:Key"];
-            if (string.IsNullOrWhiteSpace(secret) || secret.Length < 32)
-            {
-                throw new InvalidOperationException(
-                    "JWT secret missing or shorter than 32 characters (256 bits).");
-            }
+            if (user is null) throw new ArgumentNullException(nameof(user));
+            if (roles is null) throw new ArgumentNullException(nameof(roles));
+            // roles and schoolId are kept for API symmetry but not used.
 
-            var jwtSection = _cfg.GetSection("Jwt");
-            var issuer = jwtSection["Issuer"];
-            var audience = jwtSection["Audience"];
-            var expiresDays = int.TryParse(jwtSection["RefreshExpiresDays"], out var d) ? d : 7;
-
-            // ─────────────── Create claims ───────────────
-            var claims = new[]
+            // ───── claims ─────
+            Claim[] claims =
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id)
+                new(JwtRegisteredClaimNames.Sub, user.Id),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new("typ", "refresh")
             };
 
-            // ─────────────── Sign and emit token ───────────────
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            // ───── signing ─────
+            SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(_secret));
+            SigningCredentials sig = new(key, SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityToken(
-                issuer: issuer,
-                audience: audience,
+            JwtSecurityToken token = new(
+                issuer: _issuer,
+                audience: _audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddDays(expiresDays),
-                signingCredentials: creds);
+                notBefore: DateTime.UtcNow,
+                expires: DateTime.UtcNow.AddDays(_expiresDays),
+                signingCredentials: sig);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
-
+}

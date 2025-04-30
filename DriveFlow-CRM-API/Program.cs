@@ -8,8 +8,9 @@ using System.Text;
 using DriveFlow_CRM_API.Models;
 using DriveFlow_CRM_API.Authentication;
 using DriveFlow_CRM_API.Authentication.Tokens;
-using System.Security.Claims;
 using DriveFlow_CRM_API.Authentication.Tokens.Handlers;
+using DriveFlow_CRM_API.Auth;
+using Microsoft.AspNetCore.Authorization;
 
 /// <summary>
 /// Configures services (Swagger, EF Core, Identity, JWT, rate-limit), builds the HTTP
@@ -147,6 +148,31 @@ builder.Services
         RoleClaimType = "userRole"
     };
 });
+// ───────────────────────  Add authorization policies  ───────────────────────
+builder.Services.AddAuthorization(options =>
+{
+    // ───── SUPER-ADMIN  (no school comparison) ─────
+    options.AddPolicy("SuperAdmin", policy => policy
+        .RequireRole("SuperAdmin"));
+
+    // ───── SCHOOL-ADMIN  (role + same school) ─────
+    options.AddPolicy("SchoolAdmin", policy => policy
+        .RequireRole("SchoolAdmin")
+        .AddRequirements(new SameSchoolRequirement()));   // compares schoolId
+
+    // ───── INSTRUCTOR  (role + same school) ─────
+    options.AddPolicy("Instructor", policy => policy
+        .RequireRole("Instructor")
+        .AddRequirements(new SameSchoolRequirement()));   // compares schoolId
+
+    // ───── STUDENT  (role + same school) ─────
+    options.AddPolicy("Student", policy => policy
+        .RequireRole("Student")
+        .AddRequirements(new SameSchoolRequirement()));   // compares schoolId
+});
+
+// Register the custom handler once
+builder.Services.AddSingleton<IAuthorizationHandler, SameSchoolHandler>();
 
 // ─── Chain-of-Responsibility handlers (execution order) ───
 builder.Services.AddTransient<ITokenClaimHandler, CoreUserClaimsHandler>();
