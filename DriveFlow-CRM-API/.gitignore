@@ -1,7 +1,0 @@
-# .gitignore
-.env
-.vs/
-appsettings.Development.json
-**/appsettings.Local.json
-**/secrets.json
-appsettings.json
