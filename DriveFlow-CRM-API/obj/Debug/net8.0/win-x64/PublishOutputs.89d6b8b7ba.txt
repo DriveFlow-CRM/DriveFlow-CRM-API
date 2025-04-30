@@ -1,7 +1,0 @@
-C:\Users\Teodora\teme fac\DriveFlow-CRM-API\bin\publish\app.json
-C:\Users\Teodora\teme fac\DriveFlow-CRM-API\bin\publish\appsettings.Development.json
-C:\Users\Teodora\teme fac\DriveFlow-CRM-API\bin\publish\appsettings.json
-C:\Users\Teodora\teme fac\DriveFlow-CRM-API\bin\publish\global.json
-C:\Users\Teodora\teme fac\DriveFlow-CRM-API\bin\publish\runtimeconfig.template.json
-C:\Users\Teodora\teme fac\DriveFlow-CRM-API\bin\publish\DriveFlow-CRM-API.pdb
-C:\Users\Teodora\teme fac\DriveFlow-CRM-API\bin\publish\DriveFlow-CRM-API.exe
