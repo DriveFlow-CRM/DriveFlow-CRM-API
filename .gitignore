@@ -126,3 +126,5 @@ _ReSharper*/
 *.sqlite
 *.sqlite3
 
+# cursor
+.cursor-config.yaml
