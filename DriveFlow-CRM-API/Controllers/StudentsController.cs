@@ -37,14 +37,28 @@ public class StudentController : ControllerBase
     /// Retrieves all files assigned to a specific student with associated instructor and license information.
     /// </summary>
     /// <remarks>
+    /// Retrieves all files assigned to a specific student with associated instructor and license information.
     /// <para>
-    /// Returns a list of files with:
-    /// <list type="bullet">
-    ///   <item><description>File status and ID</description></item>
-    ///   <item><description>Assigned instructor's name</description></item>
-    ///   <item><description>Associated license type</description></item>
-    /// </list>
+    /// <strong>Sample response format</strong>:
     /// </para>
+    /// <code>
+    /// [
+    ///   {
+    ///     "fileId": 1,
+    ///     "status": "Pending",
+    ///     "firstName": "John",
+    ///     "lastName": "Doe",
+    ///     "type": "B"
+    ///   },
+    ///   {
+    ///     "fileId": 2,
+    ///     "status": "Completed",
+    ///     "firstName": "Jane",
+    ///     "lastName": "Smith",
+    ///     "type": "A"
+    ///   }
+    /// ]
+    /// </code>
     /// </remarks>
     /// <param name="studentId">The ID of the student whose files to retrieve</param>
     /// <response code="200">Files retrieved successfully. Returns empty array if no files found.</response>
