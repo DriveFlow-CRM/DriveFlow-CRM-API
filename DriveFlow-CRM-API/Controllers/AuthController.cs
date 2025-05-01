@@ -14,13 +14,13 @@ using System.IdentityModel.Tokens.Jwt;
 /// <list type="bullet">
 ///   <item>
 ///     <description>
-///       <c>POST /api/auth</c> &mdash; verifies credentials and returns an
+///       <c>POST /api/auth</c> - verifies credentials and returns an
 ///       <strong>access‑token</strong> plus a <strong>refresh‑token</strong>.
 ///     </description>
 ///   </item>
 ///   <item>
 ///     <description>
-///       <c>POST /api/auth/refresh</c> &mdash; exchanges a valid refresh‑token for a new
+///       <c>POST /api/auth/refresh</c> - exchanges a valid refresh‑token for a new
 ///       access‑token without re‑authenticating.
 ///     </description>
 ///   </item>
