@@ -1,27 +1,51 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
+  <!-- ────────── common settings (Debug + Release) ────────── -->
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
+
     <PublishDir>bin/publish</PublishDir>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
-    <PublishReadyToRun>true</PublishReadyToRun>
+
+    <!-- Ready-to-Run removed → no conflict with AOT -->
+    <!-- <PublishReadyToRun>true</PublishReadyToRun> -->
+
     <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DriveFlow_CRM_API</RootNamespace>
     <UserSecretsId>a922d2e6-8f0d-40b9-8ef7-9eddc86ff39e</UserSecretsId>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-    <PublishTrimmed>true</PublishTrimmed>
+
+    <!-- PDB symbols disabled globally; enable in Debug if needed -->
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
- <PropertyGroup>
+  <!-- ───── (optional) ReadyToRun only in Debug ─────
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+  -->
+
+  <!-- ─────────────── Release: AOT + Trimmed ─────────────── -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PublishTrimmed>true</PublishTrimmed>
+    <PublishAot>true</PublishAot>
+
+    <!-- set RID here if you don't want to pass it at publish time
+         Examples:  win-x64 | linux-x64 | linux-arm64  -->
+    <!-- <RuntimeIdentifier>win-x64</RuntimeIdentifier> -->
+  </PropertyGroup>
+
+  <!-- ───────────── XML documentation ───────────── -->
+  <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
+  <!-- ───────────── NuGet dependencies ───────────── -->
   <ItemGroup>
     <PackageReference Include="AspNetCoreRateLimit" Version="5.0.0" />
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
@@ -47,6 +71,10 @@
     <Folder Include="Migrations\" />
   </ItemGroup>
 
-  <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties appsettings_1json__JsonSchema="" />
+    </VisualStudio>
+  </ProjectExtensions>
 
 </Project>

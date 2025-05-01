@@ -1,4 +1,11 @@
 # .gitignore
+# ignore every bin/ and obj/ folder, at any depth
+DriveFlow-CRM-API/DriveFlow-CRM-API/bin/
+DriveFlow-CRM-API/DriveFlow-CRM-API/obj/
+
+# build artifacts (.NET)
+**/bin/
+**/obj/
 
 # Environment files
 .env

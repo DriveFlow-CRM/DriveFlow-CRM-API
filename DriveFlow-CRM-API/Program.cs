@@ -11,6 +11,8 @@ using DriveFlow_CRM_API.Authentication.Tokens;
 using DriveFlow_CRM_API.Authentication.Tokens.Handlers;
 using DriveFlow_CRM_API.Auth;
 using Microsoft.AspNetCore.Authorization;
+using DriveFlow_CRM_API.Json;
+
 
 /// <summary>
 /// Configures services (Swagger, EF Core, Identity, JWT, rate-limit), builds the HTTP
@@ -208,8 +210,17 @@ builder.Services.AddInMemoryRateLimiting();
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
 // ─────────────────────────────── MVC Controllers ─────────────────────────────────
-// 7. Register MVC controllers.
-builder.Services.AddControllers();
+
+// 7. Register MVC controllers + JSON source-generated context.
+builder.Services.AddControllers()
+    .AddJsonOptions(o =>
+    {
+        // insert our context at the start of the resolver chain
+        o.JsonSerializerOptions.TypeInfoResolverChain.Insert(
+            0, AppJsonContext.Default);
+
+        
+    });
 
 // 8. Build the application instance.
 var app = builder.Build();
