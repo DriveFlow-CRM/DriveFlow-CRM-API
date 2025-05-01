@@ -10,7 +10,7 @@ RUN mkdir -p /root/.nuget/NuGet && \
 
 # Build the project directly without using the solution file
 RUN dotnet restore DriveFlow-CRM-API.csproj
-RUN dotnet publish DriveFlow-CRM-API.csproj -c Release -o /app -p:PublishTrimmed=false -p:PublishSingleFile=false -p:TreatWarningsAsErrors=false
+RUN dotnet publish DriveFlow-CRM-API.csproj -c Release -o /app -p:PublishSingleFile=false -p:TreatWarningsAsErrors=false
 
 # Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
