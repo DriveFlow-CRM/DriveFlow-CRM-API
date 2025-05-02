@@ -13,8 +13,6 @@ using DriveFlow_CRM_API.Authentication.Tokens.Handlers;
 
 namespace DriveFlow.Tests;
 
-// ─────────────────────────  Jwt Generator Tests  ─────────────────────────
-
 /// <summary>
 /// Integration‑test that verifies <see cref="JwtAccessTokenGenerator"/> together with the complete
 /// chain‑of‑responsibility of <see cref="ITokenClaimHandler"/> implementations.
