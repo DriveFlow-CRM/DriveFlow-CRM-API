@@ -18,6 +18,7 @@ public sealed class JwtAccessTokenGenerator : ITokenGenerator
     private readonly ITokenClaimHandler _pipeline;   // entry-point in the CoR
 
     /// <summary>
+    /// DI constructor – receives configuration and the claim-builder chain.
     /// DI constructor - receives configuration and the claim-builder chain.
     /// Handlers are wired in the order they are registered in <c>Program.cs</c>.
     /// </summary>

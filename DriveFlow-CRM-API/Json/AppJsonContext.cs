@@ -26,6 +26,14 @@ namespace DriveFlow_CRM_API.Json
     [JsonSerializable(typeof(UpdateStudentDto))]
     [JsonSerializable(typeof(UpdateInstructorDto))]
 
+    // ───────────────────────── STUDENT CONTROLLER ─────────────────────────
+    [JsonSerializable(typeof(StudentFileDto))]
+    [JsonSerializable(typeof(FileDetailsDto))]
+    [JsonSerializable(typeof(PaymentDetailsDto))]
+    [JsonSerializable(typeof(InstructorDetailsDto))]
+    [JsonSerializable(typeof(VehicleDetailsDto))]
+    [JsonSerializable(typeof(AppointmentDetailsDto))]
+
     // ───────────────────────── COUNTY CONTROLLER ─────────────────────────
     [JsonSerializable(typeof(CountyCreateDto))]
     [JsonSerializable(typeof(CountyDto))]

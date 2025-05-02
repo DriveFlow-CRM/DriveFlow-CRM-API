@@ -459,7 +459,7 @@ public class SchoolAdminController : ControllerBase
     /// ```
     /// </remarks>
     /// <param name="schoolId">School identifier from the route.</param>
-    /// <param name="userId">Student’s GUID string from the route.</param>
+    /// <param name="userId">Student's GUID string from the route.</param>
     /// <param name="dto">Fields to update.</param>
     /// <response code="200">Student updated successfully.</response>
     /// <response code="400">Validation failed.</response>
@@ -521,7 +521,7 @@ public class SchoolAdminController : ControllerBase
 
     // ─────────── UPDATE INSTRUCTOR ───────────
     /// <summary>
-    /// Updates an instructor’s personal data and replaces their teaching-category list.
+    /// Updates an instructor's personal data and replaces their teaching-category list.
     /// </summary>
     /// <remarks>
     /// <para><strong>Sample request body</strong></para>
@@ -540,7 +540,7 @@ public class SchoolAdminController : ControllerBase
     /// <c>teachingCategoryIds</c> is a definitive list: the existing links are fully replaced.
     /// </remarks>
     /// <param name="schoolId">School identifier from the route.</param>
-    /// <param name="userId">Instructor’s GUID string from the route.</param>
+    /// <param name="userId">Instructor's GUID string from the route.</param>
     /// <param name="dto">Fields to update.</param>
     /// <response code="200">Instructor updated successfully.</response>
     /// <response code="400">Validation failed.</response>
