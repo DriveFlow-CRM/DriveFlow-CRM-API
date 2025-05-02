@@ -2,33 +2,19 @@
 using Microsoft.EntityFrameworkCore.Design;
 
 namespace DriveFlow_CRM_API;
-
 /// <summary>
-/// Design-time factory for <see cref="ApplicationDbContext"/> used by EF Core
-/// tooling (<c>dotnet ef migrations add</c>, <c>dotnet ef database update</c>).
-/// Implementing <see cref="IDesignTimeDbContextFactory{TContext}"/> prevents the
-/// “Unable to create a DbContext” error by telling EF Core exactly how to build
-/// the context when the application entry point is not executed.
+/// Design-time factory for <see cref="ApplicationDbContext"/> used by EF Core tooling
+/// (<c>dotnet ef migrations add</c>, <c>dotnet ef database update</c>).
 /// </summary>
 /// <remarks>
-/// <list type="bullet">
-///   <item>
-///     <description>Reads the JawsDB connection URI from the environment
-///     variable <c>JAWSDB_URL</c>.</description>
-///   </item>
-///   <item>
-///     <description>Converts that URI into a regular MySQL connection string and
-///     configures Pomelo via
-///     <see cref="RelationalDatabaseFacadeExtensions.UseMySql(DbContextOptionsBuilder,string,Action{MySqlDbContextOptionsBuilder})"/>,
-///     letting <see cref="ServerVersion.AutoDetect(string)"/> pick the correct
-///     dialect.</description>
-///   </item>
-///   <item>
-///     <description>Throws <see cref="InvalidOperationException"/> if
-///     <c>JAWSDB_URL</c> is missing so design-time operations fail fast.</description>
-///   </item>
-/// </list>
+/// <para>
+/// • Reads the JawsDB connection URI from the <c>JAWSDB_URL</c> environment variable.<br/>
+/// • Converts that URI into a MySQL connection string and configures the Pomelo provider.<br/>
+/// • Throws <see cref="System.InvalidOperationException"/> if <c>JAWSDB_URL</c> is missing
+///   so design-time operations fail fast.
+/// </para>
 /// </remarks>
+
 public sealed class ApplicationDbContextFactory
     : IDesignTimeDbContextFactory<ApplicationDbContext>
 {

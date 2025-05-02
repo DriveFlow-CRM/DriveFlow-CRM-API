@@ -48,7 +48,7 @@ public sealed class JwtGeneratorTests
         const int ttlMin = 60;
 
         IConfiguration cfg = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string>
+            .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Jwt:Issuer"] = issuer,
                 ["Jwt:Audience"] = audience,

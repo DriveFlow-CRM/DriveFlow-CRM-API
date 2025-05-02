@@ -61,18 +61,20 @@ public class SchoolAdminController : ControllerBase
     /// <response code="403">
     /// Authenticated user does not belong to the specified school.
     /// </response>
-
-
     [HttpPost("create/instructor")]
     public async Task<IActionResult> CreateInstructorAsync(
-        int schoolId,
-        [FromBody] InstructorCreateDto dto)
+    int schoolId,
+    [FromBody] InstructorCreateDto dto)
     {
-        // 1. Basic validation
+        // ─── basic validation ───
         if (dto.TeachingCategoryIds is null || dto.TeachingCategoryIds.Count == 0)
-            return BadRequest("teachingCategoryIds must contain at least one element.");
+            return BadRequest(new { message = "teachingCategoryIds must contain at least one element" });
 
-        // 2. Ensure all categories belong to the same school
+        // duplicate e-mail check
+        if (await _users.Users.AnyAsync(u => u.Email == dto.Email))
+            return BadRequest(new { message = "A user with the given email address already exists" });
+
+        // ─── validate teachingCategoryIds belong to this school ───
         var validIds = await _db.TeachingCategories
                                 .Where(tc => tc.AutoSchoolId == schoolId &&
                                              dto.TeachingCategoryIds.Contains(tc.TeachingCategoryId))
@@ -80,9 +82,9 @@ public class SchoolAdminController : ControllerBase
                                 .ToListAsync();
 
         if (validIds.Count != dto.TeachingCategoryIds.Distinct().Count())
-            return BadRequest("One or more teachingCategoryIds are invalid for this school.");
+            return BadRequest(new { message = "One or more teachingCategoryIds are invalid for this school" });
 
-        // 3. Transaction
+        // ─── transaction ───
         await using var tx = await _db.Database.BeginTransactionAsync();
 
         var user = new ApplicationUser
@@ -99,7 +101,7 @@ public class SchoolAdminController : ControllerBase
         if (!createRes.Succeeded)
         {
             await tx.RollbackAsync();
-            return BadRequest(createRes.Errors);
+            return BadRequest(new { message = "Identity creation failed", errors = createRes.Errors });
         }
 
         // ensure role exists & assign
@@ -107,7 +109,7 @@ public class SchoolAdminController : ControllerBase
             await _roles.CreateAsync(new IdentityRole("Instructor"));
         await _users.AddToRoleAsync(user, "Instructor");
 
-        // 4. Link teaching categories
+        // ─── link teaching categories ───
         foreach (var id in validIds.Distinct())
             _db.ApplicationUserTeachingCategories.Add(
                 new ApplicationUserTeachingCategory { UserId = user.Id, TeachingCategoryId = id });
@@ -120,10 +122,10 @@ public class SchoolAdminController : ControllerBase
             new { userId = user.Id, message = "Instructor created successfully" });
     }
 
+
     // ─────────── CREATE STUDENT ───────────
     /// <summary>
     /// Creates a new <c>Student</c> together with the related <c>File</c> and <c>Payment</c> records.
-    /// <c>Payment</c> and <c>StudentFile</c>.
     /// </summary>
     /// <remarks>
     /// <para><strong>Sample request body</strong></para>
@@ -166,24 +168,24 @@ public class SchoolAdminController : ControllerBase
     int schoolId,
     [FromBody] StudentCreateDto dto)
     {
-        // quick checks
+        // ─── quick checks ───
         if (dto.Payment.SessionsPayed < 0)
-            return BadRequest("sessionsPayed must be zero or a positive number.");
+            return BadRequest(new { message = "sessionsPayed must be zero or a positive number." });
 
         if (dto.Student.Cnp?.Length != 13 || !dto.Student.Cnp.All(char.IsDigit))
-            return BadRequest("CNP must contain exactly 13 numeric digits.");
+            return BadRequest(new { message = "CNP must contain exactly 13 numeric digits." });
 
-        // unique email + CNP
+        // uniqueness checks
         if (await _users.Users.AnyAsync(u => u.Email == dto.Student.Email))
-            return BadRequest("A user with the given email address already exists.");
+            return BadRequest(new { message = "A user with the given email address already exists." });
 
         if (await _users.Users.AnyAsync(u => u.Cnp == dto.Student.Cnp))
-            return BadRequest("A student with the given CNP already exists.");
+            return BadRequest(new { message = "A student with the given CNP already exists." });
 
         await using var tx = await _db.Database.BeginTransactionAsync();
         try
         {
-            // user
+            // ─── create user ───
             var user = new ApplicationUser
             {
                 FirstName = dto.Student.FirstName,
@@ -194,20 +196,26 @@ public class SchoolAdminController : ControllerBase
                 Cnp = dto.Student.Cnp,
                 AutoSchoolId = schoolId
             };
+
             var idRes = await _users.CreateAsync(user, dto.Student.Password);
             if (!idRes.Succeeded)
             {
                 await tx.RollbackAsync();
-                return BadRequest(idRes.Errors);
+                return BadRequest(new { message = "Identity creation failed", errors = idRes.Errors });
             }
 
+            // ensure Student role exists & assign
             if (!await _roles.RoleExistsAsync("Student"))
                 await _roles.CreateAsync(new IdentityRole("Student"));
+
             await _users.AddToRoleAsync(user, "Student");
 
-            // validate & parse status
+            // ─── parse file status ───
             if (!Enum.TryParse<FileStatus>(dto.File.Status, true, out var statusEnum))
-                return BadRequest($"Invalid file status. Allowed values: {string.Join(", ", Enum.GetNames(typeof(FileStatus)))}.");
+                return BadRequest(new
+                {
+                    message = $"Invalid file status. Allowed values: {string.Join(", ", Enum.GetNames(typeof(FileStatus)))}."
+                });
 
             // convert instructor id
             string? instructorId = dto.File.InstructorId?.ToString();
@@ -224,9 +232,8 @@ public class SchoolAdminController : ControllerBase
                 StudentId = user.Id
             };
             _db.Files.Add(studentFile);
-            await _db.SaveChangesAsync();   // get FileId
+            await _db.SaveChangesAsync();   // generates FileId
 
-            // payment
             var payment = new Payment
             {
                 ScholarshipBasePayment = dto.Payment.ScholarshipBasePayment,
@@ -235,8 +242,7 @@ public class SchoolAdminController : ControllerBase
             };
             _db.Payments.Add(payment);
 
-            // commit
-            await _db.SaveChangesAsync();   // get PaymentId
+            await _db.SaveChangesAsync();   // generates PaymentId
             await tx.CommitAsync();
 
             return Created(
@@ -256,6 +262,7 @@ public class SchoolAdminController : ControllerBase
         }
     }
 
+
     // ─────────── GET USER ───────────
     /// <summary>
     /// Returns a single user (Student or Instructor).  
@@ -273,20 +280,22 @@ public class SchoolAdminController : ControllerBase
     [HttpGet("getUser/{userId}")]
     public async Task<IActionResult> GetUserAsync(int schoolId, string userId)
     {
+        // ─── validate & fetch target user ───
         if (string.IsNullOrWhiteSpace(userId))
-            return BadRequest("userId cannot be empty.");
+            return BadRequest(new { message = "userId cannot be empty." });
 
-        // Identity keys are strings
         var user = await _users.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userId);
+                               .AsNoTracking()
+                               .FirstOrDefaultAsync(u => u.Id == userId);
 
-        if (user is null) return NotFound();
+        if (user is null)
+            return NotFound(new { message = "User not found" });
+
         if (user.AutoSchoolId != schoolId) return Forbid();
 
         var roles = await _users.GetRolesAsync(user);
 
-        // Instructor branch
+        // ─── Instructor branch ───
         if (roles.Contains("Instructor"))
         {
             var categories = await (
@@ -307,34 +316,36 @@ public class SchoolAdminController : ControllerBase
             return Ok(new InstructorUserDto
             {
                 UserId = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Phone = user.PhoneNumber,
+                FirstName = user.FirstName ?? string.Empty,
+                LastName = user.LastName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                Phone = user.PhoneNumber ?? string.Empty,
                 Role = "Instructor",
                 AutoSchoolId = user.AutoSchoolId ?? 0,
                 TeachingCategories = categories
             });
         }
 
-        // Student branch
+        // ─── Student branch ───
         if (roles.Contains("Student"))
         {
             return Ok(new StudentUserDto
             {
                 UserId = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Phone = user.PhoneNumber,
-                Cnp = user.Cnp,
+                FirstName = user.FirstName ?? string.Empty,
+                LastName = user.LastName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                Phone = user.PhoneNumber ?? string.Empty,
+                Cnp = user.Cnp ?? string.Empty,
                 Role = "Student",
                 AutoSchoolId = user.AutoSchoolId ?? 0
             });
         }
 
-        return BadRequest("User is neither Student nor Instructor.");
+        return BadRequest(new { message = "User is neither Student nor Instructor" });
     }
+
+
 
     // ─────────── LIST USERS ───────────
     /// <summary>
@@ -347,7 +358,7 @@ public class SchoolAdminController : ControllerBase
     [HttpGet("getUsers")]
     public async Task<IActionResult> GetUsersAsync(int schoolId)
     {
-        // fetch all users from this school
+        // ─── fetch all users from this school ───
         var users = await _users.Users
             .AsNoTracking()
             .Where(u => u.AutoSchoolId == schoolId)
@@ -370,16 +381,18 @@ public class SchoolAdminController : ControllerBase
             .Select(u => new UserListItemDto
             {
                 UserId = u.Id,
-                FirstName = u.FirstName,
-                LastName = u.LastName,
-                Email = u.Email,
-                Phone = u.PhoneNumber,
+                FirstName = u.FirstName ?? string.Empty,
+                LastName = u.LastName ?? string.Empty,
+                Email = u.Email ?? string.Empty,
+                Phone = u.PhoneNumber ?? string.Empty,
                 Role = roleMap[u.Id],
                 Cnp = roleMap[u.Id] == "Student" ? u.Cnp : null
             });
 
         return Ok(payload);
     }
+
+
     // ─────────── LIST USERS BY TYPE ───────────
     /// <summary>
     /// Returns all users of the specified type (<c>Student</c> or <c>Instructor</c>)
@@ -394,18 +407,18 @@ public class SchoolAdminController : ControllerBase
     [HttpGet("getUsers/{type}")]
     public async Task<IActionResult> GetUsersByTypeAsync(int schoolId, string type)
     {
+        // ─── validate "type" input ───
         if (string.IsNullOrWhiteSpace(type))
-            return BadRequest("User type is required. Use 'Instructor' or 'Student'.");
+            return BadRequest(new { message = "User type is required. Use 'Instructor' or 'Student'." });
 
         type = type.Trim();
+        var isValid = type.Equals("Instructor", StringComparison.OrdinalIgnoreCase) ||
+                      type.Equals("Student", StringComparison.OrdinalIgnoreCase);
 
-        var valid = string.Equals(type, "Instructor", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(type, "Student", StringComparison.OrdinalIgnoreCase);
+        if (!isValid)
+            return BadRequest(new { message = "Type must be 'Instructor' or 'Student'." });
 
-        if (!valid)
-            return BadRequest("Type must be 'Instructor' or 'Student'.");
-
-        // users joined with roles → filter by role name + school
+        // ─── query users by role & school ───
         var users = await (
             from u in _users.Users.AsNoTracking()
             join ur in _db.UserRoles on u.Id equals ur.UserId
@@ -414,16 +427,18 @@ public class SchoolAdminController : ControllerBase
             select new UserListItemDto
             {
                 UserId = u.Id,
-                FirstName = u.FirstName,
-                LastName = u.LastName,
-                Email = u.Email,
-                Phone = u.PhoneNumber,
+                FirstName = u.FirstName ?? string.Empty,
+                LastName = u.LastName ?? string.Empty,
+                Email = u.Email ?? string.Empty,
+                Phone = u.PhoneNumber ?? string.Empty,
                 Role = type,
                 Cnp = type.Equals("Student", StringComparison.OrdinalIgnoreCase) ? u.Cnp : null
             }).ToListAsync();
 
         return Ok(users);
     }
+
+
     // ─────────── UPDATE STUDENT ───────────
     /// <summary>
     /// Updates basic data for an existing student.  
@@ -431,7 +446,7 @@ public class SchoolAdminController : ControllerBase
     /// </summary>
     /// <remarks>
     /// <para><strong>Sample request body</strong></para>
-    ///
+    /// 
     /// ```json
     /// {
     ///   "firstName": "Ioana",
@@ -451,32 +466,32 @@ public class SchoolAdminController : ControllerBase
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">Student belongs to a different school.</response>
     /// <response code="404">Student not found.</response>
-
-
     [HttpPut("update/student/{userId}")]
     public async Task<IActionResult> UpdateStudentAsync(
-        int schoolId,
-        string userId,
-        [FromBody] UpdateStudentDto dto)
+      int schoolId,
+      string userId,
+      [FromBody] UpdateStudentDto dto)
     {
         // quick validation
         if (dto.Cnp?.Length != 13 || !dto.Cnp.All(char.IsDigit))
-            return BadRequest("CNP must contain exactly 13 numeric digits.");
+            return BadRequest(new { message = "CNP must contain exactly 13 numeric digits." });
 
         var user = await _users.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user is null) return NotFound();
+        if (user is null)
+            return NotFound(new { message = "Student not found" });
+
         if (user.AutoSchoolId != schoolId) return Forbid();
 
         var roles = await _users.GetRolesAsync(user);
         if (!roles.Contains("Student"))
-            return BadRequest("User is not a student.");
+            return BadRequest(new { message = "User is not a student" });
 
         // uniqueness checks (exclude current user)
         if (await _users.Users.AnyAsync(u => u.Email == dto.Email && u.Id != userId))
-            return BadRequest("E-mail already used by another user.");
+            return BadRequest(new { message = "E-mail already used by another user" });
 
         if (await _users.Users.AnyAsync(u => u.Cnp == dto.Cnp && u.Id != userId))
-            return BadRequest("CNP already used by another user.");
+            return BadRequest(new { message = "CNP already used by another user" });
 
         // update scalar fields
         user.FirstName = dto.FirstName;
@@ -491,14 +506,18 @@ public class SchoolAdminController : ControllerBase
         {
             var token = await _users.GeneratePasswordResetTokenAsync(user);
             var passRes = await _users.ResetPasswordAsync(user, token, dto.Password);
-            if (!passRes.Succeeded) return BadRequest(passRes.Errors);
+            if (!passRes.Succeeded)
+                return BadRequest(new { message = "Password reset failed", errors = passRes.Errors });
         }
 
         var res = await _users.UpdateAsync(user);
-        if (!res.Succeeded) return BadRequest(res.Errors);
+        if (!res.Succeeded)
+            return BadRequest(new { message = "Identity update failed", errors = res.Errors });
 
         return Ok(new { message = "Student updated successfully" });
     }
+
+
 
     // ─────────── UPDATE INSTRUCTOR ───────────
     /// <summary>
@@ -528,21 +547,21 @@ public class SchoolAdminController : ControllerBase
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">Instructor belongs to a different school.</response>
     /// <response code="404">Instructor not found.</response>
-
-
     [HttpPut("update/instructor/{userId}")]
     public async Task<IActionResult> UpdateInstructorAsync(
-        int schoolId,
-        string userId,
-        [FromBody] UpdateInstructorDto dto)
+    int schoolId,
+    string userId,
+    [FromBody] UpdateInstructorDto dto)
     {
         var user = await _users.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user is null) return NotFound();
+        if (user is null)
+            return NotFound(new { message = "Instructor not found" });
+
         if (user.AutoSchoolId != schoolId) return Forbid();
 
         var roles = await _users.GetRolesAsync(user);
         if (!roles.Contains("Instructor"))
-            return BadRequest("User is not an instructor.");
+            return BadRequest(new { message = "User is not an instructor" });
 
         // validate teachingCategoryIds (can be null → keep current)
         if (dto.TeachingCategoryIds is { Count: > 0 })
@@ -554,13 +573,13 @@ public class SchoolAdminController : ControllerBase
                 .ToListAsync();
 
             if (validIds.Count != dto.TeachingCategoryIds.Distinct().Count())
-                return BadRequest("One or more teachingCategoryIds are invalid for this school.");
+                return BadRequest(new { message = "One or more teachingCategoryIds are invalid for this school" });
         }
 
         // uniqueness check for new email (exclude current user)
         if (!string.IsNullOrWhiteSpace(dto.Email) &&
             await _users.Users.AnyAsync(u => u.Email == dto.Email && u.Id != userId))
-            return BadRequest("E-mail already used by another user.");
+            return BadRequest(new { message = "E-mail already used by another user" });
 
         // apply scalar updates only if provided
         if (!string.IsNullOrWhiteSpace(dto.FirstName)) user.FirstName = dto.FirstName;
@@ -577,13 +596,19 @@ public class SchoolAdminController : ControllerBase
         {
             var token = await _users.GeneratePasswordResetTokenAsync(user);
             var pRes = await _users.ResetPasswordAsync(user, token, dto.Password);
-            if (!pRes.Succeeded) return BadRequest(pRes.Errors);
+            if (!pRes.Succeeded)
+                return BadRequest(new { message = "Password reset failed", errors = pRes.Errors });
         }
 
         // start transaction for categories + user update
         await using var tx = await _db.Database.BeginTransactionAsync();
+
         var uRes = await _users.UpdateAsync(user);
-        if (!uRes.Succeeded) { await tx.RollbackAsync(); return BadRequest(uRes.Errors); }
+        if (!uRes.Succeeded)
+        {
+            await tx.RollbackAsync();
+            return BadRequest(new { message = "Identity update failed", errors = uRes.Errors });
+        }
 
         if (dto.TeachingCategoryIds is { })
         {
@@ -602,15 +627,17 @@ public class SchoolAdminController : ControllerBase
 
         return Ok(new { message = "Instructor updated successfully" });
     }
+
+
     // ─────────── DELETE USER ───────────
     /// <summary>
-    /// Deletes a student or instructor that belongs to the specified school.  
+    /// Deletes a student or instructor that belongs to the specified school.
     /// SchoolAdmin accounts cannot be removed.
     /// </summary>
     /// <param name="schoolId">School identifier from the route.</param>
     /// <param name="userId">User GUID returned by the list-users endpoint.</param>
-    /// <response code="204">User deleted.</response>
-    /// <response code="400">Cannot delete SchoolAdmin or validation failed.</response>
+    /// <response code="204">User deleted successfully.</response>
+    /// <response code="400">Cannot delete SchoolAdmin or unsupported role / validation failed.</response>
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">User belongs to a different school.</response>
     /// <response code="404">User not found.</response>
@@ -618,12 +645,15 @@ public class SchoolAdminController : ControllerBase
     public async Task<IActionResult> DeleteUserAsync(int schoolId, string userId)
     {
         var user = await _users.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user is null) return NotFound();
-        if (user.AutoSchoolId != schoolId) return Forbid();
+        if (user is null)
+            return NotFound(new { message = "User not found" });
+
+        if (user.AutoSchoolId != schoolId)
+            return Forbid();
 
         var roles = await _users.GetRolesAsync(user);
         if (roles.Contains("SchoolAdmin"))
-            return BadRequest("Cannot delete a SchoolAdmin account.");
+            return BadRequest(new { message = "Cannot delete a SchoolAdmin account" });
 
         await using var tx = await _db.Database.BeginTransactionAsync();
 
@@ -631,7 +661,6 @@ public class SchoolAdminController : ControllerBase
         {
             var files = _db.Files.Where(f => f.StudentId == userId).ToList();
             var fileIds = files.Select(f => f.FileId).ToList();
-
             var payments = _db.Payments.Where(p => fileIds.Contains(p.FileId));
             var appointments = _db.Appointments
                                   .Where(a => a.FileId != null && fileIds.Contains(a.FileId!.Value));
@@ -657,16 +686,19 @@ public class SchoolAdminController : ControllerBase
         }
         else
         {
-            return BadRequest("User role not supported for deletion.");
+            return BadRequest(new { message = "User role not supported for deletion" });
         }
 
-        var delRes = await _users.DeleteAsync(user);
-        if (!delRes.Succeeded) { await tx.RollbackAsync(); return BadRequest(delRes.Errors); }
+        var deleteResult = await _users.DeleteAsync(user);
+        if (!deleteResult.Succeeded)
+        {
+            await tx.RollbackAsync();
+            return BadRequest(new { message = "Identity deletion failed", errors = deleteResult.Errors });
+        }
 
         await tx.CommitAsync();
-        return Ok(new { message = "User deleted successfully" });
+        return NoContent();   
     }
-
 
 }
 
@@ -737,14 +769,14 @@ public sealed class FileDto
 /// </summary>
 public sealed class StudentUserDto
 {
-    public string UserId { get; init; }
-    public string FirstName { get; init; } = default!;
-    public string LastName { get; init; } = default!;
-    public string Email { get; init; } = default!;
-    public string Phone { get; init; } = default!;
-    public string Cnp { get; init; } = default!;
-    public string Role { get; init; } = default!;
-    public int AutoSchoolId { get; init; }
+    public required string UserId { get; init; }
+    public required string FirstName { get; init; }
+    public required string LastName { get; init; }
+    public required string Email { get; init; }
+    public required string Phone { get; init; }
+    public required string Cnp { get; init; }
+    public required string Role { get; init; }
+    public required int AutoSchoolId { get; init; }
 }
 
 /// <summary>
@@ -753,13 +785,13 @@ public sealed class StudentUserDto
 /// </summary>
 public sealed class InstructorUserDto
 {
-    public string UserId { get; init; }
-    public string FirstName { get; init; } = default!;
-    public string LastName { get; init; } = default!;
-    public string Email { get; init; } = default!;
-    public string Phone { get; init; } = default!;
-    public string Role { get; init; } = default!;
-    public int AutoSchoolId { get; init; }
+    public required string UserId { get; init; }
+    public required string FirstName { get; init; }
+    public required string LastName { get; init; }
+    public required string Email { get; init; }
+    public required string Phone { get; init; }
+    public required string Role { get; init; }
+    public required int AutoSchoolId { get; init; }
     public List<TeachingCategoryDto> TeachingCategories { get; init; } = new();
 }
 
@@ -778,7 +810,7 @@ public sealed class TeachingCategoryDto
 
 
 /// <summary>
-/// Lightweight representation used by <see cref="GetUsersAsync"/>.
+/// Lightweight representation used by <see cref="SchoolAdminController.GetUsersAsync"/>.
 /// <c>Cnp</c> is included only for students (null for instructors).
 /// </summary>
 public sealed class UserListItemDto
@@ -793,7 +825,7 @@ public sealed class UserListItemDto
 }
 
 /// <summary>
-/// Body used by <see cref="UpdateStudentAsync"/>.
+/// Body used by <see cref="SchoolAdminController.UpdateStudentAsync"/>.
 /// </summary>
 public sealed class UpdateStudentDto
 {
@@ -808,7 +840,7 @@ public sealed class UpdateStudentDto
 
 
 /// <summary>
-/// Body used by <see cref="UpdateInstructorAsync"/>.
+/// Body used by <see cref="SchoolAdminController.UpdateInstructorAsync"/>.
 /// Omitted properties are ignored (current value kept).
 /// </summary>
 public sealed class UpdateInstructorDto
@@ -817,6 +849,6 @@ public sealed class UpdateInstructorDto
     public string? LastName { get; init; }
     public string? Email { get; init; }
     public string? Phone { get; init; }
-    public string? Password { get; init; }    // optional reset
-    public List<int>? TeachingCategoryIds { get; init; } // definitive list (nullable)
+    public string? Password { get; init; }
+    public List<int>? TeachingCategoryIds { get; init; }
 }
