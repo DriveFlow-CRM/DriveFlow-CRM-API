@@ -7,7 +7,7 @@ namespace DriveFlow_CRM_API;
 /// Design-time factory for <see cref="ApplicationDbContext"/> used by EF Core
 /// tooling (<c>dotnet ef migrations add</c>, <c>dotnet ef database update</c>).
 /// Implementing <see cref="IDesignTimeDbContextFactory{TContext}"/> prevents the
-/// “Unable to create a DbContext” error by telling EF Core exactly how to build
+/// "Unable to create a DbContext" error by telling EF Core exactly how to build
 /// the context when the application entry point is not executed.
 /// </summary>
 /// <remarks>
@@ -19,7 +19,7 @@ namespace DriveFlow_CRM_API;
 ///   <item>
 ///     <description>Converts that URI into a regular MySQL connection string and
 ///     configures Pomelo via
-///     <see cref="RelationalDatabaseFacadeExtensions.UseMySql(DbContextOptionsBuilder,string,Action{MySqlDbContextOptionsBuilder})"/>,
+///     <see cref="Microsoft.EntityFrameworkCore.MySqlDbContextOptionsExtensions.UseMySql(DbContextOptionsBuilder,string,ServerVersion)"/>,
 ///     letting <see cref="ServerVersion.AutoDetect(string)"/> pick the correct
 ///     dialect.</description>
 ///   </item>

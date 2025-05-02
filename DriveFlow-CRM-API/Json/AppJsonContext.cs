@@ -28,6 +28,11 @@ namespace DriveFlow_CRM_API.Json
 
     // ───────────────────────── STUDENT CONTROLLER ─────────────────────────
     [JsonSerializable(typeof(StudentFileDto))]
+    [JsonSerializable(typeof(FileDetailsDto))]
+    [JsonSerializable(typeof(PaymentDetailsDto))]
+    [JsonSerializable(typeof(InstructorDetailsDto))]
+    [JsonSerializable(typeof(VehicleDetailsDto))]
+    [JsonSerializable(typeof(AppointmentDetailsDto))]
 
     // ─────────────────────── add new controller sections below ───────────────────────
     internal partial class AppJsonContext : JsonSerializerContext

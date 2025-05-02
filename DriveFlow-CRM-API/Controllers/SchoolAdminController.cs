@@ -444,7 +444,7 @@ public class SchoolAdminController : ControllerBase
     /// ```
     /// </remarks>
     /// <param name="schoolId">School identifier from the route.</param>
-    /// <param name="userId">Student’s GUID string from the route.</param>
+    /// <param name="userId">Student's GUID string from the route.</param>
     /// <param name="dto">Fields to update.</param>
     /// <response code="200">Student updated successfully.</response>
     /// <response code="400">Validation failed.</response>
@@ -502,7 +502,7 @@ public class SchoolAdminController : ControllerBase
 
     // ─────────── UPDATE INSTRUCTOR ───────────
     /// <summary>
-    /// Updates an instructor’s personal data and replaces their teaching-category list.
+    /// Updates an instructor's personal data and replaces their teaching-category list.
     /// </summary>
     /// <remarks>
     /// <para><strong>Sample request body</strong></para>
@@ -521,7 +521,7 @@ public class SchoolAdminController : ControllerBase
     /// <c>teachingCategoryIds</c> is a definitive list: the existing links are fully replaced.
     /// </remarks>
     /// <param name="schoolId">School identifier from the route.</param>
-    /// <param name="userId">Instructor’s GUID string from the route.</param>
+    /// <param name="userId">Instructor's GUID string from the route.</param>
     /// <param name="dto">Fields to update.</param>
     /// <response code="200">Instructor updated successfully.</response>
     /// <response code="400">Validation failed.</response>
@@ -778,7 +778,7 @@ public sealed class TeachingCategoryDto
 
 
 /// <summary>
-/// Lightweight representation used by <see cref="GetUsersAsync"/>.
+/// Lightweight representation used by <see cref="SchoolAdminController.GetUsersAsync"/>.
 /// <c>Cnp</c> is included only for students (null for instructors).
 /// </summary>
 public sealed class UserListItemDto
@@ -793,7 +793,7 @@ public sealed class UserListItemDto
 }
 
 /// <summary>
-/// Body used by <see cref="UpdateStudentAsync"/>.
+/// Body used by <see cref="SchoolAdminController.UpdateStudentAsync"/>.
 /// </summary>
 public sealed class UpdateStudentDto
 {
@@ -808,7 +808,7 @@ public sealed class UpdateStudentDto
 
 
 /// <summary>
-/// Body used by <see cref="UpdateInstructorAsync"/>.
+/// Body used by <see cref="SchoolAdminController.UpdateInstructorAsync"/>.
 /// Omitted properties are ignored (current value kept).
 /// </summary>
 public sealed class UpdateInstructorDto

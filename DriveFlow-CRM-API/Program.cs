@@ -13,13 +13,12 @@ using DriveFlow_CRM_API.Auth;
 using Microsoft.AspNetCore.Authorization;
 using DriveFlow_CRM_API.Json;
 
-
 /// <summary>
 /// Configures services (Swagger, EF Core, Identity, JWT, rate-limit), builds the HTTP
 /// pipeline, seeds default data and starts the DriveFlow CRM Web API.
 /// </summary>
-
 // ──────────────────────────────── 1. Environment  ────────────────────────────────
+
 // Load variables from .env FIRST, so they are visible to the configuration builder.
 DotNetEnv.Env.Load();
 
