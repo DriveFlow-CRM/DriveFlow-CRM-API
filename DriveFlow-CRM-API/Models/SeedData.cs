@@ -43,7 +43,7 @@ namespace DriveFlow_CRM_API.Models;
                     Email = "superadmin@test.com",
                     NormalizedEmail = "SUPERADMIN@TEST.COM",
                     EmailConfirmed = true,
-                    PasswordHash = hasher.HashPassword(null, "SuperAdmin231!")
+                    PasswordHash = hasher.HashPassword(new ApplicationUser(), "SuperAdmin231!")
                 },
                 new ApplicationUser
                 {
@@ -53,7 +53,7 @@ namespace DriveFlow_CRM_API.Models;
                     Email = "schooladmin@test.com",
                     NormalizedEmail = "SCHOOLADMIN@TEST.COM",
                     EmailConfirmed = true,
-                    PasswordHash = hasher.HashPassword(null, "SchoolAdmin231!")
+                    PasswordHash = hasher.HashPassword(new ApplicationUser(), "SchoolAdmin231!")
                 },
                 new ApplicationUser
                 {
@@ -63,7 +63,7 @@ namespace DriveFlow_CRM_API.Models;
                     Email = "student@test.com",
                     NormalizedEmail = "STUDENT@TEST.COM",
                     EmailConfirmed = true,
-                    PasswordHash = hasher.HashPassword(null, "Student231!")
+                    PasswordHash = hasher.HashPassword(new ApplicationUser(), "Student231!")
                 },
                 new ApplicationUser
                 {
@@ -73,7 +73,7 @@ namespace DriveFlow_CRM_API.Models;
                     Email = "instructor@test.com",
                     NormalizedEmail = "INSTRUCTOR@TEST.COM",
                     EmailConfirmed = true,
-                    PasswordHash = hasher.HashPassword(null, "Instructor231!")
+                    PasswordHash = hasher.HashPassword(new ApplicationUser(), "Instructor231!")
                 }
             );
 

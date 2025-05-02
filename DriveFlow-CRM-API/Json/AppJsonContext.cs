@@ -34,7 +34,40 @@ namespace DriveFlow_CRM_API.Json
     [JsonSerializable(typeof(VehicleDetailsDto))]
     [JsonSerializable(typeof(AppointmentDetailsDto))]
 
-    // ─────────────────────── add new controller sections below ───────────────────────
+    // ───────────────────────── COUNTY CONTROLLER ─────────────────────────
+    [JsonSerializable(typeof(CountyCreateDto))]
+    [JsonSerializable(typeof(CountyDto))]
+
+    // ───────────────────────── CITY CONTROLLER ─────────────────────────
+    [JsonSerializable(typeof(CityCreateDto))]
+    [JsonSerializable(typeof(CityDto))]
+
+    // ───────────────────────── ADDRESS CONTROLLER ─────────────────────────
+    [JsonSerializable(typeof(AddressCreateDto))]
+    [JsonSerializable(typeof(AddressDto))]
+
+    // ─────────────────────── AUTOSCHOOL CONTROLLER ───────────────────────
+    [JsonSerializable(typeof(SchoolAdminInfoDto))]
+    [JsonSerializable(typeof(AutoSchoolDto))]
+    [JsonSerializable(typeof(AutoSchoolCreateDto))]
+    [JsonSerializable(typeof(AutoSchoolInnerDto))]
+    [JsonSerializable(typeof(SchoolAdminCreateDto))]
+    [JsonSerializable(typeof(AutoSchoolUpdateDto))]
+    [JsonSerializable(typeof(SchoolAdminUpdateDto))]
+    [JsonSerializable(typeof(CreateAutoSchoolDto))]
+    [JsonSerializable(typeof(NewAutoSchoolDto))]
+    [JsonSerializable(typeof(NewSchoolAdminDto))]
+
+    // ───────────────────────── VEHICLE CONTROLLER ─────────────────────────
+    [JsonSerializable(typeof(VehicleDto))]
+    [JsonSerializable(typeof(VehicleCreateDto))]
+    [JsonSerializable(typeof(VehicleUpdateDto))]
+
+    // ───────────────────────── LICENSE CONTROLLER ─────────────────────────
+    [JsonSerializable(typeof(LicenseDto))]
+    [JsonSerializable(typeof(LicenseCreateDto))]
+    [JsonSerializable(typeof(LicenseUpdateDto))]
+
     internal partial class AppJsonContext : JsonSerializerContext
     {
     }

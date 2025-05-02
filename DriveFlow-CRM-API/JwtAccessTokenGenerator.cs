@@ -19,6 +19,7 @@ public sealed class JwtAccessTokenGenerator : ITokenGenerator
 
     /// <summary>
     /// DI constructor – receives configuration and the claim-builder chain.
+    /// DI constructor - receives configuration and the claim-builder chain.
     /// Handlers are wired in the order they are registered in <c>Program.cs</c>.
     /// </summary>
     public JwtAccessTokenGenerator(
