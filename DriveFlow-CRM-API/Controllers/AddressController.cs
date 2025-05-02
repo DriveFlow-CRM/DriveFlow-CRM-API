@@ -74,8 +74,8 @@ public class AddressController : ControllerBase
             {
                 AddressId = a.AddressId,
                 StreetName = a.StreetName,
-                AddressNumber = a.AddressNumber,
-                Postcode = a.Postcode,
+                AddressNumber = a.AddressNumber ?? string.Empty,
+                Postcode = a.Postcode ?? string.Empty,
                 City = new CityDto
                 {
                     CityId = c.CityId,

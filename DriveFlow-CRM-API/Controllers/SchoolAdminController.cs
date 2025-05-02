@@ -316,10 +316,10 @@ public class SchoolAdminController : ControllerBase
             return Ok(new InstructorUserDto
             {
                 UserId = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Phone = user.PhoneNumber,
+                FirstName = user.FirstName ?? string.Empty,
+                LastName = user.LastName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                Phone = user.PhoneNumber ?? string.Empty,
                 Role = "Instructor",
                 AutoSchoolId = user.AutoSchoolId ?? 0,
                 TeachingCategories = categories
@@ -332,11 +332,11 @@ public class SchoolAdminController : ControllerBase
             return Ok(new StudentUserDto
             {
                 UserId = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                Phone = user.PhoneNumber,
-                Cnp = user.Cnp,
+                FirstName = user.FirstName ?? string.Empty,
+                LastName = user.LastName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                Phone = user.PhoneNumber ?? string.Empty,
+                Cnp = user.Cnp ?? string.Empty,
                 Role = "Student",
                 AutoSchoolId = user.AutoSchoolId ?? 0
             });
@@ -381,10 +381,10 @@ public class SchoolAdminController : ControllerBase
             .Select(u => new UserListItemDto
             {
                 UserId = u.Id,
-                FirstName = u.FirstName,
-                LastName = u.LastName,
-                Email = u.Email,
-                Phone = u.PhoneNumber,
+                FirstName = u.FirstName ?? string.Empty,
+                LastName = u.LastName ?? string.Empty,
+                Email = u.Email ?? string.Empty,
+                Phone = u.PhoneNumber ?? string.Empty,
                 Role = roleMap[u.Id],
                 Cnp = roleMap[u.Id] == "Student" ? u.Cnp : null
             });
@@ -427,10 +427,10 @@ public class SchoolAdminController : ControllerBase
             select new UserListItemDto
             {
                 UserId = u.Id,
-                FirstName = u.FirstName,
-                LastName = u.LastName,
-                Email = u.Email,
-                Phone = u.PhoneNumber,
+                FirstName = u.FirstName ?? string.Empty,
+                LastName = u.LastName ?? string.Empty,
+                Email = u.Email ?? string.Empty,
+                Phone = u.PhoneNumber ?? string.Empty,
                 Role = type,
                 Cnp = type.Equals("Student", StringComparison.OrdinalIgnoreCase) ? u.Cnp : null
             }).ToListAsync();
@@ -769,14 +769,14 @@ public sealed class FileDto
 /// </summary>
 public sealed class StudentUserDto
 {
-    public string UserId { get; init; }
-    public string FirstName { get; init; } = default!;
-    public string LastName { get; init; } = default!;
-    public string Email { get; init; } = default!;
-    public string Phone { get; init; } = default!;
-    public string Cnp { get; init; } = default!;
-    public string Role { get; init; } = default!;
-    public int AutoSchoolId { get; init; }
+    public required string UserId { get; init; }
+    public required string FirstName { get; init; }
+    public required string LastName { get; init; }
+    public required string Email { get; init; }
+    public required string Phone { get; init; }
+    public required string Cnp { get; init; }
+    public required string Role { get; init; }
+    public required int AutoSchoolId { get; init; }
 }
 
 /// <summary>
@@ -785,13 +785,13 @@ public sealed class StudentUserDto
 /// </summary>
 public sealed class InstructorUserDto
 {
-    public string UserId { get; init; }
-    public string FirstName { get; init; } = default!;
-    public string LastName { get; init; } = default!;
-    public string Email { get; init; } = default!;
-    public string Phone { get; init; } = default!;
-    public string Role { get; init; } = default!;
-    public int AutoSchoolId { get; init; }
+    public required string UserId { get; init; }
+    public required string FirstName { get; init; }
+    public required string LastName { get; init; }
+    public required string Email { get; init; }
+    public required string Phone { get; init; }
+    public required string Role { get; init; }
+    public required int AutoSchoolId { get; init; }
     public List<TeachingCategoryDto> TeachingCategories { get; init; } = new();
 }
 
@@ -810,7 +810,7 @@ public sealed class TeachingCategoryDto
 
 
 /// <summary>
-/// Lightweight representation used by <see cref="GetUsersAsync"/>.
+/// Lightweight representation used by <see cref="SchoolAdminController.GetUsersAsync"/>.
 /// <c>Cnp</c> is included only for students (null for instructors).
 /// </summary>
 public sealed class UserListItemDto
@@ -825,7 +825,7 @@ public sealed class UserListItemDto
 }
 
 /// <summary>
-/// Body used by <see cref="UpdateStudentAsync"/>.
+/// Body used by <see cref="SchoolAdminController.UpdateStudentAsync"/>.
 /// </summary>
 public sealed class UpdateStudentDto
 {
@@ -840,7 +840,7 @@ public sealed class UpdateStudentDto
 
 
 /// <summary>
-/// Body used by <see cref="UpdateInstructorAsync"/>.
+/// Body used by <see cref="SchoolAdminController.UpdateInstructorAsync"/>.
 /// Omitted properties are ignored (current value kept).
 /// </summary>
 public sealed class UpdateInstructorDto

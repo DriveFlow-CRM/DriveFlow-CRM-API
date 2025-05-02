@@ -108,35 +108,36 @@ public class AutoSchoolController : ControllerBase
                 Description = s.Description,
                 WebSite = s.WebSite,
                 PhoneNumber = s.PhoneNumber,
-                Email = s.Email,
+                Email = s.Email ?? string.Empty,
                 Status = s.Status.ToString().ToLowerInvariant(),
 
                 Address = s.Address == null ? null : new AddressDto
                 {
                     AddressId = s.Address.AddressId,
                     StreetName = s.Address.StreetName,
-                    AddressNumber = s.Address.AddressNumber,
-                    Postcode = s.Address.Postcode,
-                    City = s.Address.City == null ? null : new CityDto
+                    AddressNumber = s.Address != null && s.Address.AddressNumber != null? s.Address.AddressNumber: string.Empty,
+                    Postcode = s.Address != null && s.Address.Postcode != null ? s.Address.Postcode : string.Empty,
+                    City = s.Address == null || s.Address.City == null? null: new CityDto
                     {
-                        CityId = s.Address.City.CityId,
-                        Name = s.Address.City.Name,
-                        County = s.Address.City.County == null ? null : new CountyDto
-                        {
-                            CountyId = s.Address.City.County.CountyId,
-                            Name = s.Address.City.County.Name,
-                            Abbreviation = s.Address.City.County.Abbreviation
-                        }
+                    CityId = s.Address.City.CityId,
+                    Name = s.Address.City.Name,
+                    County = s.Address.City.County == null ? null : new CountyDto
+                    {
+                        CountyId = s.Address.City.County.CountyId,
+                        Name = s.Address.City.County.Name,
+                        Abbreviation = s.Address.City.County.Abbreviation
                     }
+                    },
+
                 },
 
                 SchoolAdmin = new SchoolAdminInfoDto
                 {
                     UserId = u.Id,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    Email = u.Email,
-                    Phone = u.PhoneNumber
+                    FirstName = u.FirstName ?? string.Empty,
+                    LastName = u.LastName ?? string.Empty,
+                    Email = u.Email ?? string.Empty,
+                    Phone = u.PhoneNumber ?? string.Empty
                 }
             })
             .Distinct()    
@@ -524,7 +525,7 @@ public sealed class SchoolAdminInfoDto
     public string Phone { get; init; } = default!;
 }
 /// <summary>
-/// Response shape of <c>GET&nbsp;api/autoschool/get</c>
+/// Response shape of <c>GET&#160;api/autoschool/get</c>
 /// (school details + address + its SchoolAdmin).
 /// </summary>
 public sealed class AutoSchoolDto
@@ -541,7 +542,7 @@ public sealed class AutoSchoolDto
 }
 
 /// <summary>
-/// Body for <c>POST&nbsp;api/autoschool/create</c>: driving-school data plus its initial SchoolAdmin.
+/// Body for <c>POST&#160;api/autoschool/create</c>: driving-school data plus its initial SchoolAdmin.
 /// </summary>
 public sealed class AutoSchoolCreateDto
 {
@@ -581,7 +582,7 @@ public sealed class SchoolAdminCreateDto
 }
 
 /// <summary>
-/// Patch body for <c>PUT&nbsp;api/autoschool/update/{id}</c>.  
+/// Patch body for <c>PUT&#160;api/autoschool/update/{id}</c>.
 /// Send only fields to change; others stay as-is.  
 /// <c>AddressId</c> and <c>Status</c> are ignored if caller is a SchoolAdmin.
 /// </summary>
@@ -596,7 +597,7 @@ public sealed class AutoSchoolUpdateDto
     public int? AddressId { get; set; }
 }
 /// <summary>
-/// Patch body for <c>PUT&nbsp;api/user/updateSchoolAdmin/{id}</c>;  
+/// Patch body for <c>PUT&#160;api/user/updateSchoolAdmin/{id}</c>;  
 /// include only the fields you want updated.  
 /// Setting <c>Password</c> performs a reset.
 /// </summary>
@@ -609,7 +610,7 @@ public sealed class SchoolAdminUpdateDto
     public string? Password { get; init; }
 }
 /// <summary>
-/// Composite payload for <c>POST&nbsp;api/autoschool/create</c>.  
+/// Composite payload for <c>POST&#160;api/autoschool/create</c>.  
 /// It nests:
 /// <list type="bullet">
 ///   <item><c>AutoSchool</c> – the business data of the new driving-school.</item>
