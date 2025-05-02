@@ -285,7 +285,7 @@ public class AutoSchoolController : ControllerBase
     // ────────────────────────────── PUT AUTO-SCHOOL ──────────────────────────────
     /// <summary>
     /// Updates an existing driving-school.  
-    /// Accessible to a <c>SuperAdmin</c> **or** that school’s own <c>SchoolAdmin</c>.
+    /// Accessible to a <c>SuperAdmin</c> or that school’s own <c>SchoolAdmin</c>.
     /// </summary>
     /// <remarks>
     /// <para><strong>Sample request body</strong></para>

@@ -49,6 +49,17 @@ namespace DriveFlow_CRM_API.Json
     [JsonSerializable(typeof(CreateAutoSchoolDto))]
     [JsonSerializable(typeof(NewAutoSchoolDto))]
     [JsonSerializable(typeof(NewSchoolAdminDto))]
+
+    // ───────────────────────── VEHICLE CONTROLLER ─────────────────────────
+    [JsonSerializable(typeof(VehicleDto))]
+    [JsonSerializable(typeof(VehicleCreateDto))]
+    [JsonSerializable(typeof(VehicleUpdateDto))]
+
+    // ───────────────────────── LICENSE CONTROLLER ─────────────────────────
+    [JsonSerializable(typeof(LicenseDto))]
+    [JsonSerializable(typeof(LicenseCreateDto))]
+    [JsonSerializable(typeof(LicenseUpdateDto))]
+
     internal partial class AppJsonContext : JsonSerializerContext
     {
     }
