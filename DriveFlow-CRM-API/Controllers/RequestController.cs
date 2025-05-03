@@ -40,7 +40,8 @@ public class RequestController : ControllerBase
     ///
     ///{
     ///  "requestId": 23523,
-    ///  "fullName": "Maria Ionescu",
+    ///    "firstName": "Maria",
+    ///    "lastName": "Ionescu",
     ///  "phoneNr": "0721234234",
     ///  "drivingCategory": "A2",
     ///  "requestDate": "2025-10-12T00:00:00Z",
@@ -55,7 +56,7 @@ public class RequestController : ControllerBase
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
 
     [HttpPost("createRequest/{schoolId}/{RequestDto}/CreateRequest")]
-    public async Task<IActionResult> CreateRequest(int schoolId, [FromBody] RequestDto requestDto)
+    public async Task<IActionResult> CreateRequest(int schoolId, [FromForm] RequestDto requestDto)
     {
         if(schoolId <= 0)
             return BadRequest("Invalid school ID.");
@@ -100,7 +101,8 @@ public class RequestController : ControllerBase
     ///    [
     ///      {
     ///    "requestId": 91249,
-    ///    "fullName": "Maria Ionescu",
+    ///    "firstName": "Maria",
+    ///    "lastName": "Ionescu",
     ///    "phoneNr": "0721234567",
     ///    "drivingCategory": "A2",
     ///    "requestDate": "2025-10-12T00:00:00Z",
@@ -108,7 +110,8 @@ public class RequestController : ControllerBase
     ///  },
     ///  {
     ///    "requestId": 23523,
-    ///    "fullName": "Ion Popescu",
+    ///    "firstName": "Ion",
+    ///    "lastName": "Popescu",
     ///    "phoneNr": "0729876543",
     ///    "drivingCategory": "B",
     ///    "requestDate": "2025-10-15T00:00:00Z",
@@ -116,7 +119,8 @@ public class RequestController : ControllerBase
     ///  },
     ///  {
     ///    "requestId": 34567,
-    ///    "fullName": "Elena Georgescu",
+    ///    "firstName": "Elena",
+    ///    "lastName": "Georgescu",
     ///    "phoneNr": "0734567890",
     ///    "drivingCategory": "C",
     ///    "requestDate": "2025-10-20T00:00:00Z",
@@ -177,7 +181,8 @@ public class RequestController : ControllerBase
     ///
     ///  {
     ///    "id": 23523,
-    ///    "fullName": "Maria Ionescu",
+    ///    "firstName": "Maria",
+    ///    "lastName": "Ionescu",
     ///    "phoneNr": "0721234234",
     ///    "drivingCategory": "A2",
     ///    "requestDate": "2025-10-12",
@@ -193,7 +198,7 @@ public class RequestController : ControllerBase
 
 
     [HttpPut("update/{requestId}/UpdateRequestStatus")]
-    public async Task<IActionResult> UpdateRequestStatus(int requestId, RequestDto requestDto)
+    public async Task<IActionResult> UpdateRequestStatus(int requestId,[FromForm] RequestDto requestDto)
     {
         if (requestId <= 0)
             return BadRequest("Invalid request ID.");
@@ -228,7 +233,8 @@ public class RequestController : ControllerBase
     /// [
     ///  {
     ///    "id": 91249,
-    ///    "fullName": "Maria Ionescu",
+    ///    "firstName": "Maria",
+    ///    "lastName": "Ionescu",
     ///    "phoneNr": "0721234567",
     ///    "drivingCategory": "A2",
     ///    "requestDate": "2025-10-12",
@@ -236,7 +242,8 @@ public class RequestController : ControllerBase
     ///  },
     ///  {
     ///    "id": 23523,
-    ///    "fullName": "Maria Ionescu",
+    ///    "firstName": "Maria",
+    ///    "lastName": "Ionescu",
     ///    "phoneNr": "0721234234",
     ///    "drivingCategory": "A2",
     ///    "requestDate": "2025-10-12",
