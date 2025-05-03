@@ -55,7 +55,7 @@ public class RequestController : ControllerBase
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
 
-    [HttpPost("createRequest/{schoolId}/CreateRequest")]
+    [HttpPost("school/{schoolId}/createRequest")]
     public async Task<IActionResult> CreateRequest(int schoolId, [FromBody] RequestDto requestDto)
     {
         if(schoolId <= 0)
@@ -137,7 +137,7 @@ public class RequestController : ControllerBase
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
 
-    [HttpGet("get/{AutoSchoolId}/FetchSchoolRequests")]
+    [HttpGet("school/{AutoSchoolId}/fetchSchoolRequests")]
     [Authorize(Roles = "SuperAdmin,SchoolAdmin")]
     public async Task<IActionResult> FetchSchoolRequests(int AutoSchoolId)
     {
@@ -197,7 +197,7 @@ public class RequestController : ControllerBase
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
 
 
-    [HttpPut("update/{requestId}/UpdateRequestStatus")]
+    [HttpPut("update/{requestId}/updateRequestStatus")]
     public async Task<IActionResult> UpdateRequestStatus(int requestId,[FromBody] RequestDto requestDto)
     {
         if (requestId <= 0)
@@ -257,7 +257,7 @@ public class RequestController : ControllerBase
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
 
-    [HttpDelete("delete/{requestId}/DeleteRequest")]
+    [HttpDelete("delete/{requestId}/deleteRequest")]
     [Authorize(Roles = "SchoolAdmin,SuperAdmin")]
 
     public async Task<IActionResult> DeleteRequest(int requestId)
