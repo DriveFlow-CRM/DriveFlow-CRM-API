@@ -1,8 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;  
-using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
-
+using Microsoft.EntityFrameworkCore;                 
 
 namespace DriveFlow_CRM_API.Models;                 
 
@@ -55,9 +53,7 @@ public class TeachingCategory
     public int AutoSchoolId { get; set; }
 
     /// <summary>Navigation to the auto-school.</summary>
-    [JsonIgnore]
-    public virtual AutoSchool AutoSchool { get; set; } 
-
+    public virtual AutoSchool AutoSchool { get; set; } = null!;
 
     /// <summary>FK to the required <see cref="License"/> (optional).</summary>
     [ForeignKey(nameof(License))]
