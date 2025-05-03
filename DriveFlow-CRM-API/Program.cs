@@ -190,6 +190,9 @@ public partial class Program
         // 4) Refresh-token storage / validation service.
         builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
+        // 5) HttpClient factory for external service communications
+        builder.Services.AddHttpClient();
+
         // ─────────────────────────────── Rate-Limit / Cool-down ──────────────────────────────
         builder.Services.AddMemoryCache();
 
