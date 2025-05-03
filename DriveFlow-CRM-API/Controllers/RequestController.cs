@@ -12,7 +12,7 @@ namespace DriveFlow_CRM_API.Controllers;
 public class RequestController : ControllerBase
 {
 
-    // ───────────────────────────── fields & ctor ─────────────────────────────
+    // ───────────────────────────── fields & actor ─────────────────────────────
     private readonly ApplicationDbContext _db;
     private readonly UserManager<ApplicationUser> _users;
     private readonly RoleManager<IdentityRole> _roles;
@@ -33,19 +33,17 @@ public class RequestController : ControllerBase
 
     // ────────────────────────────── CREATE REQUEST ──────────────────────────────
 
-    /// <summary>Create a new enrollment Request for someone wishing to start their courses (Student, SchoolAdmin, SuperAdmin only).</summary>
+    /// <summary>Create a new enrollment Request for someone wishing to start their courses
+    /// (Student, SchoolAdmin, SuperAdmin only).</summary>
     /// <remarks> SchoolAdmin's SchoolId must match the AutoSchoolId given as method paramether.
     /// <para> <strong>Sample Request body</strong> </para> 
     /// ```json
     ///
     ///{
-    ///  "requestId": 23523,
     ///  "firstName": "Maria",
     ///  "lastName": "Ionescu",
     ///  "phoneNr": "0721234234",
     ///  "drivingCategory": "A2",
-    ///  "requestDate": "2025-10-12T00:00:00Z",
-    ///  "status": "PENDING",
     ///}
     /// ```
     /// </remarks>
@@ -74,7 +72,7 @@ public class RequestController : ControllerBase
             LastName =requestDto.LastName,
             PhoneNumber = requestDto.PhoneNr,
             DrivingCategory = requestDto.DrivingCategory,
-            RequestDate = DateTime.UtcNow,
+            RequestDate = DateTime.Today,
             Status = "PENDING",
             AutoSchoolId = schoolId,
         };
@@ -97,14 +95,14 @@ public class RequestController : ControllerBase
     /// <para> <strong>Sample output</strong> </para> 
     /// ```json
     ///
-    ///    [
-    ///      {
+    ///  [
+    ///    {
     ///    "requestId": 91249,
     ///    "firstName": "Maria",
     ///    "lastName": "Ionescu",
     ///    "phoneNr": "0721234567",
     ///    "drivingCategory": "A2",
-    ///    "requestDate": "2025-10-12T00:00:00Z",
+    ///    "requestDate": "2025-10-12",
     ///    "status": "PENDING"
     ///  },
     ///  {
@@ -113,7 +111,7 @@ public class RequestController : ControllerBase
     ///    "lastName": "Popescu",
     ///    "phoneNr": "0729876543",
     ///    "drivingCategory": "B",
-    ///    "requestDate": "2025-10-15T00:00:00Z",
+    ///    "requestDate": "2025-10-15",
     ///    "status": "APPROVED"
     ///  },
     ///  {
@@ -122,7 +120,7 @@ public class RequestController : ControllerBase
     ///    "lastName": "Georgescu",
     ///    "phoneNr": "0734567890",
     ///    "drivingCategory": "C",
-    ///    "requestDate": "2025-10-20T00:00:00Z",
+    ///    "requestDate": "2025-10-20",
     ///    "status": "REJECTED"
     ///  }
     ///]
@@ -226,27 +224,6 @@ public class RequestController : ControllerBase
     // ────────────────────────────── DELETE REQUEST ──────────────────────────────
     /// <summary>Delete a request (SchoolAdmin, SuperAdmin only).</summary>
     ///<remarks> <para> <strong>Sample output</strong> </para> 
-    /// ```json
-    ///
-    /// [
-    ///  {
-    ///    "firstName": "Maria",
-    ///    "lastName": "Ionescu",
-    ///    "phoneNr": "0721234567",
-    ///    "drivingCategory": "A2",
-    ///    "requestDate": "2025-10-12",
-    ///    "status": "PENDING"
-    ///  },
-    ///  {
-    ///    "firstName": "Maria",
-    ///    "lastName": "Ionescu",
-    ///    "phoneNr": "0721234234",
-    ///    "drivingCategory": "A2",
-    ///    "requestDate": "2025-10-12",
-    ///    "status": "PENDING"
-    ///  }
-    /// ]
-    /// ```
     /// </remarks>
     /// <response code="200">Requests deleted successfully.</response>
     /// <response code="400">Request does not exist</response>
@@ -280,12 +257,12 @@ public class RequestController : ControllerBase
 public sealed class RequestDto
 {
     public int? RequestId { get; init; }
-    public string FirstName { get; init; } = default!;
+    public string? FirstName { get; init; } = default!;
 
-    public string LastName { get; init; } = default!;
+    public string? LastName { get; init; } = default!;
 
     public string PhoneNr { get; init; } = default!;    
     public string? DrivingCategory { get; init; } = default!;
-    public DateTime RequestDate { get; init; } = default;
-    public string Status { get; init; } = default!;
+    public DateTime? RequestDate { get; init; } = default;
+    public string? Status { get; init; } = default!;
 }
