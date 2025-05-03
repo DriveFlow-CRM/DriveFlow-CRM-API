@@ -36,6 +36,10 @@ public class Request
     [StringLength(10)]
     public string? DrivingCategory { get; set; }
 
+
+    [Required]
+    public string Status { get; set; } = "Pending";
+
     /// <summary>Date and time when the request was created.</summary>
     public DateTime RequestDate { get; set; } = DateTime.UtcNow;
 
@@ -51,3 +55,5 @@ public class Request
     /// <summary>Navigation to the auto-school.</summary>
     public virtual AutoSchool? AutoSchool { get; set; }
 }
+
+
