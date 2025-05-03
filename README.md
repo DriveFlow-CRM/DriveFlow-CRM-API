@@ -76,15 +76,28 @@ dotnet tool install --global dotnet-ef
 
 ### 4. Environment Setup
 
-Create a `.env` file in the root directory of the project:
+For production and deployment, use environment variables to store sensitive configuration:
 
-```plaintext
-# .env (only for local development)
-ASPNETCORE_ENVIRONMENT=Production
-JAWSDB_URL=mysql://<username>:<password>@<host>:<port>/<database>
+```bash
+# Production environment variables
+export ASPNETCORE_ENVIRONMENT=Production
+export JAWSDB_URL=mysql://<username>:<password>@<host>:<port>/<database>
+export JWT_KEY=your_super_secret_key_at_least_32_chars_long
+export INVOICE_SERVICE_URL=<your-secure-invoice-service-url>
 ```
 
-Replace the placeholder values with your actual JawsDB credentials.
+For local development, you can use .NET's User Secrets instead of storing sensitive data in files:
+
+```bash
+# Initialize user secrets (run once)
+dotnet user-secrets init --project DriveFlow-CRM-API
+
+# Set your secrets
+dotnet user-secrets set "InvoiceService:Url" "<your-secure-invoice-service-url>" --project DriveFlow-CRM-API
+dotnet user-secrets set "Jwt:Key" "<your-jwt-key>" --project DriveFlow-CRM-API
+```
+
+This keeps sensitive values out of your source code and repositories.
 
 ### 5. Restore Dependencies
 
@@ -139,6 +152,26 @@ The application uses JawsDB MySQL as its database provider. The schema is manage
 ## Deployment
 
 The application is configured for deployment to Heroku with JawsDB MySQL add-on.
+
+### Environment Variables in CI/CD
+
+When deploying with CI/CD pipelines, set these sensitive environment variables in your pipeline configuration:
+
+#### GitHub Actions
+```yaml
+env:
+  INVOICE_SERVICE_URL: ${{ secrets.INVOICE_SERVICE_URL }}
+  JWT_KEY: ${{ secrets.JWT_KEY }}
+```
+
+#### Heroku
+```bash
+# Set config vars
+heroku config:set INVOICE_SERVICE_URL=<your-secure-invoice-service-url> --app your-app-name
+heroku config:set JWT_KEY=<your-jwt-key> --app your-app-name
+```
+
+Never commit real service URLs, API keys, or credentials to your repository.
 
 ## Development Workflow
 
