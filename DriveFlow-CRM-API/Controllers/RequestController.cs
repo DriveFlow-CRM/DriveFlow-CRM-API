@@ -35,8 +35,9 @@ public class RequestController : ControllerBase
 
     /// <summary>Create a new enrollment Request for someone wishing to start their courses (Student, SchoolAdmin, SuperAdmin only).</summary>
     /// <remarks> SchoolAdmin's SchoolId must match the AutoSchoolId given as method paramether.
-    /// <para> <strong>Sample request body</strong> </para> 
-    ///     /// 
+    /// <para> <strong>Sample Request body</strong> </para> 
+    /// ```json
+    ///
     /// [
     ///  {
     ///    "id": 23523,
@@ -44,10 +45,10 @@ public class RequestController : ControllerBase
     ///    "phoneNr": "0721234234",
     ///    "drivingCategory": "A2",
     ///    "requestDate": "2025-10-12",
-    ///    "status": "Approved"
+    ///    "status": "PENDING"
     ///  }
-    ///]
-    /// 
+    /// ]
+    /// ```
     /// </remarks>
     /// <response code="200">Request sent succesffully.</response>
     /// <response code="400">Empty request</response>>
@@ -92,9 +93,12 @@ public class RequestController : ControllerBase
 
     // ────────────────────────────── FETCH SCHOOL REQUESTS ──────────────────────────────
     /// <summary>Returns all student enrollment requests for the appropriate school id, (SchoolAdmin, SuperAdmin only).</summary>
-    /// <remarks> SchoolAdmin's SchoolId must match the AutoSchoolId given as method paramether
-    /// <para> <strong>Sample output</strong> </para> 
+    /// <remarks>
+    /// If the user is a SchoolAdmin, then his SchoolId must match the parameter SchoolId.
     /// 
+    /// <para> <strong>Sample output</strong> </para> 
+    /// ```json
+    ///
     /// [
     ///  {
     ///    "id": 91249,
@@ -112,10 +116,13 @@ public class RequestController : ControllerBase
     ///    "requestDate": "2025-10-12",
     ///    "status": "PENDING"
     ///  }
-    ///]
-    ///
+    /// ]
+    /// ```
     /// </remarks>
-    /// <response code="200">Requests Array returned successfully.</response>
+    /// <returns>
+    /// A list of all the requested RequestDTO items.
+    /// 
+    /// </returns><response code="200">Requests Array returned successfully.</response>
     /// <response code="400">School id was not a valid value</response>>
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
@@ -154,14 +161,15 @@ public class RequestController : ControllerBase
 
     // ────────────────────────────── UPDATE REQUEST ──────────────────────────────
     /// <summary>Update the status of a request (SchoolAdmin, SuperAdmin only).</summary>
-    /// <remarks> SchoolAdmin's SchoolId must match the AutoSchoolId given as method paramether.
+    /// <remarks>
+    /// If the user is a SchoolAdmin, then his SchoolId must match the parameter SchoolId.
     /// The only status values allowed are: APPROVED, REJECTED, PENDING.
     /// That's the only thing that is going to be changed.
-    /// <para>Sample request body</para>
-    /// 
-    ///     /// 
+    /// <para> <strong>Sample request body</strong> </para> 
+    /// ```json
+    ///
     /// [
-    ///  "requestId":23523,
+    ///  "id": 23523,
     ///  {
     ///    "id": 23523,
     ///    "fullName": "Maria Ionescu",
@@ -170,7 +178,8 @@ public class RequestController : ControllerBase
     ///    "requestDate": "2025-10-12",
     ///    "status": "PENDING"
     ///  }
-    ///]
+    /// ]
+    /// ```
     /// </remarks>
     /// <response code="200">Request updated successfully.</response>
     /// <response code="400">RequestId or the new Status was not a valid value</response>>
@@ -208,7 +217,29 @@ public class RequestController : ControllerBase
 
     // ────────────────────────────── DELETE REQUEST ──────────────────────────────
     /// <summary>Delete a request (SchoolAdmin, SuperAdmin only).</summary>
-    /// 
+    ///<remarks> <para> <strong>Sample output</strong> </para> 
+    /// ```json
+    ///
+    /// [
+    ///  {
+    ///    "id": 91249,
+    ///    "fullName": "Maria Ionescu",
+    ///    "phoneNr": "0721234567",
+    ///    "drivingCategory": "A2",
+    ///    "requestDate": "2025-10-12",
+    ///    "status": "PENDING"
+    ///  },
+    ///  {
+    ///    "id": 23523,
+    ///    "fullName": "Maria Ionescu",
+    ///    "phoneNr": "0721234234",
+    ///    "drivingCategory": "A2",
+    ///    "requestDate": "2025-10-12",
+    ///    "status": "PENDING"
+    ///  }
+    /// ]
+    /// ```
+    /// </remarks>
     /// <response code="200">Requests deleted successfully.</response>
     /// <response code="400">Request does not exist</response>
     /// <response code="401">No valid JWT supplied.</response>
