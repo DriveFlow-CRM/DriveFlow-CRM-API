@@ -71,9 +71,11 @@ public class RequestController : ControllerBase
             PhoneNumber = requestDto.PhoneNr,
             DrivingCategory = requestDto.DrivingCategory,
             RequestDate = DateTime.Today,
+
             Status = "PENDING",
             AutoSchoolId = schoolId,
         };
+
         await _db.Requests.AddAsync(newRequest);
         await _db.SaveChangesAsync();
         return Ok("Request was sent successfully!");
@@ -221,7 +223,6 @@ public class RequestController : ControllerBase
 
     // ────────────────────────────── DELETE REQUEST ──────────────────────────────
     /// <summary>Delete a request (SchoolAdmin, SuperAdmin only).</summary>
-    /// </remarks>
     /// <response code="200">Requests deleted successfully.</response>
     /// <response code="400">Request does not exist</response>
     /// <response code="401">No valid JWT supplied.</response>
@@ -254,12 +255,12 @@ public class RequestController : ControllerBase
 public sealed class RequestDto
 {
     public int? RequestId { get; init; }
-    public string? FirstName { get; init; } = default!;
+    public string FirstName { get; init; } = default!;
 
-    public string? LastName { get; init; } = default!;
+    public string LastName { get; init; } = default!;
 
     public string PhoneNr { get; init; } = default!;    
-    public string? DrivingCategory { get; init; } = default!;
+    public string DrivingCategory { get; init; } = default!;
     public DateTime? RequestDate { get; init; } = default;
     public string? Status { get; init; } = default!;
 }
