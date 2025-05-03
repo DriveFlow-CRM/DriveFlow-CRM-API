@@ -59,9 +59,7 @@ public class RequestController : ControllerBase
             return BadRequest("Invalid school ID.");
         if (requestDto == null)
             return BadRequest("Request data is required.");
-        var user = await _users.GetUserAsync(User);   
-        if(user == null)
-            return Unauthorized("User not found.");
+
         //if (User.IsInRole("SchoolAdmin") &&  user.AutoSchoolId != requestDto.AutoSchoolId)
         //    return Forbid("You are not authorized to create requests for this auto school.");
 
@@ -223,7 +221,6 @@ public class RequestController : ControllerBase
 
     // ────────────────────────────── DELETE REQUEST ──────────────────────────────
     /// <summary>Delete a request (SchoolAdmin, SuperAdmin only).</summary>
-    ///<remarks> <para> <strong>Sample output</strong> </para> 
     /// </remarks>
     /// <response code="200">Requests deleted successfully.</response>
     /// <response code="400">Request does not exist</response>
