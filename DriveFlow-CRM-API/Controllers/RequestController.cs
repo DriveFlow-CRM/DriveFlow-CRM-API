@@ -292,6 +292,4 @@ public sealed class RequestDto
     public string? DrivingCategory { get; init; } = default!;
     public DateTime RequestDate { get; init; } = default;
     public string Status { get; init; } = default!;
-
-    public int? AutoSchoolId { get; init; } = default!;  
 }
