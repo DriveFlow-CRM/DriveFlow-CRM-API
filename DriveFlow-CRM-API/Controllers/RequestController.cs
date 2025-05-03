@@ -40,13 +40,12 @@ public class RequestController : ControllerBase
     ///
     ///{
     ///  "requestId": 23523,
-    ///    "firstName": "Maria",
-    ///    "lastName": "Ionescu",
+    ///  "firstName": "Maria",
+    ///  "lastName": "Ionescu",
     ///  "phoneNr": "0721234234",
     ///  "drivingCategory": "A2",
     ///  "requestDate": "2025-10-12T00:00:00Z",
     ///  "status": "PENDING",
-    ///  "autoSchoolId": 1
     ///}
     /// ```
     /// </remarks>
@@ -76,7 +75,7 @@ public class RequestController : ControllerBase
             PhoneNumber = requestDto.PhoneNr,
             DrivingCategory = requestDto.DrivingCategory,
             RequestDate = DateTime.UtcNow,
-            Status = "Pending",
+            Status = "PENDING",
             AutoSchoolId = schoolId,
         };
         await _db.Requests.AddAsync(newRequest);
@@ -180,7 +179,6 @@ public class RequestController : ControllerBase
     /// ```json
     ///
     ///  {
-    ///    "id": 23523,
     ///    "firstName": "Maria",
     ///    "lastName": "Ionescu",
     ///    "phoneNr": "0721234234",
@@ -232,7 +230,6 @@ public class RequestController : ControllerBase
     ///
     /// [
     ///  {
-    ///    "id": 91249,
     ///    "firstName": "Maria",
     ///    "lastName": "Ionescu",
     ///    "phoneNr": "0721234567",
@@ -241,7 +238,6 @@ public class RequestController : ControllerBase
     ///    "status": "PENDING"
     ///  },
     ///  {
-    ///    "id": 23523,
     ///    "firstName": "Maria",
     ///    "lastName": "Ionescu",
     ///    "phoneNr": "0721234234",
@@ -283,7 +279,7 @@ public class RequestController : ControllerBase
 
 public sealed class RequestDto
 {
-    public int RequestId { get; init; }
+    public int? RequestId { get; init; }
     public string FirstName { get; init; } = default!;
 
     public string LastName { get; init; } = default!;
