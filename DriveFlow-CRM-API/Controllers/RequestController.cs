@@ -57,16 +57,17 @@ public class RequestController : ControllerBase
     [HttpPost("createRequest/{schoolId}/{RequestDto}/CreateRequest")]
     public async Task<IActionResult> CreateRequest(int schoolId, [FromBody] RequestDto requestDto)
     {
+        if(schoolId <= 0)
+            return BadRequest("Invalid school ID.");
         if (requestDto == null)
             return BadRequest("Request data is required.");
         var user = await _users.GetUserAsync(User);   
         if(user == null)
             return Unauthorized("User not found.");
-        if (User.IsInRole("SchoolAdmin") &&  user.AutoSchoolId != requestDto.AutoSchoolId)
-            return Forbid("You are not authorized to create requests for this auto school.");
+        //if (User.IsInRole("SchoolAdmin") &&  user.AutoSchoolId != requestDto.AutoSchoolId)
+        //    return Forbid("You are not authorized to create requests for this auto school.");
 
-        //Name must be split and assigned to FirstName and LastName
-        //User may have multiple surnames
+
         var newRequest = new Request
         {
             FirstName = requestDto.FirstName,
@@ -75,7 +76,7 @@ public class RequestController : ControllerBase
             DrivingCategory = requestDto.DrivingCategory,
             RequestDate = DateTime.UtcNow,
             Status = "Pending",
-            AutoSchoolId = requestDto.AutoSchoolId,
+            AutoSchoolId = schoolId,
         };
         await _db.Requests.AddAsync(newRequest);
         await _db.SaveChangesAsync();
@@ -265,7 +266,9 @@ public class RequestController : ControllerBase
         if (request == null)
             return NotFound("Request not found.");
         _db.Requests.Remove(request);
+
         await _db.SaveChangesAsync();
+
         return Ok("Request deleted successfully.");
     }
 }
