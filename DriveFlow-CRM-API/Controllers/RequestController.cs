@@ -8,7 +8,7 @@ using System.Security.Claims;
 namespace DriveFlow_CRM_API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/request")]
 public class RequestController : ControllerBase
 {
 
@@ -55,8 +55,8 @@ public class RequestController : ControllerBase
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
 
-    [HttpPost("createRequest/{schoolId}/{RequestDto}/CreateRequest")]
-    public async Task<IActionResult> CreateRequest(int schoolId, [FromForm] RequestDto requestDto)
+    [HttpPost("createRequest/{schoolId}/CreateRequest")]
+    public async Task<IActionResult> CreateRequest(int schoolId, [FromBody] RequestDto requestDto)
     {
         if(schoolId <= 0)
             return BadRequest("Invalid school ID.");
@@ -198,7 +198,7 @@ public class RequestController : ControllerBase
 
 
     [HttpPut("update/{requestId}/UpdateRequestStatus")]
-    public async Task<IActionResult> UpdateRequestStatus(int requestId,[FromForm] RequestDto requestDto)
+    public async Task<IActionResult> UpdateRequestStatus(int requestId,[FromBody] RequestDto requestDto)
     {
         if (requestId <= 0)
             return BadRequest("Invalid request ID.");
