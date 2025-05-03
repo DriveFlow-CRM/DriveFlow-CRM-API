@@ -38,16 +38,15 @@ public class RequestController : ControllerBase
     /// <para> <strong>Sample Request body</strong> </para> 
     /// ```json
     ///
-    /// [
-    ///  {
-    ///    "id": 23523,
-    ///    "fullName": "Maria Ionescu",
-    ///    "phoneNr": "0721234234",
-    ///    "drivingCategory": "A2",
-    ///    "requestDate": "2025-10-12",
-    ///    "status": "PENDING"
-    ///  }
-    /// ]
+    ///{
+    ///  "requestId": 23523,
+    ///  "fullName": "Maria Ionescu",
+    ///  "phoneNr": "0721234234",
+    ///  "drivingCategory": "A2",
+    ///  "requestDate": "2025-10-12T00:00:00Z",
+    ///  "status": "PENDING",
+    ///  "autoSchoolId": 1
+    ///}
     /// ```
     /// </remarks>
     /// <response code="200">Request sent succesffully.</response>
@@ -99,24 +98,32 @@ public class RequestController : ControllerBase
     /// <para> <strong>Sample output</strong> </para> 
     /// ```json
     ///
-    /// [
-    ///  {
-    ///    "id": 91249,
+    ///    [
+    ///      {
+    ///    "requestId": 91249,
     ///    "fullName": "Maria Ionescu",
     ///    "phoneNr": "0721234567",
     ///    "drivingCategory": "A2",
-    ///    "requestDate": "2025-10-12",
+    ///    "requestDate": "2025-10-12T00:00:00Z",
     ///    "status": "PENDING"
     ///  },
     ///  {
-    ///    "id": 23523,
-    ///    "fullName": "Maria Ionescu",
-    ///    "phoneNr": "0721234234",
-    ///    "drivingCategory": "A2",
-    ///    "requestDate": "2025-10-12",
-    ///    "status": "PENDING"
+    ///    "requestId": 23523,
+    ///    "fullName": "Ion Popescu",
+    ///    "phoneNr": "0729876543",
+    ///    "drivingCategory": "B",
+    ///    "requestDate": "2025-10-15T00:00:00Z",
+    ///    "status": "APPROVED"
+    ///  },
+    ///  {
+    ///    "requestId": 34567,
+    ///    "fullName": "Elena Georgescu",
+    ///    "phoneNr": "0734567890",
+    ///    "drivingCategory": "C",
+    ///    "requestDate": "2025-10-20T00:00:00Z",
+    ///    "status": "REJECTED"
     ///  }
-    /// ]
+    //]
     /// ```
     /// </remarks>
     /// <returns>
@@ -168,17 +175,15 @@ public class RequestController : ControllerBase
     /// <para> <strong>Sample request body</strong> </para> 
     /// ```json
     ///
-    /// [
-    ///  "id": 23523,
     ///  {
     ///    "id": 23523,
     ///    "fullName": "Maria Ionescu",
     ///    "phoneNr": "0721234234",
     ///    "drivingCategory": "A2",
     ///    "requestDate": "2025-10-12",
-    ///    "status": "PENDING"
+    ///    "status": "APPROVED"
     ///  }
-    /// ]
+    /// 
     /// ```
     /// </remarks>
     /// <response code="200">Request updated successfully.</response>
