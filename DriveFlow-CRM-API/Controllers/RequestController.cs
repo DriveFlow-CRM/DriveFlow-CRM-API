@@ -90,7 +90,7 @@ public class RequestController : ControllerBase
 
 
 
-    // ────────────────────────────── FETCH SCHOOL REQUESTS ──────────────────────────────
+    /// ────────────────────────────── FETCH SCHOOL REQUESTS ──────────────────────────────
     /// <summary>Returns all student enrollment requests for the appropriate school id, (SchoolAdmin, SuperAdmin only).</summary>
     /// <remarks>
     /// If the user is a SchoolAdmin, then his SchoolId must match the parameter SchoolId.
@@ -123,13 +123,13 @@ public class RequestController : ControllerBase
     ///    "requestDate": "2025-10-20T00:00:00Z",
     ///    "status": "REJECTED"
     ///  }
-    //]
+    ///]
     /// ```
     /// </remarks>
     /// <returns>
     /// A list of all the requested RequestDTO items.
-    /// 
-    /// </returns><response code="200">Requests Array returned successfully.</response>
+    /// </returns>
+    /// <response code="200">Requests Array returned successfully.</response>
     /// <response code="400">School id was not a valid value</response>>
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>

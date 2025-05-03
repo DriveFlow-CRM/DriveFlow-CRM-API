@@ -55,3 +55,5 @@ public class Request
     /// <summary>Navigation to the auto-school.</summary>
     public virtual AutoSchool? AutoSchool { get; set; }
 }
+
+
