@@ -54,9 +54,8 @@ public class RequestController : ControllerBase
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
 
-    [HttpPost("createRequest/{RequestDto}")]
-    [Authorize(Roles = "Student,SchoolAdmin,SuperAdmin")]
-    public async Task<IActionResult> CreateRequest([FromBody] RequestDto requestDto)
+    [HttpPost("createRequest/{schoolId}/{RequestDto}/CreateRequest")]
+    public async Task<IActionResult> CreateRequest(int schoolId, [FromBody] RequestDto requestDto)
     {
         if (requestDto == null)
             return BadRequest("Request data is required.");
@@ -68,11 +67,10 @@ public class RequestController : ControllerBase
 
         //Name must be split and assigned to FirstName and LastName
         //User may have multiple surnames
-        string[] tokens = requestDto.FullName.Split(' ');
         var newRequest = new Request
         {
-            FirstName = tokens.Length==2 ? tokens.First() : string.Join(" ", tokens.Take(tokens.Length - 1)),
-            LastName = tokens.Last(),
+            FirstName = requestDto.FirstName,
+            LastName =requestDto.LastName,
             PhoneNumber = requestDto.PhoneNr,
             DrivingCategory = requestDto.DrivingCategory,
             RequestDate = DateTime.UtcNow,
@@ -134,7 +132,7 @@ public class RequestController : ControllerBase
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
 
-    [HttpGet("get/{AutoSchoolId:int}")]
+    [HttpGet("get/{AutoSchoolId}/FetchSchoolRequests")]
     [Authorize(Roles = "SuperAdmin,SchoolAdmin")]
     public async Task<IActionResult> FetchSchoolRequests(int AutoSchoolId)
     {
@@ -155,7 +153,8 @@ public class RequestController : ControllerBase
             .Select(r => new RequestDto
             {
                 RequestId = r.RequestId,
-                FullName = r.FirstName + " " + r.LastName,
+                FirstName = r.FirstName,
+                LastName = r.LastName,
                 PhoneNr = r.PhoneNumber,
                 DrivingCategory = r.DrivingCategory,
                 RequestDate = r.RequestDate,
@@ -192,7 +191,7 @@ public class RequestController : ControllerBase
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
 
 
-    [HttpPut("update/{requestId}")]
+    [HttpPut("update/{requestId}/UpdateRequestStatus")]
     public async Task<IActionResult> UpdateRequestStatus(int requestId, RequestDto requestDto)
     {
         if (requestId <= 0)
@@ -250,7 +249,7 @@ public class RequestController : ControllerBase
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
 
-    [HttpDelete("delete/{requestId}")]
+    [HttpDelete("delete/{requestId}/DeleteRequest")]
     [Authorize(Roles = "SchoolAdmin,SuperAdmin")]
 
     public async Task<IActionResult> DeleteRequest(int requestId)
@@ -275,8 +274,10 @@ public class RequestController : ControllerBase
 public sealed class RequestDto
 {
     public int RequestId { get; init; }
-    public string FullName { get; init; } = default!;
-    
+    public string FirstName { get; init; } = default!;
+
+    public string LastName { get; init; } = default!;
+
     public string PhoneNr { get; init; } = default!;    
     public string? DrivingCategory { get; init; } = default!;
     public DateTime RequestDate { get; init; } = default;
