@@ -31,15 +31,75 @@ public class RequestController : ControllerBase
 
 
 
+    // ────────────────────────────── CREATE REQUEST ──────────────────────────────
+
+    /// <summary>Create a new enrollment Request for someone wishing to start their courses (Student, SchoolAdmin, SuperAdmin only).</summary>
+    /// <remarks> SchoolAdmin's SchoolId must match the AutoSchoolId given as method paramether.
+    /// <para> <strong>Sample output</strong> </para> </remarks>
+    /// <response code="200">Request sent succesffully.</response>
+    /// <response code="400">Empty request</response>>
+    /// <response code="401">No valid JWT supplied.</response>
+    /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
+
+    [HttpPost("createRequest/{RequestDto}")]
+    [Authorize(Roles = "Student,SchoolAdmin,SuperAdmin")]
+    public async Task<IActionResult> CreateRequest([FromBody] RequestDto requestDto)
+    {
+        if (requestDto == null)
+            return BadRequest("Request data is required.");
+        var user = await _users.GetUserAsync(User);   
+        if (User.IsInRole("SchoolAdmin") &&  user.AutoSchoolId != requestDto.AutoSchoolId)
+            return Forbid("You are not authorized to create requests for this auto school.");
+
+        //Name must be split and assigned to FirstName and LastName
+        //User may have multiple surnames
+        string[] tokens = requestDto.FullName.Split(' ');
+        var newRequest = new Request
+        {
+            FirstName = tokens.Length==2 ? tokens.First() : string.Join(" ", tokens.Take(tokens.Length - 1)),
+            LastName = tokens.Last(),
+            PhoneNumber = requestDto.PhoneNr,
+            DrivingCategory = requestDto.DrivingCategory,
+            RequestDate = DateTime.UtcNow,
+            Status = "PENDING",
+            AutoSchoolId = requestDto.AutoSchoolId,
+        };
+        await _db.Requests.AddAsync(newRequest);
+        await _db.SaveChangesAsync();
+        return Ok("Request was sent successfully!");
+    }
 
 
-    // ──────────────────────────────FETCH SCHOOL REQUESTS ──────────────────────────────
+
+
+    // ────────────────────────────── FETCH SCHOOL REQUESTS ──────────────────────────────
     /// <summary>Returns all student enrollment requests for the appropriate school id, (SchoolAdmin, SuperAdmin only).</summary>
     /// <remarks> SchoolAdmin's SchoolId must match the AutoSchoolId given as method paramether
+    /// <para> <strong>Sample output</strong> </para> 
+    /// 
+    /// [
+    ///  {
+    ///    "id": 91249,
+    ///    "fullName": "Maria Ionescu",
+    ///    "phoneNr": "0721234567",
+    ///    "drivingCategory": "A2",
+    ///    "requestDate": "2025-10-12",
+    ///    "status": "PENDING"
+    ///  },
+    ///  {
+    ///    "id": 23523,
+    ///    "fullName": "Maria Ionescu",
+    ///    "phoneNr": "0721234234",
+    ///    "drivingCategory": "A2",
+    ///    "requestDate": "2025-10-12",
+    ///    "status": "PENDING"
+    ///  }
+    ///]
+    ///
     /// </remarks>
     /// <response code="200">Requests Array returned successfully.</response>
     /// <response code="400">School id was not a valid value</response>>
-    /// <response code="401">User was not authorized</response>
+    /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
 
     [HttpGet("get/{AutoSchoolId:int}")]
@@ -47,7 +107,7 @@ public class RequestController : ControllerBase
     public async Task<IActionResult> FetchSchoolRequests(int AutoSchoolId)
     {
         if (AutoSchoolId <= 0)
-            return BadRequest("AutoSchoolId must be a positive integer.");
+            return BadRequest();
 
         var user = await _users.GetUserAsync(User);
         if (user == null)
@@ -63,10 +123,11 @@ public class RequestController : ControllerBase
             .Select(r => new RequestDto
             {
                 RequestId = r.RequestId,
-                FirstName = r.FirstName,
-                LastName = r.LastName,
+                FullName = r.FirstName + " " + r.LastName,
+                PhoneNr = r.PhoneNumber,
                 DrivingCategory = r.DrivingCategory,
-                Status = r.Status,
+                RequestDate = r.RequestDate.ToString("dd-MM-yyyy"),
+                Status = r.Status
             })
             .ToListAsync();
         return Ok(Requests);
@@ -79,8 +140,12 @@ public class RequestController : ControllerBase
 public sealed class RequestDto
 {
     public int RequestId { get; init; }
-    public string FirstName { get; init; } = default!;
-    public string LastName { get; init; } = default!;
+    public string FullName { get; init; } = default!;
+    
+    public string PhoneNr { get; init; } = default!;    
     public string? DrivingCategory { get; init; } = default!;
+    public string? RequestDate { get; init; } = default;
     public string Status { get; init; } = default!;
+
+    public int? AutoSchoolId { get; init; } = default!;  
 }
