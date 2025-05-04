@@ -141,7 +141,7 @@ public class RequestController : ControllerBase
         if (AutoSchoolId <= 0)
             return BadRequest();
 
-        var user = await _users.GetUserAsync(User);
+        var user =  _users.GetUserAsync(User).Result;
         if (user == null)
             return Unauthorized("User not found.");
 
@@ -181,14 +181,14 @@ public class RequestController : ControllerBase
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
 
 
-    [HttpPut("update/{requestId}/updateRequestStatus")]
+    [HttpGet("update/{requestId}/updateRequestStatus")]
     public async Task<IActionResult> UpdateRequestStatus(int requestId)
     {
         if (requestId <= 0)
             return BadRequest("Invalid request ID.");
 
 
-        var user = await _users.GetUserAsync(User);
+        var user = _users.GetUserAsync(User).Result;
         if (user == null)
             return Unauthorized("User not found.");
         if (!(User.IsInRole("SchoolAdmin") && user.AutoSchoolId == requestId))
@@ -247,7 +247,7 @@ public class RequestController : ControllerBase
             return BadRequest("Request data is required.");
         }
 
-        var user = await _users.GetUserAsync(User);
+        var user = _users.GetUserAsync(User).Result;
         if (user == null)
             return Unauthorized("User not found.");
         if (!(User.IsInRole("SchoolAdmin") && user.AutoSchoolId == requestId))
@@ -282,7 +282,7 @@ public class RequestController : ControllerBase
     {
         if (requestId <= 0)
             return BadRequest("Invalid request ID.");
-        var user = await _users.GetUserAsync(User);
+        var user = _users.GetUserAsync(User).Result;
         if (user == null)
             return Unauthorized("User not found.");
         if (!(User.IsInRole("SchoolAdmin") && user.AutoSchoolId == requestId))
