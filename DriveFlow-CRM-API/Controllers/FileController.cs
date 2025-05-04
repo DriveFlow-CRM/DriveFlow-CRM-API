@@ -61,9 +61,14 @@ public class FileController : ControllerBase
             ScholarshipStartDate = fileDto.scholarschipStartDate,
             CriminalRecordExpiryDate = fileDto.criminalRecordExpiryDate,
             MedicalRecordExpiryDate = fileDto.medicalRecordExpiryDate,
-            Status = fileDto.status,
+            //File.cs/FileStatus class, DRAFT/APPROVED/REJECTED,
+            //astept sa imi spui gabi cum modificam aici
+            //pe card vad sa apara ca `open`
+            Status = fileDto.status, 
             TeachingCategoryId = fileDto.teachingCategoryId,
             StudentId = studentId,
+            //VehicleId && InstructorId are optional therefore ternary operator should
+            //preferably be used here i believe
             VehicleId = fileDto.vehicleId == null ? null : fileDto.vehicleId,
             InstructorId = fileDto.instructorId == null ? null : fileDto.instructorId
         };
@@ -75,6 +80,8 @@ public class FileController : ControllerBase
             ScholarshipBasePayment = fileDto.payment.scholarshipBasePayment,
             SessionsPayed = fileDto.payment.sessionPayed,
             FileId = file.FileId
+            //aici sper sa nu pice, adica atunci cand adaug obiectul in BD
+            //ar trebui sa primeasca si ID implicit..i hope
         };
 
         await _db.Payments.AddAsync(payment);
@@ -94,7 +101,6 @@ public sealed class CreateFilePaymentDto
 {
     public int sessionPayed = 0;
     public bool scholarshipBasePayment = false;
-
 }
 public sealed class CreateFileDto
 {
