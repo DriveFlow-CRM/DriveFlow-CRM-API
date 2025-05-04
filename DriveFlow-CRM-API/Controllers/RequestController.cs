@@ -213,6 +213,10 @@ public class RequestController : ControllerBase
         var request = await _db.Requests.FindAsync(requestId);
         if (request == null)
             return NotFound("Request not found.");
+        if(requestDto.Status == null)
+        {
+            return BadRequest("Status is required.");
+        }
 
         request.Status = requestDto.Status; // Update the status of the request, that's all we do here.
 
@@ -260,7 +264,7 @@ public sealed class RequestDto
     public string LastName { get; init; } = default!;
 
     public string PhoneNr { get; init; } = default!;    
-    public string DrivingCategory { get; init; } = default!;
+    public string? DrivingCategory { get; init; } = default!;
     public DateTime? RequestDate { get; init; } = default;
     public string? Status { get; init; } = default!;
 }
