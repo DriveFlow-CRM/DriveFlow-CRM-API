@@ -31,7 +31,13 @@ public class FileController : ControllerBase
 
 
     // ────────────────────────────── CREATE FILE ──────────────────────────────
-
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="studentId">The id of the student that previously made
+    /// the request to enroll with at this auto school</param>
+    /// <param name="fileDto">All the necessary content of the file</param>
+    /// <returns></returns>
 
 
     [HttpPost("createFile/{studentId}")]
@@ -90,7 +96,15 @@ public class FileController : ControllerBase
 
         _db.Files.Add(file);
         _db.SaveChanges();
-        return Ok("File uploaded successfully.");
+
+
+
+        return Ok(new CreateFileResponseDto()
+        {
+            fileId = file.FileId,
+            paymentId = payment.PaymentId,
+            message = "File created successfully"
+        });
     }
 }
 
