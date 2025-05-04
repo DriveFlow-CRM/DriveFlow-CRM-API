@@ -36,26 +36,51 @@ public class FileController : ControllerBase
 
     [HttpPost("createFile/{studentId}")]
     [Authorize(Roles = "SchoolAdmin")]
-    public async Task<IActionResult> CreateFile(int studentId, CreateFileDto fileDto )
+    public async Task<IActionResult> CreateFile(string studentId,[FromBody] CreateFileDto fileDto )
     {
-        if (studentId <= 0)
+        if (studentId == null)
             return BadRequest("Invalid user ID.");
         if (fileDto == null)
             return BadRequest("Empty request.");
 
         var userAdmin = _db.ApplicationUsers.Find(User);
         var userStudent = _db.ApplicationUsers.Find(studentId);
+
+        if(userAdmin == null)
+            return BadRequest("User not found.");
+        if (userStudent == null)
+            return BadRequest("Student not found.");
+
         if (userAdmin.AutoSchoolId == userStudent.AutoSchoolId)
         {
             return Forbid("This student does not belong to your auto school");
         }
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            
-        };
-        {
 
-        }
+        var file = new Models.File
+        {
+            ScholarshipStartDate = fileDto.scholarschipStartDate,
+            CriminalRecordExpiryDate = fileDto.criminalRecordExpiryDate,
+            MedicalRecordExpiryDate = fileDto.medicalRecordExpiryDate,
+            Status = fileDto.status,
+            TeachingCategoryId = fileDto.teachingCategoryId,
+            StudentId = studentId,
+            VehicleId = fileDto.vehicleId == null ? null : fileDto.vehicleId,
+            InstructorId = fileDto.instructorId == null ? null : fileDto.instructorId
+        };
+
+
+        await _db.Files.AddAsync(file);
+        var payment = new Payment
+        {
+            ScholarshipBasePayment = fileDto.payment.scholarshipBasePayment,
+            SessionsPayed = fileDto.payment.sessionPayed,
+            FileId = file.FileId
+        };
+
+        await _db.Payments.AddAsync(payment);
+
+
+
         _db.Files.Add(file);
         _db.SaveChanges();
         return Ok("File uploaded successfully.");
@@ -73,7 +98,20 @@ public sealed class CreateFilePaymentDto
 }
 public sealed class CreateFileDto
 {
-    public DateTime scholarschipStartDate { get; set; } = default!;
+    public DateTime scholarschipStartDate { get; init; } = default!;
+    public DateTime criminalRecordExpiryDate { get; init; } = default!;
+
+    public DateTime medicalRecordExpiryDate { get; init; } = default!;
+
+    public FileStatus status { get; init; } = default!;
+
+    public int teachingCategoryId { get; init; } = default!;
+
+    public int? vehicleId { get; init; } = default!;
+
+    public string? instructorId { get; init; } = default!;
+
+    public CreateFilePaymentDto payment { get; init; } = default!;
 
 
 }
