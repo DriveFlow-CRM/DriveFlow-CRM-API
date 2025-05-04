@@ -121,3 +121,11 @@ public sealed class CreateFileDto
 
 
 }
+
+
+public sealed class CreateFileResponseDto
+{
+    public int fileId { get; init; } = default!;
+    public int paymentId { get; init; } = default!;
+    public string message { get; init; } = default!;
+}
