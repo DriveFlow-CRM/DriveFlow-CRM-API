@@ -31,13 +31,45 @@ public class FileController : ControllerBase
 
 
     // ────────────────────────────── CREATE FILE ──────────────────────────────
-    /// <summary>
+    /// <summary>Create a new student file and set the payment method for someone
+    /// wishing to start their courses (SchoolAdmin only).</summary>
+    /// <remarks> SchoolAdmin's AutoSchoolId must match the student's
+    /// AutoSchoolId given as method paramether.
+    /// <para> <strong> Sample Request body </strong> </para> 
+    /// The JSON structure for the request body is as follows:
+    /// ```json
     /// 
-    /// </summary>
-    /// <param name="studentId">The id of the student that previously made
-    /// the request to enroll with at this auto school</param>
-    /// <param name="fileDto">All the necessary content of the file</param>
-    /// <returns></returns>
+    ///{
+    ///   "scholarshipStartDate": "2025-01-10",
+    ///   "criminalRecordExpiryDate": "2026-01-10",
+    ///   "medicalRecordExpiryDate": "2025-07-10",
+    ///   "status": "open",
+    ///   "teachingCategoryId": 10,
+    ///   "vehicleId": 301,          // optional
+    ///   "instructorId": 41,        // optional
+    ///   "payment": {
+    ///     "sessionsPayed": 0,
+    ///     "scholarshipBasePayment": false
+    /// }
+    ///}
+    ///
+    /// Response if 200-OK
+    /// 
+    /// {
+    ///  "fileId":    560,
+    ///  "paymentId": 320,
+    ///  "message":   "File created successfully"
+    /// }
+    /// 
+    /// 
+    /// 
+    /// 
+    /// </remarks>
+    /// <response code = "200">File and Payment method created with success</response>
+    /// <response code = "400">Invalid user ID</response>
+    /// <response code = "401">No valid JWT supplied</response>
+    /// <response code = "403">User is forbidden from seeing the files of this auto school</response>
+
 
 
     [HttpPost("createFile/{studentId}")]
