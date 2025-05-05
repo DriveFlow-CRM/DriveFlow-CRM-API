@@ -77,7 +77,7 @@ public class FileController : ControllerBase
     /// <summary>Retrieve all student file records for a specific auto school (SchoolAdmin only).</summary>
     /// <remarks>
     /// This endpoint returns a list of students and their associated file records, including details about payments, vehicles, instructors, and teaching categories.
-    /// </remarks>
+    /// <para></para>
     ///```json 
     ///[
     ///  {
@@ -118,11 +118,7 @@ public class FileController : ControllerBase
     ///    ]
     ///  }
     ///]
-    /// 
-    /// 
-    /// 
-    /// 
-    /// 
+    /// </remarks>
     /// <param name="schoolId">The ID of the auto school whose student file records are to be retrieved.</param>
     /// <response code="200">Student file records retrieved successfully.</response>
     /// <response code="400">Auto school not found.</response>
