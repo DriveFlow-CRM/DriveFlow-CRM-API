@@ -97,44 +97,128 @@ public class FileController : ControllerBase
             List<FilesDataDto> files = new List<FilesDataDto>();
             foreach (var file in student.StudentFiles)
             {
+                var payment = _db.Payments.Where(p => p.FileId == file.FileId).FirstOrDefault();
+                var vehicle = _db.Vehicles.Where(v => v.VehicleId == file.VehicleId).FirstOrDefault();
+                var instructor = _db.ApplicationUsers.Where(i => i.Id == file.InstructorId).FirstOrDefault();
+                var teachingCategory = _db.TeachingCategories.Where(tc => tc.TeachingCategoryId == file.TeachingCategoryId).FirstOrDefault();
+
+                if(payment == null)
+                {
+                    payment = new Payment()
+                    {
+                        PaymentId = 0,
+                        ScholarshipBasePayment = false,
+                        SessionsPayed = 0
+                    };
+                }
+
+                if (vehicle == null)
+                {
+                    vehicle = new Vehicle()
+                    {
+                        VehicleId = 0,
+                        LicensePlateNumber = "N/A",
+                        TransmissionType = TransmissionType.Manual,
+                        Color = "N/A"
+                    };
+                }
+
+                if (instructor == null)
+                {
+                    instructor = new ApplicationUser()
+                    {
+                        Id = "N/A",
+                        FirstName = "N/A",
+                        LastName = "N/A"
+                    };
+                }
+                if (teachingCategory == null)
+                {
+                    teachingCategory = new TeachingCategory()
+                    {
+                        TeachingCategoryId = 0,
+                        SessionCost = 0,
+                        SessionDuration = 0,
+                        ScholarshipPrice = 0,
+                        MinDrivingLessonsReq = 0,
+                    };
+                }
+
+                if(teachingCategory.License == null)
+                {
+                    teachingCategory.License = new License()
+                    {
+                        Type = "N/A"
+                    };
+                }
+
+
+
+                TeachingCategoryDto teachingCategoryDto = new TeachingCategoryDto()
+                {
+                    TeachingCategoryId = teachingCategory.TeachingCategoryId,
+                    SessionCost = teachingCategory.SessionCost,
+                    SessionDuration = teachingCategory.SessionDuration,
+                    ScholarshipPrice = teachingCategory.ScholarshipPrice,
+                    MinDrivingLessonsReq = teachingCategory.MinDrivingLessonsReq,
+                    LicenseType = teachingCategory.License.Type,
+                };
+
+
+                StudentFileDataInstructorDto instructorDto = new StudentFileDataInstructorDto()
+                {
+                    InstructorId = instructor.Id,
+                    FirstName = instructor.FirstName,
+                    LastName = instructor.LastName
+                };
+                FileVehicleDto fileVehicleDto = new FileVehicleDto()
+                {
+                    VehicleId = vehicle.VehicleId,
+                    LicensePlateNumber = vehicle.LicensePlateNumber,
+                    TransmissionType = vehicle.TransmissionType,
+                    Color = vehicle?.Color
+                };
+
+                FilePaymentDto filePaymentDto = new FilePaymentDto()
+                {
+                    PaymentId = payment?.PaymentId,
+                    ScholarshipBasePayment = payment?.ScholarshipBasePayment,
+                    SessionsPayed = payment?.SessionsPayed
+                };
+
+
                 files.Add(new FilesDataDto()
                 {
 
-                    FileId = file.FileId,
-                    ScholarshipStartDate = file.ScholarshipStartDate,
-                    CriminalRecordExpiryDate = file.CriminalRecordExpiryDate,
-                    MedicalRecordExpiryDate = file.MedicalRecordExpiryDate,
-                    Status = file.Status,
-                    Vehicle = new VehicleDto()
-                    {
-                        VehicleId = file.VehicleId,
-                        LicenseId = file.Vehicle?.LicensePlateNumber,
-                        TransmissionType = file.Vehicle?.TransmissionType,
-                        Color = file.Vehicle?.Color
-                    },
-                    TeachingCategory = new TeachingCategoryDto()
-                    {
-                        TeachingCategoryId = file.TeachingCategoryId,
-                        SessionCost = file.TeachingCategory?.SessionCost,
-                        SessionDuration = file.TeachingCategory?.SessionDuration,
-                        ScholarshipPrice = file.TeachingCategory?.ScholarshipPrice,
-                        MinDrivingLessonsReq = file.TeachingCategory?.MinDrivingLessonsReq,
-                        LicenseType = file.TeachingCategory?.LicenseType
-                    },
-                    Instructor = new StudentFileDataInstructorDto()
-                    {
-                        InstructorId = file.InstructorId,
-                        FirstName = file.Instructor?.FirstName,
-                        LastName = file.Instructor?.LastName
-                    },
-                    Payment = new FilePaymentDto()
-                    {
-                        PaymentId = file.Payment?.PaymentId,
-                        SessionsPayed = file.Payment?.SessionsPayed,
-                        ScholarshipBasePayment = file.Payment?.ScholarshipBasePayment
-                    }
+                    fileId = file.FileId,
+                    scholarshipStartDate = file.ScholarshipStartDate,
+                    criminalRecordExpiryDate = file.CriminalRecordExpiryDate,
+                    medicalRecordExpiryDate = file.MedicalRecordExpiryDate,
+                    status = file.Status,
+
+                    teachingCategory = teachingCategoryDto,
+                    vehicle = fileVehicleDto,
+                    instructor = instructorDto,
+                    payment = filePaymentDto,
+
                 });
             }
+            StudentDataDto studentData = new StudentDataDto()
+            {
+                StudentId = student.Id,
+                FirstName = student.FirstName,
+                LastName = student.LastName,
+                Email = student.Email,
+                PhoneNumber = student.PhoneNumber,
+                Cnp = student.Cnp,
+                AutoSchoolId = schoolId,
+            };
+
+            studentFiles.Add(new StudentFileRecordsDto()
+            {
+                StudentData = studentData,
+                Files = files
+            });
         }
 
         return Ok(studentFiles);
@@ -223,6 +307,12 @@ public class FileController : ControllerBase
 
 
         await _db.Files.AddAsync(file);
+
+        if(fileDto.payment == null)
+        {
+            return BadRequest("Payment method not found.");
+        }
+
         var payment = new Payment
         {
             ScholarshipBasePayment = fileDto.payment.ScholarshipBasePayment,
@@ -464,88 +554,74 @@ public sealed class CreateFileResponseDto
 // Pe trello scrie 'toate campurile mai putin parola'
 public sealed class StudentDataDto
 {
-    [Required]
-    public string StudentId { get; init; } = default!;
+    public string? StudentId { get; init; } = default!;
 
-    [Required]
-    public string FirstName { get; init; } = default!;
+    public string? FirstName { get; init; } = default!;
 
-    [Required]
-    public string LastName { get; init; } = default!;
+    public string? LastName { get; init; } = default!;
 
-    [Required]
-    public string Email { get; init; } = default!;
+    public string? Email { get; init; } = default!;
 
-    [Required]
-    public string PhoneNumber { get; init; } = default!;
+    public string? PhoneNumber { get; init; } = default!;
 
-    [Required]
-    public string Address { get; init; } = default!;
+    public string? Address { get; init; } = default!;
 
-    [Required]
     public string? Cnp { get; init; } = default!;
 
-    [Required]
     public int AutoSchoolId { get; init; } = default!;
 }
 public sealed class StudentFileDataInstructorDto
 {
-    [Required]
 
-    public string InstructorId { get; init; } = default!;
-    [Required]
+    public string? InstructorId { get; init; } = default!;
 
-    public string FirstName { get; init; } = default!;
-    [Required]
+    public string? FirstName { get; init; } = default!;
 
-    public string LastName { get; init; } = default!;
+    public string? LastName { get; init; } = default!;
 
 }
 public sealed class FilePaymentDto
 {
-    public int PaymentId { get; init; } = default!;
-    public bool ScholarshipBasePayment { get; init; }
-    public int SessionsPayed { get; init; }
+    public int? PaymentId  { get; init; } = default!;
+    public bool? ScholarshipBasePayment { get; init; } = default!;
+    public int? SessionsPayed { get; init; } = default!;
 }
+
+public sealed class FileVehicleDto
+{
+    public int? VehicleId { get; init; }
+    public string LicensePlateNumber { get; init; } = default!;
+    public TransmissionType TransmissionType { get; init; } = default!;
+    public string? Color { get; init; }
+    public DateTime? ItpExpiryDate { get; init; }
+    public DateTime? InsuranceExpiryDate { get; init; }
+    public DateTime? RcaExpiryDate { get; init; }
+    public int LicenseId { get; init; }
+}
+
+
+
+
+
 
 public sealed class FilesDataDto
 {
-    [Required]
-
-    public int FileId { get; init; } = default!;
-    [Required]
-
-    public DateTime ScholarshipStartDate { get; init; } = default!;
-    [Required]
-
-    public DateTime CriminalRecordExpiryDate { get; init; } = default!;
-    [Required]
-
-    public DateTime MedicalRecordExpiryDate { get; init; } = default!;
-    [Required]
-
-    public FileStatus Status { get; init; } = default!;
-    [Required]
-
-    public TeachingCategoryDto TeachingCategory { get; init; } = default!;
-    [Required]
-
-    public VehicleDto Vehicle { get; init; } = default!;
-    [Required]
-
-    public StudentFileDataInstructorDto Instructor { get; init; } = default!;
-    [Required]
-
-    public PaymentDto Payment { get; init; } = default!;
+    public int fileId { get; init; } = default!;
+    public DateTime? scholarshipStartDate { get; init; } = default!;
+    public DateTime? criminalRecordExpiryDate { get; init; } = default!;
+    public DateTime? medicalRecordExpiryDate { get; init; } = default!;
+    public FileStatus? status { get; init; } = default!;
+    public TeachingCategoryDto? teachingCategory { get; init; } = default!;
+    public FileVehicleDto? vehicle { get; init; } = default!;
+    public StudentFileDataInstructorDto? instructor { get; init; } = default!;
+    public FilePaymentDto? payment { get; init; } = default!;
 }
 
 
 public sealed class StudentFileRecordsDto
 {
-    [Required]
-    public StudentDataDto StudentData;
-    [Required]
-    public List<FilesDataDto> Files;
+    public StudentDataDto? StudentData;
+    public List<FilesDataDto>? Files;
 }
 
 
