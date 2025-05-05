@@ -74,8 +74,11 @@ namespace DriveFlow_CRM_API.Json
 
     // ──────────────────────-──── FILE CONTROLLER ──-───────────────────────
     [JsonSerializable(typeof(CreateFileDto))]
-    [JsonSerializable(typeof(CreateFilePaymentDto))]
     [JsonSerializable(typeof(CreateFileResponseDto))]
+    [JsonSerializable(typeof(StudentFileRecordsDto))]
+    [JsonSerializable(typeof(FilesDataDto))]
+    [JsonSerializable(typeof(StudentFileDataInstructorDto))]
+    [JsonSerializable(typeof(StudentDataDto))]
     internal partial class AppJsonContext : JsonSerializerContext
     {
     }
