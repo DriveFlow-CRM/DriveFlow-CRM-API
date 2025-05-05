@@ -204,12 +204,14 @@ public class RequestController : ControllerBase
         var user = _users.GetUserAsync(User).Result;
         if (user == null)
             return Unauthorized("User not found.");
-        if (!(User.IsInRole("SchoolAdmin") && user.AutoSchoolId == requestId))
+
+        if (!(User.IsInRole("SchoolAdmin") && user.AutoSchoolId == requestDto.AutoSchoolId))
             return Forbid("You are not authorized to update this request.");
 
         var request = await _db.Requests.FindAsync(requestId);
         if (request == null)
             return NotFound("Request not found.");
+
         if(requestDto.Status == null)
         {
             return BadRequest("Status is required.");
@@ -234,16 +236,21 @@ public class RequestController : ControllerBase
 
     public async Task<IActionResult> DeleteRequest(int requestId)
     {
-        if (requestId <= 0)
-            return BadRequest("Invalid request ID.");
+
         var user = _users.GetUserAsync(User).Result;
         if (user == null)
             return Unauthorized("User not found.");
-        if (!(User.IsInRole("SchoolAdmin") && user.AutoSchoolId == requestId))
-            return Forbid("You are not authorized to delete this request.");
+
+        if (requestId <= 0)
+            return BadRequest("Invalid request ID.");
+
         var request = await _db.Requests.FindAsync(requestId);
         if (request == null)
             return NotFound("Request not found.");
+
+        if (!(User.IsInRole("SchoolAdmin") && user.AutoSchoolId == request.AutoSchoolId))
+            return Forbid("You are not authorized to delete this request.");
+
         _db.Requests.Remove(request);
 
         await _db.SaveChangesAsync();
@@ -264,4 +271,6 @@ public sealed class RequestDto
     public string? DrivingCategory { get; init; } = default!;
     public DateTime? RequestDate { get; init; } = default;
     public string? Status { get; init; } = default!;
+
+    public int? AutoSchoolId { get; init; } = default!;
 }
