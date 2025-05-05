@@ -74,6 +74,62 @@ public class FileController : ControllerBase
 
 
 
+    /// <summary>Retrieve all student file records for a specific auto school (SchoolAdmin only).</summary>
+    /// <remarks>
+    /// This endpoint returns a list of students and their associated file records, including details about payments, vehicles, instructors, and teaching categories.
+    /// </remarks>
+    ///```json 
+    ///[
+    ///  {
+    ///    "studentData": { /* all student fields except password */ },
+    ///    "files": [
+    ///      {
+    ///        "fileId": 501,
+    ///        "scholarshipStartDate": "2025-01-10",
+    ///       "criminalRecordExpiryDate": "2026-01-10",
+    ///        "medicalRecordExpiryDate": "2025-07-10",
+    ///        "status": "inProgress",
+    ///
+    ///        "teachingCategory": {
+    ///          "teachingCategoryId": 10,
+    ///          "sessionCost": 150,
+    ///          "sessionDuration": 60,
+    ///          "scholarshipPrice": 2500,
+    ///          "minDrivingLessonsReq": 30,
+    ///          "licenseType": "B"
+    ///        },
+    ///        "vehicle": {
+    ///          "vehicleId": 301,
+    ///          "licensePlateNumber": "CJ-456-ABC",
+    ///          "transmissionType": "manual",
+    ///          "color": "blue"
+    ///        },
+    ///        "instructor": {
+    ///         "instructorId": 41,
+    ///          "firstName": "Andrei",
+    ///         "lastName": "Popescu"
+    ///        },
+    ///        "payment": {
+    ///          "paymentId": 201,
+    ///          "sessionsPayed": 18,
+    ///          "scholarshipBasePayment": true
+    ///        }
+    ///      }
+    ///    ]
+    ///  }
+    ///]
+    /// 
+    /// 
+    /// 
+    /// 
+    /// 
+    /// <param name="schoolId">The ID of the auto school whose student file records are to be retrieved.</param>
+    /// <response code="200">Student file records retrieved successfully.</response>
+    /// <response code="400">Auto school not found.</response>
+    /// <response code="401">No valid JWT supplied.</response>
+    /// <response code="403">User is forbidden from accessing files of this auto school.</response>
+
+
 
 
     [HttpGet("getStudentFileRecords/{schoolId}")]
