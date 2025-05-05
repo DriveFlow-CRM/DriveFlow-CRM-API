@@ -83,10 +83,6 @@ public class RequestController : ControllerBase
 
 
 
-
-
-
-
     /// ────────────────────────────── FETCH SCHOOL REQUESTS ──────────────────────────────
     /// <summary>Returns all student enrollment requests for the appropriate school id, (SchoolAdmin, SuperAdmin only).</summary>
     /// <remarks>
@@ -167,48 +163,6 @@ public class RequestController : ControllerBase
     }
 
 
-
-    // ────────────────────────────── UPDATE REQUEST ──────────────────────────────
-    /// <summary>Update the status of a request by opening a special menu 
-    /// for that request only via its RequestId</summary>
-    /// <remarks>
-    /// If the user is a SchoolAdmin, then his SchoolId must match the parameter SchoolId.
-    /// The only status values allowed are: APPROVED, REJECTED, PENDING.
-    /// That's the only thing that is going to be changed.
-    /// </remarks>
-    /// <response code="200">Request updated successfully.</response>
-    /// <response code="401">No valid JWT supplied.</response>
-    /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
-
-
-    [HttpGet("update/{requestId}/updateRequestStatus")]
-    public async Task<IActionResult> UpdateRequestStatus(int requestId)
-    {
-        if (requestId <= 0)
-            return BadRequest("Invalid request ID.");
-
-
-        var user = _users.GetUserAsync(User).Result;
-        if (user == null)
-            return Unauthorized("User not found.");
-        if (!(User.IsInRole("SchoolAdmin") && user.AutoSchoolId == requestId))
-            return Forbid("You are not authorized to update this request.");
-
-        var request = await _db.Requests.FindAsync(requestId);
-        if (request == null)
-            return NotFound("Request not found.");
-
-        return Ok(new RequestDto
-        {
-            RequestId = requestId,
-            Status = request.Status,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            PhoneNr = request.PhoneNumber,
-            DrivingCategory=request.DrivingCategory,
-            RequestDate=request.RequestDate,
-        });
-    }
 
     // ────────────────────────────── UPDATE REQUEST ──────────────────────────────
     /// <summary>Update the status of a request (SchoolAdmin, SuperAdmin only).</summary>
