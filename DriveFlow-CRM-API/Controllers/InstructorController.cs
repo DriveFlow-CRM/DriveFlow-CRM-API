@@ -198,6 +198,93 @@ public class InstructorController : ControllerBase
 
         return Ok(fileDetails);
     }
+
+    /// <summary>
+    /// Retrieves all future appointments for an instructor filtered by date range.
+    /// </summary>
+    /// <remarks>
+    /// <para>Returns a list of appointments with student and vehicle details.</para>
+    /// <para><strong>Sample response</strong></para>
+    ///
+    /// ```json
+    /// [
+    ///   {
+    ///     "appointmentId": 5012,
+    ///     "date": "2025-05-15",
+    ///     "startHour": "09:00",
+    ///     "endHour": "11:00",
+    ///     "fileId": 918,
+    ///     "firstName": "Maria",
+    ///     "lastName": "Ionescu",
+    ///     "phoneNo": "+40 712 345 678",
+    ///     "licensePlateNumber": "B‑12‑XYZ",
+    ///     "type": "B"
+    ///   },
+    ///   {
+    ///     "appointmentId": 5013,
+    ///     "date": "2025-05-16",
+    ///     "startHour": "14:00",
+    ///     "endHour": "16:00",
+    ///     "fileId": 922,
+    ///     "firstName": "Andrei",
+    ///     "lastName": "Pop",
+    ///     "phoneNo": "+40 745 987 654",
+    ///     "licensePlateNumber": "CJ‑34‑ABC",
+    ///     "type": "BE"
+    ///   }
+    /// ]
+    /// ```
+    /// </remarks>
+    /// <param name="instructorId">The ID of the instructor whose appointments to retrieve</param>
+    /// <param name="startDate">Start date for filtering appointments (inclusive)</param>
+    /// <param name="endDate">End date for filtering appointments (inclusive)</param>
+    /// <response code="200">Appointments retrieved successfully. Returns empty array if no appointments found.</response>
+    /// <response code="401">User is not authenticated.</response>
+    /// <response code="403">User is not authorized to access these appointments.</response>
+    [HttpGet("{instructorId}/fetchInstructorAppointments/{startDate}/{endDate}")]
+    [Authorize(Roles = "Instructor,SchoolAdmin")]
+    public async Task<ActionResult<IEnumerable<InstructorAppointmentDto>>> FetchInstructorAppointments(string instructorId, DateTime startDate, DateTime endDate)
+    {
+        // 1. Get authenticated user's ID
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        // 2. Check if caller is Instructor role and verify access rights if so
+        var isCallerInstructor = User.IsInRole("Instructor");
+        if (isCallerInstructor && userId != instructorId)
+        {
+            return Forbid(); // Return 403 Forbidden if instructor trying to access another instructor's data
+        }
+
+        // 3. Query appointments with required joins and projection
+        var appointments = await (
+            from instructor in _db.ApplicationUsers
+            where instructor.Id == instructorId
+            join file in _db.Files.Include(f => f.Student).Include(f => f.Vehicle).ThenInclude(v => v.License)
+                on instructor.Id equals file.InstructorId
+            join appointment in _db.Appointments
+                on file.FileId equals appointment.FileId
+            where appointment.Date >= startDate && appointment.Date <= endDate
+            orderby appointment.Date, appointment.StartHour
+            select new InstructorAppointmentDto
+            {
+                AppointmentId = appointment.AppointmentId,
+                Date = appointment.Date,
+                StartHour = appointment.StartHour.ToString(@"hh\:mm"),
+                EndHour = appointment.EndHour.ToString(@"hh\:mm"),
+                FileId = file.FileId,
+                FirstName = file.Student.FirstName,
+                LastName = file.Student.LastName,
+                PhoneNo = file.Student.PhoneNumber,
+                LicensePlateNumber = file.Vehicle != null ? file.Vehicle.LicensePlateNumber : null,
+                Type = file.Vehicle != null && file.Vehicle.License != null ? file.Vehicle.License.Type : null
+            }).ToListAsync();
+
+        return Ok(appointments);
+    }
 }
 
 /// <summary>
@@ -256,16 +343,16 @@ public sealed class InstructorFileDetailsDto
     /// <summary>Date when scholarship starts</summary>
     public DateTime? ScholarshipStartDate { get; init; }
     
-    /// <summary>Criminal record expiry date</summary>
+    /// <summary>Expiry date for criminal record</summary>
     public DateTime? CriminalRecordExpiryDate { get; init; }
     
-    /// <summary>Medical record expiry date</summary>
+    /// <summary>Expiry date for medical certificate</summary>
     public DateTime? MedicalRecordExpiryDate { get; init; }
     
     /// <summary>File status</summary>
     public string Status { get; init; } = null!;
     
-    /// <summary>Whether scholarship payment has been made</summary>
+    /// <summary>Whether scholarship payment is complete</summary>
     public bool ScholarshipPayment { get; init; }
     
     /// <summary>Number of sessions paid for</summary>
@@ -274,6 +361,42 @@ public sealed class InstructorFileDetailsDto
     /// <summary>Minimum required driving lessons</summary>
     public int MinDrivingLessonsRequired { get; init; }
     
-    /// <summary>List of completed lesson dates</summary>
+    /// <summary>Dates of completed lessons</summary>
     public List<DateTime> LessonsMade { get; init; } = new List<DateTime>();
+}
+
+/// <summary>
+/// DTO for instructor appointment information
+/// </summary>
+public sealed class InstructorAppointmentDto
+{
+    /// <summary>Appointment identifier</summary>
+    public int AppointmentId { get; init; }
+    
+    /// <summary>Date of the appointment</summary>
+    public DateTime Date { get; init; }
+    
+    /// <summary>Start time of the appointment</summary>
+    public string StartHour { get; init; } = null!;
+    
+    /// <summary>End time of the appointment</summary>
+    public string EndHour { get; init; } = null!;
+    
+    /// <summary>Associated file identifier</summary>
+    public int FileId { get; init; }
+    
+    /// <summary>Student's first name</summary>
+    public string? FirstName { get; init; }
+    
+    /// <summary>Student's last name</summary>
+    public string? LastName { get; init; }
+    
+    /// <summary>Student's phone number</summary>
+    public string? PhoneNo { get; init; }
+    
+    /// <summary>Vehicle license plate number</summary>
+    public string? LicensePlateNumber { get; init; }
+    
+    /// <summary>License type</summary>
+    public string? Type { get; init; }
 } 
