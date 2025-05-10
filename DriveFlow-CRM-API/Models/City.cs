@@ -11,11 +11,9 @@ namespace DriveFlow_CRM_API.Models;
 /// multiple <see cref="Address"/> entries.
 /// </summary>
 /// <remarks>
-/// • <see cref="Name"/> is globally unique.<br/>
 /// • Required FK <see cref="CountyId"/> ⇒ deleting a county cascades to its cities.<br/>
 /// • Relationship City (1) → Address (M) is configured in <c>OnModelCreating</c>.
 /// </remarks>
-[Index(nameof(Name), IsUnique = true)]
 public class City
 {
     // ─────────────── Keys & status ───────────────
@@ -24,7 +22,7 @@ public class City
     [Key]
     public int CityId { get; set; }
 
-    /// <summary>City name (unique).</summary>
+    /// <summary>City name.</summary>
     [Required, StringLength(150)]
     public string Name { get; set; } = null!;
 

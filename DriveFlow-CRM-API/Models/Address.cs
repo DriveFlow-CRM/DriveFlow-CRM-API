@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema; // <-- Adaugat pentru ForeignKey
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 namespace DriveFlow_CRM_API.Models;
 
@@ -8,11 +8,9 @@ namespace DriveFlow_CRM_API.Models;
 ///     linked one-to-one to an <see cref="AutoSchool"/> (AutoSchool holds the FK).
 /// </summary>
 /// <remarks>
-///     • <see cref="Postcode"/> is unique across all addresses.  
 ///     • Required FK <see cref="CityId"/> ⇒ deleting a city cascades to its addresses.  
 ///     • The optional 1 : 1 relation Address ↔ AutoSchool is configured in <c>OnModelCreating</c>.
 /// </remarks>
-[Index(nameof(Postcode), IsUnique = true)]
 public class Address
 {
     /// <summary>Primary key.</summary>
@@ -27,7 +25,7 @@ public class Address
     [StringLength(10)]
     public string? AddressNumber { get; set; }
 
-    /// <summary>Postal code (unique, optional).</summary>
+    /// <summary>Postal code (optional).</summary>
     [StringLength(10)]
     public string? Postcode { get; set; }
 

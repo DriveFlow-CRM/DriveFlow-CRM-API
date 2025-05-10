@@ -45,6 +45,7 @@ namespace DriveFlow_CRM_API.Json
     // ───────────────────────── ADDRESS CONTROLLER ─────────────────────────
     [JsonSerializable(typeof(AddressCreateDto))]
     [JsonSerializable(typeof(AddressDto))]
+    [JsonSerializable(typeof(AddressUpdateDto))]
 
     // ─────────────────────── AUTOSCHOOL CONTROLLER ───────────────────────
     [JsonSerializable(typeof(SchoolAdminInfoDto))]
