@@ -1,4 +1,4 @@
-﻿using DriveFlow_CRM_API.Controllers;          
+using DriveFlow_CRM_API.Controllers;          
 using System.Text.Json.Serialization;
 
 namespace DriveFlow_CRM_API.Json
@@ -72,6 +72,16 @@ namespace DriveFlow_CRM_API.Json
 
     // ───────────────────────── REQUEST CONTROLLER ─────────────────────────
     [JsonSerializable(typeof(RequestDto))]
+
+    // ──────────────────────-──── FILE CONTROLLER ──-───────────────────────
+    [JsonSerializable(typeof(CreateFileDto))]
+    [JsonSerializable(typeof(CreateFileResponseDto))]
+    [JsonSerializable(typeof(StudentFileRecordsDto))]
+    [JsonSerializable(typeof(StudentFileDataDto))]
+    [JsonSerializable(typeof(StudentFileDataInstructorDto))]
+    [JsonSerializable(typeof(StudentDataDto))]
+    [JsonSerializable(typeof(FileVehicleDto))]
+    [JsonSerializable(typeof(FilePaymentDto))]
 
     // ───────────────────── AUTOSCHOOLPAGE CONTROLLER ─────────────────────
     [JsonSerializable(typeof(AutoSchoolLandingDto))]
