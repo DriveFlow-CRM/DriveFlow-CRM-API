@@ -253,6 +253,12 @@ public class StudentController : ControllerBase
                 LicensePlateNumber = fileData.Vehicle.LicensePlateNumber,
                 TransmissionType = fileData.Vehicle.TransmissionType.ToString().ToLower(),
                 Color = fileData.Vehicle.Color,
+                Brand = fileData.Vehicle.Brand,
+                Model = fileData.Vehicle.Model,
+                YearOfProduction = fileData.Vehicle.YearOfProduction,
+                FuelType = fileData.Vehicle.FuelType.HasValue ? fileData.Vehicle.FuelType.ToString() : null,
+                EngineSizeLiters = fileData.Vehicle.EngineSizeLiters,
+                PowertrainType = fileData.Vehicle.PowertrainType.HasValue ? fileData.Vehicle.PowertrainType.ToString() : null,
                 Type = fileData.License?.Type
             } : null,
             Appointments = appointmentDtos,
@@ -423,6 +429,36 @@ public sealed class VehicleDetailsDto
     /// Color of the vehicle.
     /// </summary>
     public string? Color { get; init; }
+    
+    /// <summary>
+    /// Vehicle brand/manufacturer.
+    /// </summary>
+    public string? Brand { get; init; }
+    
+    /// <summary>
+    /// Vehicle model.
+    /// </summary>
+    public string? Model { get; init; }
+    
+    /// <summary>
+    /// Year of production.
+    /// </summary>
+    public int? YearOfProduction { get; init; }
+    
+    /// <summary>
+    /// Fuel type.
+    /// </summary>
+    public string? FuelType { get; init; }
+    
+    /// <summary>
+    /// Engine size in liters.
+    /// </summary>
+    public decimal? EngineSizeLiters { get; init; }
+    
+    /// <summary>
+    /// Powertrain type.
+    /// </summary>
+    public string? PowertrainType { get; init; }
     
     /// <summary>
     /// Type of license associated with the vehicle.

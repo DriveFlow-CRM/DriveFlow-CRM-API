@@ -35,6 +35,27 @@ public class Vehicle
     [StringLength(30)]
     public string? Color { get; set; }
 
+    /// <summary>Vehicle brand/manufacturer.</summary>
+    [StringLength(255)]
+    public string? Brand { get; set; }
+
+    /// <summary>Vehicle model.</summary>
+    [StringLength(255)]
+    public string? Model { get; set; }
+
+    /// <summary>Year of production.</summary>
+    public int? YearOfProduction { get; set; }
+
+    /// <summary>Fuel type.</summary>
+    public TipCombustibil? FuelType { get; set; }
+
+    /// <summary>Engine size in liters (nullable for EVs).</summary>
+    [Column(TypeName = "decimal(3,1)")]
+    public decimal? EngineSizeLiters { get; set; }
+
+    /// <summary>Powertrain type (replaces vehicleType).</summary>
+    public TipPropulsie? PowertrainType { get; set; }
+
     /// <summary>Technical inspection expiry (ITP).</summary>
     public DateTime? ItpExpiryDate { get; set; }
 
@@ -71,4 +92,27 @@ public enum TransmissionType
 {
     Manual,
     Automatic
+}
+
+// ───────────────  Fuel Type enum ───────────────
+
+/// <summary>Type of fuel used by the vehicle.</summary>
+public enum TipCombustibil
+{
+    BENZINA,  // PETROL
+    MOTORINA, // DIESEL
+    ELECTRIC, // ELECTRIC
+    HIBRID,   // HYBRID
+    HIDROGEN, // HYDROGEN
+    GNC       // CNG (Compressed Natural Gas)
+}
+
+// ───────────────  Powertrain Type enum ───────────────
+
+/// <summary>Type of powertrain.</summary>
+public enum TipPropulsie
+{
+    COMBUSTIBIL, // FUEL (pure combustion engine)
+    HIBRID,      // HYBRID
+    ELECTRIC     // ELECTRIC (fully electric)
 }
