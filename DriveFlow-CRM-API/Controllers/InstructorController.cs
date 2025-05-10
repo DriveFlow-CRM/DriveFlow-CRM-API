@@ -82,10 +82,11 @@ public class InstructorController : ControllerBase
             return Unauthorized();
         }
 
-        // 2. Verify the authenticated user is the same as the requested instructorId
-        if (userId != instructorId)
+        // 2. Check if caller is Instructor role and verify access rights if so
+        var isCallerInstructor = User.IsInRole("Instructor");
+        if (isCallerInstructor && userId != instructorId)
         {
-            return Forbid(); // Return 403 Forbidden if trying to access another instructor's data
+            return Forbid(); // Return 403 Forbidden if instructor trying to access another instructor's data
         }
 
         // 3. Query files with required joins and projection
@@ -94,22 +95,25 @@ public class InstructorController : ControllerBase
             .Include(f => f.Student)
             .Include(f => f.Vehicle)
                 .ThenInclude(v => v.License)
-            .Select(f => new InstructorAssignedFileDto
-            {
-                FirstName = f.Student.FirstName,
-                LastName = f.Student.LastName,
-                PhoneNumber = f.Student.PhoneNumber,
-                Email = f.Student.Email,
-                ScholarshipStartDate = f.ScholarshipStartDate,
-                LicensePlateNumber = f.Vehicle != null ? f.Vehicle.LicensePlateNumber : null,
-                TransmissionType = f.Vehicle != null ? f.Vehicle.TransmissionType.ToString().ToLowerInvariant() : null,
-                Status = f.Status.ToString().ToLowerInvariant(),
-                Type = f.Vehicle != null && f.Vehicle.License != null ? f.Vehicle.License.Type : null,
-                Color = f.Vehicle != null ? f.Vehicle.Color : null
-            })
+            .AsNoTracking()
             .ToListAsync();
 
-        return Ok(files);
+        // 4. Map to DTOs after materializing the query
+        var result = files.Select(f => new InstructorAssignedFileDto
+        {
+            FirstName = f.Student?.FirstName,
+            LastName = f.Student?.LastName,
+            PhoneNumber = f.Student?.PhoneNumber,
+            Email = f.Student?.Email,
+            ScholarshipStartDate = f.ScholarshipStartDate,
+            LicensePlateNumber = f.Vehicle != null ? f.Vehicle.LicensePlateNumber : null,
+            TransmissionType = f.Vehicle != null ? f.Vehicle.TransmissionType.ToString().ToLowerInvariant() : null,
+            Status = f.Status.ToString().ToLowerInvariant(),
+            Type = f.Vehicle != null && f.Vehicle.License != null ? f.Vehicle.License.Type : null,
+            Color = f.Vehicle != null ? f.Vehicle.Color : null
+        }).ToList();
+
+        return Ok(result);
     }
 
     /// <summary>
@@ -178,17 +182,17 @@ public class InstructorController : ControllerBase
         // 5. Create the DTO with all collected data
         var fileDetails = new InstructorFileDetailsDto
         {
-            FirstName = file.Student.FirstName,
-            LastName = file.Student.LastName,
-            Email = file.Student.Email,
-            PhoneNo = file.Student.PhoneNumber,
+            FirstName = file.Student?.FirstName,
+            LastName = file.Student?.LastName,
+            Email = file.Student?.Email,
+            PhoneNo = file.Student?.PhoneNumber,
             ScholarshipStartDate = file.ScholarshipStartDate,
             CriminalRecordExpiryDate = file.CriminalRecordExpiryDate,
             MedicalRecordExpiryDate = file.MedicalRecordExpiryDate,
             Status = file.Status.ToString().ToLowerInvariant(),
             ScholarshipPayment = payment != null && payment.ScholarshipBasePayment,
             SessionsPayed = payment != null ? payment.SessionsPayed : 0,
-            MinDrivingLessonsRequired = file.TeachingCategory != null ? file.TeachingCategory.MinDrivingLessonsReq : 0,
+            MinDrivingLessonsRequired = file.TeachingCategory?.MinDrivingLessonsReq ?? 0,
             LessonsMade = file.Appointments
                 .Where(a => a.Date.Add(a.EndHour) <= now)
                 .OrderBy(a => a.Date)
@@ -259,29 +263,34 @@ public class InstructorController : ControllerBase
             return Forbid(); // Return 403 Forbidden if instructor trying to access another instructor's data
         }
 
-        // 3. Query appointments with required joins and projection
-        var appointments = await (
-            from instructor in _db.ApplicationUsers
-            where instructor.Id == instructorId
-            join file in _db.Files.Include(f => f.Student).Include(f => f.Vehicle).ThenInclude(v => v.License)
-                on instructor.Id equals file.InstructorId
-            join appointment in _db.Appointments
-                on file.FileId equals appointment.FileId
-            where appointment.Date >= startDate && appointment.Date <= endDate
-            orderby appointment.Date, appointment.StartHour
-            select new InstructorAppointmentDto
-            {
-                AppointmentId = appointment.AppointmentId,
-                Date = appointment.Date,
-                StartHour = appointment.StartHour.ToString(@"hh\:mm"),
-                EndHour = appointment.EndHour.ToString(@"hh\:mm"),
-                FileId = file.FileId,
-                FirstName = file.Student.FirstName,
-                LastName = file.Student.LastName,
-                PhoneNo = file.Student.PhoneNumber,
-                LicensePlateNumber = file.Vehicle != null ? file.Vehicle.LicensePlateNumber : null,
-                Type = file.Vehicle != null && file.Vehicle.License != null ? file.Vehicle.License.Type : null
-            }).ToListAsync();
+        // 3. Query appointments with required joins
+        var query = from instructor in _db.ApplicationUsers
+                    where instructor.Id == instructorId
+                    join file in _db.Files.Include(f => f.Student).Include(f => f.Vehicle).ThenInclude(v => v.License)
+                        on instructor.Id equals file.InstructorId
+                    join appointment in _db.Appointments
+                        on file.FileId equals appointment.FileId
+                    where appointment.Date >= startDate && appointment.Date <= endDate
+                    orderby appointment.Date, appointment.StartHour
+                    select new { appointment, file };
+
+        // 4. Execute the query and materialize the results
+        var results = await query.AsNoTracking().ToListAsync();
+
+        // 5. Map to DTOs safely
+        var appointments = results.Select(r => new InstructorAppointmentDto
+        {
+            AppointmentId = r.appointment.AppointmentId,
+            Date = r.appointment.Date,
+            StartHour = r.appointment.StartHour.ToString(@"hh\:mm"),
+            EndHour = r.appointment.EndHour.ToString(@"hh\:mm"),
+            FileId = r.file.FileId,
+            FirstName = r.file.Student?.FirstName,
+            LastName = r.file.Student?.LastName,
+            PhoneNo = r.file.Student?.PhoneNumber,
+            LicensePlateNumber = r.file.Vehicle != null ? r.file.Vehicle.LicensePlateNumber : null,
+            Type = r.file.Vehicle != null && r.file.Vehicle.License != null ? r.file.Vehicle.License.Type : null
+        }).ToList();
 
         return Ok(appointments);
     }

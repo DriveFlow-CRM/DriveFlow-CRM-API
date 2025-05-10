@@ -52,6 +52,11 @@ namespace DriveFlow_CRM_API.Controllers
         {
             // Get the current user
             var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+            
             var currentUser = await _userManager.FindByIdAsync(userId);
             if (currentUser == null)
             {
@@ -157,6 +162,12 @@ namespace DriveFlow_CRM_API.Controllers
                     licensePlateNumber = file.Vehicle.LicensePlateNumber,
                     transmissionType = file.Vehicle.TransmissionType.ToString(),
                     color = file.Vehicle.Color,
+                    brand = file.Vehicle.Brand,
+                    model = file.Vehicle.Model,
+                    yearOfProduction = file.Vehicle.YearOfProduction,
+                    fuelType = file.Vehicle.FuelType.HasValue ? file.Vehicle.FuelType.ToString() : null,
+                    engineSizeLiters = file.Vehicle.EngineSizeLiters,
+                    powertrainType = file.Vehicle.PowertrainType.HasValue ? file.Vehicle.PowertrainType.ToString() : null,
                     licenseType = file.Vehicle.License?.Type ?? "Not specified"
                 },
                 instructor = file.Instructor == null ? null : new

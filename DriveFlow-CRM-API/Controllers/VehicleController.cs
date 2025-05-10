@@ -36,6 +36,12 @@ public class VehicleController : ControllerBase
     ///     "licensePlateNumber": "B-123-XYZ",
     ///     "transmissionType": "manual",
     ///     "color": "rosu",
+    ///     "brand": "Toyota",
+    ///     "model": "Corolla", 
+    ///     "yearOfProduction": 2020,
+    ///     "fuelType": "BENZINA",
+    ///     "engineSizeLiters": 1.8,
+    ///     "powertrainType": "HIBRID",
     ///     "itpExpiryDate": "2025-05-30T21:43:29",
     ///     "insuranceExpiryDate": "2027-04-12",
     ///     "rcaExpiryDate": "2027-04-12",
@@ -81,6 +87,12 @@ public class VehicleController : ControllerBase
                                     LicensePlateNumber = v.LicensePlateNumber,
                                     TransmissionType = v.TransmissionType.ToString().ToLowerInvariant(),
                                     Color = v.Color,
+                                    Brand = v.Brand,
+                                    Model = v.Model,
+                                    YearOfProduction = v.YearOfProduction,
+                                    FuelType = v.FuelType.HasValue ? v.FuelType.ToString() : null,
+                                    EngineSizeLiters = v.EngineSizeLiters,
+                                    PowertrainType = v.PowertrainType.HasValue ? v.PowertrainType.ToString() : null,
                                     ItpExpiryDate = v.ItpExpiryDate,
                                     InsuranceExpiryDate = v.InsuranceExpiryDate,
                                     RcaExpiryDate = v.RcaExpiryDate,
@@ -100,12 +112,18 @@ public class VehicleController : ControllerBase
     /// ```json
     /// {
     ///   "licensePlateNumber": "CJ-456-ABC",
-    ///   "transmissionType":   "automatic",
-    ///   "color":              "blue",
-    ///   "itpExpiryDate":       null,
+    ///   "transmissionType": "automatic",
+    ///   "color": "blue",
+    ///   "brand": "Toyota",
+    ///   "model": "Corolla", 
+    ///   "yearOfProduction": 2020,
+    ///   "fuelType": "BENZINA",
+    ///   "engineSizeLiters": 1.8,
+    ///   "powertrainType": "HIBRID",
+    ///   "itpExpiryDate": null,
     ///   "insuranceExpiryDate": null,
-    ///   "rcaExpiryDate":       null,
-    ///   "licenseId":           1
+    ///   "rcaExpiryDate": null,
+    ///   "licenseId": 1
     /// }
     /// ```
     /// </remarks>
@@ -141,6 +159,35 @@ public class VehicleController : ControllerBase
         if (!Enum.TryParse<TransmissionType>(dto.TransmissionType, true, out var transEnum))
             return BadRequest(new { message = "transmissionType must be 'manual' or 'automatic'." });
 
+        // Validate FuelType and PowertrainType if provided
+        TipCombustibil? fuelType = null;
+        if (!string.IsNullOrWhiteSpace(dto.FuelType) && 
+            !Enum.TryParse<TipCombustibil>(dto.FuelType, out var fuelEnum))
+        {
+            return BadRequest(new { message = "fuelType must be one of: BENZINA, MOTORINA, ELECTRIC, HIBRID, HIDROGEN, GNC." });
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.FuelType))
+        {
+            fuelType = Enum.Parse<TipCombustibil>(dto.FuelType);
+        }
+
+        TipPropulsie? powertrainType = null;
+        if (!string.IsNullOrWhiteSpace(dto.PowertrainType) && 
+            !Enum.TryParse<TipPropulsie>(dto.PowertrainType, out var powertrainEnum))
+        {
+            return BadRequest(new { message = "powertrainType must be one of: COMBUSTIBIL, HIBRID, ELECTRIC." });
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.PowertrainType))
+        {
+            powertrainType = Enum.Parse<TipPropulsie>(dto.PowertrainType);
+        }
+
+        // Validate consistency between FuelType and PowertrainType
+        if (powertrainType == TipPropulsie.ELECTRIC && fuelType.HasValue && fuelType != TipCombustibil.ELECTRIC)
+        {
+            return BadRequest(new { message = "For ELECTRIC powertrain, fuelType must be ELECTRIC." });
+        }
+
         // duplicate plate in same school
         var duplicate = await _db.Vehicles.AnyAsync(v =>
             v.AutoSchoolId == schoolId &&
@@ -159,6 +206,12 @@ public class VehicleController : ControllerBase
             LicensePlateNumber = dto.LicensePlateNumber.Trim(),
             TransmissionType = transEnum,
             Color = dto.Color?.Trim(),
+            Brand = dto.Brand?.Trim(),
+            Model = dto.Model?.Trim(),
+            YearOfProduction = dto.YearOfProduction,
+            FuelType = fuelType,
+            EngineSizeLiters = dto.EngineSizeLiters,
+            PowertrainType = powertrainType,
             ItpExpiryDate = dto.ItpExpiryDate,
             InsuranceExpiryDate = dto.InsuranceExpiryDate,
             RcaExpiryDate = dto.RcaExpiryDate,
@@ -181,12 +234,18 @@ public class VehicleController : ControllerBase
     /// ```json
     /// {
     ///   "licensePlateNumber": "BV-476-DEF",
-    ///   "transmissionType":   "manual",
-    ///   "color":              "green",
-    ///   "itpExpiryDate":       null,
+    ///   "transmissionType": "manual",
+    ///   "color": "green",
+    ///   "brand": "Toyota",
+    ///   "model": "Corolla", 
+    ///   "yearOfProduction": 2020,
+    ///   "fuelType": "BENZINA",
+    ///   "engineSizeLiters": 1.8,
+    ///   "powertrainType": "HIBRID",
+    ///   "itpExpiryDate": null,
     ///   "insuranceExpiryDate": null,
-    ///   "rcaExpiryDate":       null,
-    ///   "licenseId":           4
+    ///   "rcaExpiryDate": null,
+    ///   "licenseId": 4
     /// }
     /// ```
     /// </remarks>
@@ -224,6 +283,35 @@ public class VehicleController : ControllerBase
         if (!Enum.TryParse<TransmissionType>(dto.TransmissionType, true, out var transEnum))
             return BadRequest(new { message = "transmissionType must be 'manual' or 'automatic'." });
 
+        // Validate FuelType and PowertrainType if provided
+        TipCombustibil? fuelType = null;
+        if (!string.IsNullOrWhiteSpace(dto.FuelType) && 
+            !Enum.TryParse<TipCombustibil>(dto.FuelType, out var fuelEnum))
+        {
+            return BadRequest(new { message = "fuelType must be one of: BENZINA, MOTORINA, ELECTRIC, HIBRID, HIDROGEN, GNC." });
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.FuelType))
+        {
+            fuelType = Enum.Parse<TipCombustibil>(dto.FuelType);
+        }
+
+        TipPropulsie? powertrainType = null;
+        if (!string.IsNullOrWhiteSpace(dto.PowertrainType) && 
+            !Enum.TryParse<TipPropulsie>(dto.PowertrainType, out var powertrainEnum))
+        {
+            return BadRequest(new { message = "powertrainType must be one of: COMBUSTIBIL, HIBRID, ELECTRIC." });
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.PowertrainType))
+        {
+            powertrainType = Enum.Parse<TipPropulsie>(dto.PowertrainType);
+        }
+
+        // Validate consistency between FuelType and PowertrainType
+        if (powertrainType == TipPropulsie.ELECTRIC && fuelType.HasValue && fuelType != TipCombustibil.ELECTRIC)
+        {
+            return BadRequest(new { message = "For ELECTRIC powertrain, fuelType must be ELECTRIC." });
+        }
+
         // duplicate plate check in the same school
         var dup = await _db.Vehicles.AnyAsync(v =>
             v.AutoSchoolId == vehicle.AutoSchoolId &&
@@ -241,6 +329,12 @@ public class VehicleController : ControllerBase
         vehicle.LicensePlateNumber = dto.LicensePlateNumber.Trim();
         vehicle.TransmissionType = transEnum;
         vehicle.Color = dto.Color?.Trim();
+        vehicle.Brand = dto.Brand?.Trim();
+        vehicle.Model = dto.Model?.Trim();
+        vehicle.YearOfProduction = dto.YearOfProduction;
+        vehicle.FuelType = fuelType;
+        vehicle.EngineSizeLiters = dto.EngineSizeLiters;
+        vehicle.PowertrainType = powertrainType;
         vehicle.ItpExpiryDate = dto.ItpExpiryDate;
         vehicle.InsuranceExpiryDate = dto.InsuranceExpiryDate;
         vehicle.RcaExpiryDate = dto.RcaExpiryDate;
@@ -283,15 +377,19 @@ public class VehicleController : ControllerBase
 
 // ─────────────────────── DTO ───────────────────────
 
-/// <summary>
-/// Lightweight representation of a vehicle returned by the GET endpoint.
-/// </summary>
+/// <summary>Representation of a vehicle, as returned by GET api/vehicle/get/{schoolId}.</summary>
 public sealed class VehicleDto
 {
     public int VehicleId { get; init; }
     public string LicensePlateNumber { get; init; } = default!;
     public string TransmissionType { get; init; } = default!;
     public string? Color { get; init; }
+    public string? Brand { get; init; }
+    public string? Model { get; init; }
+    public int? YearOfProduction { get; init; }
+    public string? FuelType { get; init; }
+    public decimal? EngineSizeLiters { get; init; }
+    public string? PowertrainType { get; init; }
     public DateTime? ItpExpiryDate { get; init; }
     public DateTime? InsuranceExpiryDate { get; init; }
     public DateTime? RcaExpiryDate { get; init; }
@@ -304,6 +402,12 @@ public sealed class VehicleCreateDto
     public string LicensePlateNumber { get; init; } = default!;
     public string TransmissionType { get; init; } = default!;
     public string? Color { get; init; }
+    public string? Brand { get; init; }
+    public string? Model { get; init; }
+    public int? YearOfProduction { get; init; }
+    public string? FuelType { get; init; }
+    public decimal? EngineSizeLiters { get; init; }
+    public string? PowertrainType { get; init; }
     public DateTime? ItpExpiryDate { get; init; }
     public DateTime? InsuranceExpiryDate { get; init; }
     public DateTime? RcaExpiryDate { get; init; }
@@ -315,6 +419,12 @@ public sealed class VehicleUpdateDto
     public string LicensePlateNumber { get; init; } = default!;
     public string TransmissionType { get; init; } = default!;
     public string? Color { get; init; }
+    public string? Brand { get; init; }
+    public string? Model { get; init; }
+    public int? YearOfProduction { get; init; }
+    public string? FuelType { get; init; }
+    public decimal? EngineSizeLiters { get; init; }
+    public string? PowertrainType { get; init; }
     public DateTime? ItpExpiryDate { get; init; }
     public DateTime? InsuranceExpiryDate { get; init; }
     public DateTime? RcaExpiryDate { get; init; }
