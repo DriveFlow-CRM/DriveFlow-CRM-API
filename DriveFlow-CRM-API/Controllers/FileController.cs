@@ -5,6 +5,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace DriveFlow_CRM_API.Controllers;
 
@@ -128,33 +129,39 @@ public class FileController : ControllerBase
 
 
 
-    [HttpGet("getStudentFileRecords/{schoolId}")]
+    [HttpGet("/{schoolId}")]
     [Authorize(Roles = "SchoolAdmin")]
     public async Task<IActionResult> GetStudentFileRecords(int schoolId)
     {
-        var autoSchool = _db.AutoSchools.Find(schoolId);
+        var autoSchool = await _db.AutoSchools.FindAsync(schoolId);
         if (autoSchool == null)
             return BadRequest("Auto school not found.");
         if (_users.GetUserAsync(User).Result?.AutoSchoolId != schoolId)
             return Forbid("You are not allowed to see the files of this auto school.");
 
 
-        List<StudentFileRecordsDto> studentFiles = new List<StudentFileRecordsDto>();
-        var students = await _db.ApplicationUsers
-            .Where(u => u.AutoSchoolId == schoolId && u.StudentFiles.Count > 0)
-            .ToListAsync();
+        var all_files = _db.Files.Include(f=>f.Student).Where(f=>f.Student.AutoSchoolId == schoolId).ToList();
+        //   var students = _db.ApplicationUsers.Where(st=>st.Id )
+
+        var students = _db.ApplicationUsers
+            .Where(user => all_files.Select(file => file.StudentId).Contains(user.Id))
+            .ToList();
+
+
+        var studentFiles = new List<StudentFileRecordsDto>();
 
         foreach (var student in students)
         {
-            List<FilesDataDto> files = new List<FilesDataDto>();
+            List<StudentFileDataDto> files = new List<StudentFileDataDto>();
             foreach (var file in student.StudentFiles)
             {
+
                 var payment = _db.Payments.Where(p => p.FileId == file.FileId).FirstOrDefault();
                 var vehicle = _db.Vehicles.Where(v => v.VehicleId == file.VehicleId).FirstOrDefault();
                 var instructor = _db.ApplicationUsers.Where(i => i.Id == file.InstructorId).FirstOrDefault();
                 var teachingCategory = _db.TeachingCategories.Where(tc => tc.TeachingCategoryId == file.TeachingCategoryId).FirstOrDefault();
 
-                if(payment == null)
+                if (payment == null)
                 {
                     payment = new Payment()
                     {
@@ -196,7 +203,7 @@ public class FileController : ControllerBase
                     };
                 }
 
-                if(teachingCategory.License == null)
+                if (teachingCategory.License == null)
                 {
                     teachingCategory.License = new License()
                     {
@@ -239,14 +246,31 @@ public class FileController : ControllerBase
                 };
 
 
-                files.Add(new FilesDataDto()
+                string local_status;
+                switch (file.Status)
+                {
+                    case FileStatus.Draft:
+                        local_status = "inProgress";
+                        break;
+                    case FileStatus.Approved:
+                        local_status = "Approved";
+                        break;
+                    case FileStatus.Rejected:
+                        local_status = "Rejected";
+                        break;
+                    default:
+                        local_status = "Unknown";
+                        break;
+                }
+
+                files.Add(new StudentFileDataDto()
                 {
 
                     fileId = file.FileId,
                     scholarshipStartDate = file.ScholarshipStartDate,
                     criminalRecordExpiryDate = file.CriminalRecordExpiryDate,
                     medicalRecordExpiryDate = file.MedicalRecordExpiryDate,
-                    status = file.Status,
+                    status = local_status,
 
                     teachingCategory = teachingCategoryDto,
                     vehicle = fileVehicleDto,
@@ -274,54 +298,54 @@ public class FileController : ControllerBase
         }
 
         return Ok(studentFiles);
+
+
     }
 
 
-
-
-    // ────────────────────────────── CREATE FILE ──────────────────────────────
-    /// <summary>Create a new student file and set the payment method for someone
-    /// wishing to start their courses (SchoolAdmin only).</summary>
-    /// <remarks> SchoolAdmin's AutoSchoolId must match the student's
-    /// AutoSchoolId given as method paramether.
-    /// <para> <strong> Sample Request body </strong> </para> 
-    /// The JSON structure for the request body is as follows:
-    /// ```json
-    /// 
-    ///{
-    ///   "scholarshipStartDate": "2025-01-10",
-    ///   "criminalRecordExpiryDate": "2026-01-10",
-    ///   "medicalRecordExpiryDate": "2025-07-10",
-    ///   "status": "open",
-    ///   "teachingCategoryId": 10,
-    ///   "vehicleId": 301,          // optional
-    ///   "instructorId": 41,        // optional
-    ///   "payment": {
-    ///     "sessionsPayed": 0,
-    ///     "scholarshipBasePayment": false
-    /// }
-    ///}
-    ///
-    /// Response if 200-OK
-    /// 
-    /// {
-    ///  "fileId":    560,
-    ///  "paymentId": 320,
-    ///  "message":   "File created successfully"
-    /// }
-    /// 
-    /// 
-    /// 
-    /// 
-    /// </remarks>
-    /// <response code = "200">File and Payment method created with success</response>
-    /// <response code = "400">Invalid user ID</response>
-    /// <response code = "401">No valid JWT supplied</response>
-    /// <response code = "403">User is forbidden from seeing the files of this auto school</response>
+// ────────────────────────────── CREATE FILE ──────────────────────────────
+/// <summary>Create a new student file and set the payment method for someone
+/// wishing to start their courses (SchoolAdmin only).</summary>
+/// <remarks> SchoolAdmin's AutoSchoolId must match the student's
+/// AutoSchoolId given as method paramether.
+/// <para> <strong> Sample Request body </strong> </para> 
+/// The JSON structure for the request body is as follows:
+/// ```json
+/// 
+///{
+///   "scholarshipStartDate": "2025-01-10",
+///   "criminalRecordExpiryDate": "2026-01-10",
+///   "medicalRecordExpiryDate": "2025-07-10",
+///   "status": "Draft",   //Pe card scrie 'open' dar codat e ca `Draft`
+///   "teachingCategoryId": 10,
+///   "vehicleId": 301,          // optional
+///   "instructorId": 41,        // optional
+///   "payment": {
+///     "sessionsPayed": 0,
+///     "scholarshipBasePayment": false
+///    }
+///}
+///
+/// Response if 200-OK
+/// 
+/// {
+///  "fileId":    560,
+///  "paymentId": 320,
+///  "message":   "File created successfully"
+/// }
+/// 
+/// 
+/// 
+/// 
+/// </remarks>
+/// <response code = "200">File and Payment method created with success</response>
+/// <response code = "400">Invalid user ID</response>
+/// <response code = "401">No valid JWT supplied</response>
+/// <response code = "403">User is forbidden from seeing the files of this auto school</response>
 
 
 
-    [HttpPost("createFile/{studentId}")]
+[HttpPost("createFile/{studentId}")]
     [Authorize(Roles = "SchoolAdmin")]
     public async Task<IActionResult> CreateFile(string studentId,[FromBody] CreateFileDto fileDto )
     {
@@ -334,8 +358,24 @@ public class FileController : ControllerBase
 
         if (userStudent == null)
             return BadRequest("Student not found.");
+        if (userAdmin == null)
+            return BadRequest("Admin account not found.");
 
-        if (userAdmin?.AutoSchoolId == userStudent.AutoSchoolId)
+
+        switch (fileDto.status)
+        {
+            case FileStatus.Draft:
+            case FileStatus.Approved:
+            case FileStatus.Rejected:
+                break;
+            default:
+                return BadRequest("Invalid file status.");
+        }
+
+
+
+
+        if (userAdmin.AutoSchoolId == userStudent.AutoSchoolId)
         {
             return Forbid("This student does not belong to your auto school");
         }
@@ -353,17 +393,17 @@ public class FileController : ControllerBase
             StudentId = studentId,
             //VehicleId && InstructorId are optional therefore ternary operator should
             //preferably be used here i believe
-            VehicleId = fileDto.vehicleId == null ? null : fileDto.vehicleId,
-            InstructorId = fileDto.instructorId == null ? null : fileDto.instructorId
+            VehicleId = fileDto.vehicleId,
+            InstructorId = fileDto.instructorId
         };
 
 
         await _db.Files.AddAsync(file);
 
-        if(fileDto.payment == null)
-        {
-            return BadRequest("Payment method not found.");
-        }
+        //if(fileDto.payment == null)
+        //{
+        //    return BadRequest("Payment method not found.");
+        //}
 
         var payment = new Payment
         {
@@ -583,13 +623,13 @@ public sealed class CreateFileDto
 
     public FileStatus status { get; init; } = default!;
 
-    public int? teachingCategoryId { get; init; } = default!;
+    public int teachingCategoryId { get; init; } = default!;
 
     public int? vehicleId { get; init; } = default!;
 
     public string? instructorId { get; init; } = default!;
 
-    public PaymentDto? payment { get; init; } = default!;
+    public PaymentDto payment { get; init; } = default!;
 
 
 }
@@ -606,8 +646,8 @@ public sealed class CreateFileResponseDto
 // Pe trello scrie 'toate campurile mai putin parola'
 public sealed class StudentDataDto
 {
-    public string? StudentId { get; init; } = default!;
 
+    public string StudentId { get; init; } = default!;
     public string? FirstName { get; init; } = default!;
 
     public string? LastName { get; init; } = default!;
@@ -620,7 +660,9 @@ public sealed class StudentDataDto
 
     public string? Cnp { get; init; } = default!;
 
-    public int AutoSchoolId { get; init; } = default!;
+    public string? UserName { get; init; } = default!;
+
+    public int? AutoSchoolId { get; init; } = default!;
 }
 public sealed class StudentFileDataInstructorDto
 {
@@ -656,24 +698,24 @@ public sealed class FileVehicleDto
 
 
 
-public sealed class FilesDataDto
+public sealed class StudentFileDataDto
 {
     public int fileId { get; init; } = default!;
     public DateTime? scholarshipStartDate { get; init; } = default!;
     public DateTime? criminalRecordExpiryDate { get; init; } = default!;
     public DateTime? medicalRecordExpiryDate { get; init; } = default!;
-    public FileStatus? status { get; init; } = default!;
-    public TeachingCategoryDto? teachingCategory { get; init; } = default!;
-    public FileVehicleDto? vehicle { get; init; } = default!;
-    public StudentFileDataInstructorDto? instructor { get; init; } = default!;
-    public FilePaymentDto? payment { get; init; } = default!;
+    public string status { get; init; } = default!;
+    public TeachingCategoryDto teachingCategory { get; init; } = default!;
+    public FileVehicleDto vehicle { get; init; } = default!;
+    public StudentFileDataInstructorDto instructor { get; init; } = default!;
+    public FilePaymentDto payment { get; init; } = default!;
 }
 
 
 public sealed class StudentFileRecordsDto
 {
-    public StudentDataDto? StudentData;
-    public List<FilesDataDto>? Files;
+    public StudentDataDto StudentData { get; init; } = default!;
+    public List<StudentFileDataDto> Files { get; init; } = default!;
 }
 
 
