@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DriveFlow_CRM_API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250509152054_DropPostcodeIndex")]
+    partial class DropPostcodeIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,7 +50,7 @@ namespace DriveFlow_CRM_API.Migrations
                     b.HasIndex("Postcode")
                         .IsUnique();
 
-                    b.ToTable("Addresses", (string)null);
+                    b.ToTable("Addresses");
                 });
 
             modelBuilder.Entity("DriveFlow_CRM_API.Models.ApplicationUser", b =>
@@ -148,7 +151,7 @@ namespace DriveFlow_CRM_API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ApplicationUserTeachingCategories", (string)null);
+                    b.ToTable("ApplicationUserTeachingCategories");
                 });
 
             modelBuilder.Entity("DriveFlow_CRM_API.Models.Appointment", b =>
@@ -173,7 +176,7 @@ namespace DriveFlow_CRM_API.Migrations
 
                     b.HasIndex("FileId");
 
-                    b.ToTable("Appointments", (string)null);
+                    b.ToTable("Appointments");
                 });
 
             modelBuilder.Entity("DriveFlow_CRM_API.Models.AutoSchool", b =>
@@ -221,7 +224,7 @@ namespace DriveFlow_CRM_API.Migrations
                     b.HasIndex("PhoneNumber")
                         .IsUnique();
 
-                    b.ToTable("AutoSchools", (string)null);
+                    b.ToTable("AutoSchools");
                 });
 
             modelBuilder.Entity("DriveFlow_CRM_API.Models.City", b =>
@@ -245,7 +248,7 @@ namespace DriveFlow_CRM_API.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Cities", (string)null);
+                    b.ToTable("Cities");
                 });
 
             modelBuilder.Entity("DriveFlow_CRM_API.Models.County", b =>
@@ -272,7 +275,7 @@ namespace DriveFlow_CRM_API.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Counties", (string)null);
+                    b.ToTable("Counties");
                 });
 
             modelBuilder.Entity("DriveFlow_CRM_API.Models.File", b =>
@@ -316,7 +319,7 @@ namespace DriveFlow_CRM_API.Migrations
 
                     b.HasIndex("VehicleId");
 
-                    b.ToTable("Files", (string)null);
+                    b.ToTable("Files");
                 });
 
             modelBuilder.Entity("DriveFlow_CRM_API.Models.InstructorAvailability", b =>
@@ -341,7 +344,7 @@ namespace DriveFlow_CRM_API.Migrations
 
                     b.HasIndex("InstructorId");
 
-                    b.ToTable("InstructorAvailabilities", (string)null);
+                    b.ToTable("InstructorAvailabilities");
                 });
 
             modelBuilder.Entity("DriveFlow_CRM_API.Models.License", b =>
@@ -360,7 +363,7 @@ namespace DriveFlow_CRM_API.Migrations
                     b.HasIndex("Type")
                         .IsUnique();
 
-                    b.ToTable("Licenses", (string)null);
+                    b.ToTable("Licenses");
                 });
 
             modelBuilder.Entity("DriveFlow_CRM_API.Models.Payment", b =>
@@ -383,7 +386,7 @@ namespace DriveFlow_CRM_API.Migrations
                     b.HasIndex("FileId")
                         .IsUnique();
 
-                    b.ToTable("Payments", (string)null);
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("DriveFlow_CRM_API.Models.Request", b =>
@@ -427,7 +430,7 @@ namespace DriveFlow_CRM_API.Migrations
 
                     b.HasIndex("RequestDate");
 
-                    b.ToTable("Requests", (string)null);
+                    b.ToTable("Requests");
                 });
 
             modelBuilder.Entity("DriveFlow_CRM_API.Models.TeachingCategory", b =>
@@ -466,7 +469,7 @@ namespace DriveFlow_CRM_API.Migrations
                     b.HasIndex("AutoSchoolId", "Code")
                         .IsUnique();
 
-                    b.ToTable("TeachingCategories", (string)null);
+                    b.ToTable("TeachingCategories");
                 });
 
             modelBuilder.Entity("DriveFlow_CRM_API.Models.Vehicle", b =>
@@ -511,7 +514,7 @@ namespace DriveFlow_CRM_API.Migrations
                     b.HasIndex("LicensePlateNumber")
                         .IsUnique();
 
-                    b.ToTable("Vehicles", (string)null);
+                    b.ToTable("Vehicles");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
