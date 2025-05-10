@@ -70,7 +70,9 @@ namespace DriveFlow_CRM_API.Json
 
 
     // ───────────────────────── REQUEST CONTROLLER ─────────────────────────
-    [JsonSerializable(typeof(RequestDto))]
+    [JsonSerializable(typeof(CreateRequestDto))]
+    [JsonSerializable(typeof(FetchRequestDto))]
+    [JsonSerializable(typeof(UpdateRequestDto))]
 
     // ───────────────────── AUTOSCHOOLPAGE CONTROLLER ─────────────────────
     [JsonSerializable(typeof(AutoSchoolLandingDto))]

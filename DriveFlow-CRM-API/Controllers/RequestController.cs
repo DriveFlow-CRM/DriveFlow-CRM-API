@@ -43,19 +43,17 @@ public class RequestController : ControllerBase
     ///  "firstName": "Maria",
     ///  "lastName": "Ionescu",
     ///  "phoneNr": "0721234234",
-    ///  "drivingCategory": "A2",
+    ///  "drivingCategory": "A2"
     ///}
     /// ```
     /// </remarks>
     /// <response code="200">Request sent succesffully.</response>
     /// <response code="400">Empty request</response>>
-    /// <response code="401">No valid JWT supplied.</response>
-    /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
 
     [HttpPost("school/{schoolId}/createRequest")]
-    public async Task<IActionResult> CreateRequest(int schoolId, [FromBody] RequestDto requestDto)
+    public async Task<IActionResult> CreateRequest(int schoolId, [FromBody] CreateRequestDto requestDto)
     {
-        if(schoolId <= 0)
+        if(_db.AutoSchools.Find(schoolId)==null)
             return BadRequest("Invalid school ID.");
         if (requestDto == null)
             return BadRequest("Request data is required.");
@@ -134,29 +132,30 @@ public class RequestController : ControllerBase
     [Authorize(Roles = "SuperAdmin,SchoolAdmin")]
     public async Task<IActionResult> FetchSchoolRequests(int AutoSchoolId)
     {
-        if (AutoSchoolId <= 0)
-            return BadRequest();
+        if (_db.AutoSchools.Find(AutoSchoolId)==null)
+            return BadRequest("School doesn't exist");
 
         var user =  _users.GetUserAsync(User).Result;
         if (user == null)
             return Unauthorized("User not found.");
 
-        if (!(User.IsInRole("SchoolAdmin") && user.AutoSchoolId == AutoSchoolId))
+        if (User.IsInRole("SchoolAdmin") && user.AutoSchoolId != AutoSchoolId)
             return Forbid("You are not authorized to view this school's requests.");
 
         var Requests = await _db.Requests
             .AsNoTracking()
             .Where(r => r.AutoSchoolId == AutoSchoolId)
             .OrderBy(r => r.RequestId)
-            .Select(r => new RequestDto
+            .Select(r => new FetchRequestDto
             {
                 RequestId = r.RequestId,
                 FirstName = r.FirstName,
                 LastName = r.LastName,
                 PhoneNr = r.PhoneNumber,
-                DrivingCategory = r.DrivingCategory,
+                DrivingCategory = (r.DrivingCategory != null ? r.DrivingCategory : "N/A"),
                 RequestDate = r.RequestDate,
                 Status = r.Status
+
             })
             .ToListAsync();
         return Ok(Requests);
@@ -191,31 +190,37 @@ public class RequestController : ControllerBase
 
 
     [HttpPut("update/{requestId}/updateRequestStatus")]
-    public async Task<IActionResult> UpdateRequestStatus(int requestId,[FromBody] RequestDto requestDto)
+    [Authorize(Roles = "SuperAdmin,SchoolAdmin")]
+    public async Task<IActionResult> UpdateRequestStatus(int requestId,[FromBody] UpdateRequestDto requestDto)
     {
-        if (requestId <= 0)
-            return BadRequest("Invalid request ID.");
 
-        if( requestDto== null)
+        var request = await _db.Requests.FindAsync(requestId);
+        if (request == null)
+            return NotFound("Request not found.");
+
+        if ( requestDto== null)
         {
             return BadRequest("Request data is required.");
+        }
+        switch(requestDto.Status)
+        {
+            case "APPROVED":
+            case "REJECTED":
+            case "PENDING":
+                break;
+            default:
+                return BadRequest("Invalid status update value.");
         }
 
         var user = _users.GetUserAsync(User).Result;
         if (user == null)
             return Unauthorized("User not found.");
 
-        if (!(User.IsInRole("SchoolAdmin") && user.AutoSchoolId == requestDto.AutoSchoolId))
-            return Forbid("You are not authorized to update this request.");
 
-        var request = await _db.Requests.FindAsync(requestId);
-        if (request == null)
-            return NotFound("Request not found.");
 
-        if(requestDto.Status == null)
-        {
-            return BadRequest("Status is required.");
-        }
+        if (User.IsInRole("SchoolAdmin") && user.AutoSchoolId != request.AutoSchoolId)
+            return Forbid("You are not authorized to view this school's requests.");
+
 
         request.Status = requestDto.Status; // Update the status of the request, that's all we do here.
 
@@ -241,15 +246,12 @@ public class RequestController : ControllerBase
         if (user == null)
             return Unauthorized("User not found.");
 
-        if (requestId <= 0)
-            return BadRequest("Invalid request ID.");
-
         var request = await _db.Requests.FindAsync(requestId);
         if (request == null)
             return NotFound("Request not found.");
 
-        if (!(User.IsInRole("SchoolAdmin") && user.AutoSchoolId == request.AutoSchoolId))
-            return Forbid("You are not authorized to delete this request.");
+        if (User.IsInRole("SchoolAdmin") && user.AutoSchoolId != request.AutoSchoolId)
+            return Forbid("You are not authorized to view this school's requests.");
 
         _db.Requests.Remove(request);
 
@@ -260,17 +262,43 @@ public class RequestController : ControllerBase
 }
 
 
-public sealed class RequestDto
+public sealed class CreateRequestDto
 {
-    public int? RequestId { get; init; }
+ //   public int? RequestId { get; init; }
     public string FirstName { get; init; } = default!;
 
     public string LastName { get; init; } = default!;
 
     public string PhoneNr { get; init; } = default!;    
+    public string DrivingCategory { get; init; } = default!;
+}
+
+
+
+
+public sealed class FetchRequestDto
+{
+    public int RequestId { get; init; }
+    public string FirstName { get; init; } = default!;
+
+    public string LastName { get; init; } = default!;
+
+    public string PhoneNr { get; init; } = default!;
+    public string DrivingCategory { get; init; } = default!;
+    public DateTime RequestDate { get; init; } = default;
+    public string Status { get; init; } = default!;
+
+}
+
+
+public sealed class UpdateRequestDto
+{
+    public int? RequestId { get; init; }
+    public string? FirstName { get; init; } = default!;
+    public string? LastName { get; init; } = default!;
+    public string? PhoneNr { get; init; } = default!;
     public string? DrivingCategory { get; init; } = default!;
     public DateTime? RequestDate { get; init; } = default;
-    public string? Status { get; init; } = default!;
-
+    public string Status { get; init; } = default!;
     public int? AutoSchoolId { get; init; } = default!;
 }
