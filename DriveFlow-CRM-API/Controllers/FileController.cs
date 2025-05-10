@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DriveFlow_CRM_API.Controllers;
 
@@ -230,12 +231,14 @@ public class FileController : ControllerBase
                     FirstName = instructor.FirstName,
                     LastName = instructor.LastName
                 };
+
+
                 FileVehicleDto fileVehicleDto = new FileVehicleDto()
                 {
                     VehicleId = vehicle.VehicleId,
                     LicensePlateNumber = vehicle.LicensePlateNumber,
-                    TransmissionType = vehicle.TransmissionType,
-                    Color = vehicle?.Color
+                    TransmissionType = vehicle.TransmissionType.ToString(),
+                    Color = (vehicle.Color == null ? "N/A" : vehicle.Color)
                 };
 
                 FilePaymentDto filePaymentDto = new FilePaymentDto()
@@ -246,20 +249,15 @@ public class FileController : ControllerBase
                 };
 
 
-                string local_status;
                 switch (file.Status)
                 {
                     case FileStatus.Draft:
-                        local_status = "inProgress";
                         break;
                     case FileStatus.Approved:
-                        local_status = "Approved";
                         break;
                     case FileStatus.Rejected:
-                        local_status = "Rejected";
                         break;
                     default:
-                        local_status = "Unknown";
                         break;
                 }
 
@@ -270,7 +268,7 @@ public class FileController : ControllerBase
                     scholarshipStartDate = file.ScholarshipStartDate,
                     criminalRecordExpiryDate = file.CriminalRecordExpiryDate,
                     medicalRecordExpiryDate = file.MedicalRecordExpiryDate,
-                    status = local_status,
+                    status = file.Status.ToString(),
 
                     teachingCategory = teachingCategoryDto,
                     vehicle = fileVehicleDto,
@@ -298,97 +296,124 @@ public class FileController : ControllerBase
         }
 
         return Ok(studentFiles);
-
-
     }
 
 
-// ────────────────────────────── CREATE FILE ──────────────────────────────
-/// <summary>Create a new student file and set the payment method for someone
-/// wishing to start their courses (SchoolAdmin only).</summary>
-/// <remarks> SchoolAdmin's AutoSchoolId must match the student's
-/// AutoSchoolId given as method paramether.
-/// <para> <strong> Sample Request body </strong> </para> 
-/// The JSON structure for the request body is as follows:
-/// ```json
-/// 
-///{
-///   "scholarshipStartDate": "2025-01-10",
-///   "criminalRecordExpiryDate": "2026-01-10",
-///   "medicalRecordExpiryDate": "2025-07-10",
-///   "status": "Draft",   //Pe card scrie 'open' dar codat e ca `Draft`
-///   "teachingCategoryId": 10,
-///   "vehicleId": 301,          // optional
-///   "instructorId": 41,        // optional
-///   "payment": {
-///     "sessionsPayed": 0,
-///     "scholarshipBasePayment": false
-///    }
-///}
-///
-/// Response if 200-OK
-/// 
-/// {
-///  "fileId":    560,
-///  "paymentId": 320,
-///  "message":   "File created successfully"
-/// }
-/// 
-/// 
-/// 
-/// 
-/// </remarks>
-/// <response code = "200">File and Payment method created with success</response>
-/// <response code = "400">Invalid user ID</response>
-/// <response code = "401">No valid JWT supplied</response>
-/// <response code = "403">User is forbidden from seeing the files of this auto school</response>
 
 
 
-[HttpPost("createFile/{studentId}")]
+
+
+
+
+    // ────────────────────────────── CREATE FILE ──────────────────────────────
+    /// <summary>Create a new student file and set the payment method for someone
+    /// wishing to start their courses (SchoolAdmin only).</summary>
+    /// <remarks> SchoolAdmin's AutoSchoolId must match the student's
+    /// AutoSchoolId given as method paramether.
+    /// <para> <strong> Sample Request body </strong> </para> 
+    /// The JSON structure for the request body is as follows:
+    /// ```json
+    /// 
+     ///     {
+     ///      "scholarshipStartDate": "2025-01-10",
+     ///      "criminalRecordExpiryDate": "2026-01-10",
+     ///      "medicalRecordExpiryDate": "2025-07-10",
+     ///      "status": "Approved",  
+     ///      "teachingCategoryId": 1,
+     ///      "vehicleId": 1,       
+     ///      "instructorId": "419decbe-6af1-4d84-9b45-c1ef796f4603",      
+     ///      "payment": {
+     ///           "sessionsPayed": 2,
+     ///           "scholarshipBasePayment": true
+     ///          }
+     ///      }
+    ///
+    ///   "vehicleId": 301,      // optional
+    ///   "instructorId": 41,        // optional
+    /// 
+    ///
+    /// Response if 200-OK
+    /// 
+    /// {
+    ///  "fileId":    560,
+    ///  "paymentId": 320,
+    ///  "message":   "File created successfully"
+    /// }
+    /// 
+    /// 
+    /// 
+    /// 
+    /// </remarks>
+    /// <response code = "200">File and Payment method created with success</response>
+    /// <response code = "400">Invalid user ID</response>
+    /// <response code = "401">No valid JWT supplied</response>
+    /// <response code = "403">User is forbidden from seeing the files of this auto school</response>
+    [HttpPost("createFile/{studentId}")]
     [Authorize(Roles = "SchoolAdmin")]
     public async Task<IActionResult> CreateFile(string studentId,[FromBody] CreateFileDto fileDto )
     {
 
-        if (fileDto == null)
-            return BadRequest("Empty request.");
-
-        var userAdmin = _db.ApplicationUsers.Find(User);
         var userStudent = _db.ApplicationUsers.Find(studentId);
-
         if (userStudent == null)
             return BadRequest("Student not found.");
-        if (userAdmin == null)
-            return BadRequest("Admin account not found.");
 
+        var userAdmin = await _users.GetUserAsync(User);
+
+        if (userAdmin == null || userAdmin.AutoSchoolId != userStudent.AutoSchoolId)
+        {
+            return Forbid("This student does not belong to your auto school");
+        }
+
+
+        var instructor = await _db.ApplicationUsers.FindAsync(fileDto.instructorId);
+
+        if (instructor != null && instructor.AutoSchoolId != userStudent.AutoSchoolId)
+            return BadRequest("Instructor does not belong to the same auto school.");
+
+        var vehicle = await _db.Vehicles.FindAsync(fileDto.vehicleId);
+
+        if (vehicle != null && vehicle.AutoSchoolId != userAdmin.AutoSchoolId)
+            return BadRequest("Vehicle does not belong to the same auto school.");
+        var teachingCategory = await _db.TeachingCategories.FindAsync(fileDto.teachingCategoryId);
+        if (teachingCategory == null)
+            return BadRequest("Teaching Category not found.");
+
+        if (teachingCategory.AutoSchoolId != userAdmin.AutoSchoolId)
+            return BadRequest("This school does not have this teaching category");
+
+        /*
+         * In json un enumerate se trimite prin id-ul lui (0,1,2,3..) 
+         * Daca Gabi trimite un string, il interpretez apoi ca enumerate
+         * pentru modelul de File
+         */
+        FileStatus localStatus;
 
         switch (fileDto.status)
         {
-            case FileStatus.Draft:
-            case FileStatus.Approved:
-            case FileStatus.Rejected:
+            case "Draft":
+                localStatus = FileStatus.Draft;
+                break;
+            case "Approved":
+                localStatus = FileStatus.Approved;
+                break;
+            case "Rejected":
+                localStatus = FileStatus.Rejected;
                 break;
             default:
                 return BadRequest("Invalid file status.");
         }
 
 
-
-
-        if (userAdmin.AutoSchoolId == userStudent.AutoSchoolId)
-        {
-            return Forbid("This student does not belong to your auto school");
-        }
-
         var file = new Models.File
         {
-            ScholarshipStartDate = fileDto.scholarschipStartDate,
+            ScholarshipStartDate = fileDto.scholarshipStartDate,
             CriminalRecordExpiryDate = fileDto.criminalRecordExpiryDate,
             MedicalRecordExpiryDate = fileDto.medicalRecordExpiryDate,
             //File.cs/FileStatus class, DRAFT/APPROVED/REJECTED,
             //astept sa imi spui gabi cum modificam aici
             //pe card vad sa apara ca `open`
-            Status = fileDto.status, 
+            Status = localStatus,
             TeachingCategoryId = fileDto.teachingCategoryId,
             StudentId = studentId,
             //VehicleId && InstructorId are optional therefore ternary operator should
@@ -398,8 +423,11 @@ public class FileController : ControllerBase
         };
 
 
-        await _db.Files.AddAsync(file);
 
+
+         _db.Files.Add(file);
+        await _db.SaveChangesAsync();
+      //  return Ok(file.FileId);
         //if(fileDto.payment == null)
         //{
         //    return BadRequest("Payment method not found.");
@@ -410,16 +438,10 @@ public class FileController : ControllerBase
             ScholarshipBasePayment = fileDto.payment.ScholarshipBasePayment,
             SessionsPayed = fileDto.payment.SessionsPayed,
             FileId = file.FileId
-            //aici sper sa nu pice, adica atunci cand adaug obiectul in BD
-            //ar trebui sa primeasca si ID implicit..i hope
         };
 
         await _db.Payments.AddAsync(payment);
-
-
-
-        _db.Files.Add(file);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
 
         return Ok(new CreateFileResponseDto()
@@ -436,6 +458,26 @@ public class FileController : ControllerBase
     /// <summary>Edit an existing student file (SchoolAdmin only).</summary>
     /// <remarks>
     ///     FileDto must contain all updatable fields except the fileId.
+    ///     
+    /// ``` Json example
+    /// {
+    ///  "scholarshipStartDate": "2725-05-10T15:08:18.604Z",
+    ///  "criminalRecordExpiryDate": "2725-05-10T15:08:18.604Z",
+    ///  "medicalRecordExpiryDate": "2725-05-10T15:08:18.604Z",
+    ///  "status": "Rejected",
+    ///  "instructorId": "419decbe-6af1-4d84-9b45-c1ef796f4603",
+    ///  "vehicleId": 1,
+    ///  "teachingCategoryId": 1
+    ///}
+    /// 
+    /// Returns 
+    /// 
+    /// {
+    ///    "message": "File updated successfully"
+    /// {
+    /// 
+    /// 
+    /// 
     /// </remarks>
     /// SchoolAdmin's AutoSchoolId must match the student's AutoSchoolId associated with the file.
     ///  <param name="fileId">The id of the file to be updated</param>
@@ -448,52 +490,77 @@ public class FileController : ControllerBase
 
     [HttpPut("editFile/{fileId}")]
     [Authorize(Roles = "SchoolAdmin")]
-    public async Task<IActionResult> EditFile(int fileId, [FromBody] FileDto fileDto)
+    public async Task<IActionResult> EditFile(int fileId, [FromBody] EditFileDto fileDto)
     {
 
-        var file = _db.Files.Find(fileId);
-        if(file == null)
-        {
-            return BadRequest("File not found to edit");
-        }
-        int? fileSchoolId = file.Student.AutoSchoolId;
 
-        if (fileSchoolId == null)
+        var file = await _db.Files.FindAsync(fileId);
+        if (file == null)
+            return BadRequest("File not found.");
+
+        
+        var userAdmin = await _users.GetUserAsync(User);
+
+        if(userAdmin == null)
         {
-            return BadRequest("File does not belong to any auto school");
-        }
-        if(file?.Instructor?.AutoSchoolId != fileSchoolId)
-        {
-            return BadRequest("Instructor does not belong to the same auto school");
-        }
-        if(file?.Vehicle?.AutoSchoolId != fileSchoolId)
-        {
-            return BadRequest("Vehicle does not belong to the same auto school");
+            return Unauthorized("You aren't logged in properly");
         }
 
+      //  return Ok(fileDto);
 
-        var schoolAdmin = _users.GetUserAsync(User).Result;
+        int? schoolId = _db.Files.Include(f => f.Student).Select(f => f.Student.AutoSchoolId).First();
 
-        if(schoolAdmin?.AutoSchoolId != fileSchoolId)
+        if (userAdmin.AutoSchoolId != schoolId)
         {
-            return Forbid("You can not edit the files of other auto schools");
+            return Forbid("This student does not belong to your auto school");
         }
 
-        //Aici va trebui sa modificam din structura de fileDto,
-        //pana atunci ramane comentat  vvv
 
-     //->>>>  file.InstructorId = fileDto.InstructorId;
+        if (fileDto.InstructorId != null)
+        {
+            var instructor = await _db.ApplicationUsers.FindAsync(fileDto.InstructorId);
+
+            if(instructor == null)
+            {
+                return BadRequest("Instructor does not exist");
+            }
+
+            if (instructor.AutoSchoolId != schoolId)
+                return BadRequest("Instructor does not belong to the same auto school.");
+        }
+        if (fileDto.VehicleId != null)
+        {
+            var vehicle = await _db.Vehicles.FindAsync(fileDto.VehicleId);
+            if (vehicle == null)
+                return BadRequest("Vehicle not found.");
+            if (vehicle.AutoSchoolId != schoolId)
+                return BadRequest("Vehicle does not belong to the same auto school.");
+        }
+        if (fileDto.TeachingCategoryId != null)
+        {
+            var teachingCategory = await _db.TeachingCategories.FindAsync(fileDto.TeachingCategoryId);
+            if (teachingCategory == null)
+                return BadRequest("Teaching Category not found.");
+
+            if (teachingCategory.AutoSchoolId != schoolId)
+                return BadRequest("This school does not have this teaching category");
+
+        }
+
+
+
 
         file.VehicleId = fileDto.VehicleId;
 
 
-        //Aici ar trebui actualizat campul status sa fie acel enum FileStatus
-        //nu un string
-     //->>>>      file.Status = fileDto.Status;
         file.ScholarshipStartDate = fileDto.ScholarshipStartDate;
         file.CriminalRecordExpiryDate  = fileDto.CriminalRecordExpiryDate;
         file.MedicalRecordExpiryDate = fileDto.MedicalRecordExpiryDate;
+
         file.TeachingCategoryId = fileDto.TeachingCategoryId;
+        file.InstructorId = fileDto.InstructorId;
+        file.VehicleId = fileDto.VehicleId;
+
 
         await _db.SaveChangesAsync();
         return Ok(new
@@ -528,20 +595,21 @@ public class FileController : ControllerBase
     public async Task<IActionResult> EditPayment(int paymentId,[FromBody] PaymentDto paymentDto)
     {
 
-        var payment = _db.Payments.Find(paymentId);
+        var payment = await _db.Payments
+            .Include(p => p.File)
+            .ThenInclude(f => f.Student)
+            .FirstOrDefaultAsync(p => p.PaymentId == paymentId);
         if (payment == null)
         {
             return BadRequest("Payment not found to edit");
         }
 
-        var schoolAdmin = _users.GetUserAsync(User).Result;
 
-        var file = _db.Files.Find(payment.FileId);
-        if (file == null)
-        {
-            return BadRequest("File not found to edit");
-        }
-        int? fileSchoolId = file.Student.AutoSchoolId;
+
+        var schoolAdmin = await _users.GetUserAsync(User);
+
+        int? fileSchoolId = payment.File.Student.AutoSchoolId;
+        
 
         if (fileSchoolId == null)
         {
@@ -585,11 +653,19 @@ public class FileController : ControllerBase
     public async Task<IActionResult> DeleteFile(int fileId)
     {
 
-        var file = await _db.Files.FindAsync(fileId);
+        var file = await _db.Files
+            .Include(f=>f.Student)
+            .FirstOrDefaultAsync(f=>f.FileId==fileId);
         if (file == null)
             return NotFound(new { message = "File not found." });
 
-        if(file.Student.AutoSchoolId != _users.GetUserAsync(User).Result?.AutoSchoolId)
+        var user = await  _users.GetUserAsync(User);
+        if (user == null)
+        {
+            return Unauthorized("You don't have the rights to do this");
+        }
+
+        if(file.Student.AutoSchoolId != user.AutoSchoolId)
         {
             return BadRequest("You can not delete the files of other auto schools");
         }
@@ -616,12 +692,12 @@ public class FileController : ControllerBase
 //}
 public sealed class CreateFileDto
 {
-    public DateTime scholarschipStartDate { get; init; } = default!;
+    public DateTime scholarshipStartDate { get; init; } = default!;
     public DateTime criminalRecordExpiryDate { get; init; } = default!;
 
     public DateTime medicalRecordExpiryDate { get; init; } = default!;
 
-    public FileStatus status { get; init; } = default!;
+    public string status { get; init; } = default!;
 
     public int teachingCategoryId { get; init; } = default!;
 
@@ -683,17 +759,29 @@ public sealed class FilePaymentDto
 
 public sealed class FileVehicleDto
 {
-    public int? VehicleId { get; init; }
+    public int VehicleId { get; init; } = default!;
     public string LicensePlateNumber { get; init; } = default!;
-    public TransmissionType TransmissionType { get; init; } = default!;
-    public string? Color { get; init; }
-    public DateTime? ItpExpiryDate { get; init; }
-    public DateTime? InsuranceExpiryDate { get; init; }
-    public DateTime? RcaExpiryDate { get; init; }
-    public int LicenseId { get; init; }
+    public string TransmissionType { get; init; } = default!;
+    public string Color { get; init; } = "N/A";
 }
 
 
+public sealed class EditFileDto
+{
+
+    public DateTime? ScholarshipStartDate { get; init; } = default!;
+    public DateTime? CriminalRecordExpiryDate { get; init; } = default!;
+    public DateTime? MedicalRecordExpiryDate { get; init; } = default!;
+
+    public string Status { get; set; } = "Draft";
+
+    public int? VehicleId { get; set; } = default!;
+
+    public string? InstructorId { get; init; } = default!;
+
+    public int? TeachingCategoryId { get; init; } = default!;
+
+}
 
 
 
