@@ -667,7 +667,7 @@ public class FileController : ControllerBase
 
         if(file.Student.AutoSchoolId != user.AutoSchoolId)
         {
-            return BadRequest("You can not delete the files of other auto schools");
+            return Forbid("You can not delete the files of other auto schools");
         }
         _db.Files.Remove(file);
         await _db.SaveChangesAsync();
