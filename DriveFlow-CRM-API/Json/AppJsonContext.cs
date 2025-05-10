@@ -72,6 +72,29 @@ namespace DriveFlow_CRM_API.Json
     // ───────────────────────── REQUEST CONTROLLER ─────────────────────────
     [JsonSerializable(typeof(RequestDto))]
 
+    // ───────────────────── AUTOSCHOOLPAGE CONTROLLER ─────────────────────
+    [JsonSerializable(typeof(AutoSchoolLandingDto))]
+    [JsonSerializable(typeof(AutoSchoolDetailsDto))]
+    [JsonSerializable(typeof(AddressDetailsDto))]
+    [JsonSerializable(typeof(TeachingCategoryDetailsDto))]
+    [JsonSerializable(typeof(SchoolVehicleDto))]
+    [JsonSerializable(typeof(List<AutoSchoolLandingDto>))]
+    [JsonSerializable(typeof(List<SchoolVehicleDto>))]
+    [JsonSerializable(typeof(List<TeachingCategoryDetailsDto>))]
+
+    // ───────────────────── TEACHINGCATEGORY CONTROLLER ─────────────────────
+    [JsonSerializable(typeof(TeachingCategoryResponseDto))]
+    [JsonSerializable(typeof(TeachingCategoryCreateDto))]
+    [JsonSerializable(typeof(TeachingCategoryUpdateDto))]
+    [JsonSerializable(typeof(List<TeachingCategoryResponseDto>))]
+
+    // ───────────────────── INSTRUCTOR CONTROLLER ─────────────────────
+    [JsonSerializable(typeof(InstructorAssignedFileDto))]
+    [JsonSerializable(typeof(List<InstructorAssignedFileDto>))]
+    [JsonSerializable(typeof(InstructorFileDetailsDto))]
+    [JsonSerializable(typeof(InstructorAppointmentDto))]
+    [JsonSerializable(typeof(List<InstructorAppointmentDto>))]
+
     internal partial class AppJsonContext : JsonSerializerContext
     {
     }

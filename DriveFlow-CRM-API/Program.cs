@@ -80,6 +80,19 @@ public partial class Program
         var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
         builder.WebHost.UseUrls($"http://*:{port}");
 
+        // ─────────────────────────────── CORS Configuration ───────────────────────────────
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAllOrigins",
+                builder =>
+                {
+                    builder
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                });
+        });
+
         // ───────────────────────────── Database & Identity ────────────────────────────────
         // 3. Resolve the base connection string from appsettings.json or environment variables.
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -251,6 +264,9 @@ public partial class Program
 
         // ──────────────────────────────── Request Pipeline ───────────────────────────────
         app.UseRouting();
+
+        // Apply CORS middleware
+        app.UseCors("AllowAllOrigins");
 
         app.UseIpRateLimiting();
         app.UseAuthentication();            // Must precede UseAuthorization
