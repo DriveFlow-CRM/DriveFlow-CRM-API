@@ -90,6 +90,7 @@ public class InstructorController : ControllerBase
         }
 
         // 3. Query files with required joins and projection
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
         var files = await _db.Files
             .Where(f => f.InstructorId == instructorId)
             .Include(f => f.Student)
@@ -97,20 +98,27 @@ public class InstructorController : ControllerBase
                 .ThenInclude(v => v.License)
             .AsNoTracking()
             .ToListAsync();
+#pragma warning restore CS8602
 
-        // 4. Map to DTOs after materializing the query
-        var result = files.Select(f => new InstructorAssignedFileDto
+        // 4. Map to DTOs after materializing the query, with additional null checks
+        var result = files.Select(f => 
         {
-            FirstName = f.Student?.FirstName,
-            LastName = f.Student?.LastName,
-            PhoneNumber = f.Student?.PhoneNumber,
-            Email = f.Student?.Email,
-            ScholarshipStartDate = f.ScholarshipStartDate,
-            LicensePlateNumber = f.Vehicle != null ? f.Vehicle.LicensePlateNumber : null,
-            TransmissionType = f.Vehicle != null ? f.Vehicle.TransmissionType.ToString().ToLowerInvariant() : null,
-            Status = f.Status.ToString().ToLowerInvariant(),
-            Type = f.Vehicle != null && f.Vehicle.License != null ? f.Vehicle.License.Type : null,
-            Color = f.Vehicle != null ? f.Vehicle.Color : null
+            var student = f.Student; // Avoid multiple property access that could trigger warning
+            var vehicle = f.Vehicle; // Avoid multiple property access that could trigger warning
+            
+            return new InstructorAssignedFileDto
+            {
+                FirstName = student?.FirstName,
+                LastName = student?.LastName,
+                PhoneNumber = student?.PhoneNumber,
+                Email = student?.Email,
+                ScholarshipStartDate = f.ScholarshipStartDate,
+                LicensePlateNumber = vehicle?.LicensePlateNumber,
+                TransmissionType = vehicle != null ? vehicle.TransmissionType.ToString().ToLowerInvariant() : null,
+                Status = f.Status.ToString().ToLowerInvariant(),
+                Type = vehicle?.License?.Type,
+                Color = vehicle?.Color
+            };
         }).ToList();
 
         return Ok(result);
@@ -264,6 +272,7 @@ public class InstructorController : ControllerBase
         }
 
         // 3. Query appointments with required joins
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
         var query = from instructor in _db.ApplicationUsers
                     where instructor.Id == instructorId
                     join file in _db.Files.Include(f => f.Student).Include(f => f.Vehicle).ThenInclude(v => v.License)
@@ -276,20 +285,27 @@ public class InstructorController : ControllerBase
 
         // 4. Execute the query and materialize the results
         var results = await query.AsNoTracking().ToListAsync();
+#pragma warning restore CS8602
 
         // 5. Map to DTOs safely
-        var appointments = results.Select(r => new InstructorAppointmentDto
+        var appointments = results.Select(r => 
         {
-            AppointmentId = r.appointment.AppointmentId,
-            Date = r.appointment.Date,
-            StartHour = r.appointment.StartHour.ToString(@"hh\:mm"),
-            EndHour = r.appointment.EndHour.ToString(@"hh\:mm"),
-            FileId = r.file.FileId,
-            FirstName = r.file.Student?.FirstName,
-            LastName = r.file.Student?.LastName,
-            PhoneNo = r.file.Student?.PhoneNumber,
-            LicensePlateNumber = r.file.Vehicle != null ? r.file.Vehicle.LicensePlateNumber : null,
-            Type = r.file.Vehicle != null && r.file.Vehicle.License != null ? r.file.Vehicle.License.Type : null
+            var student = r.file.Student; // Avoid multiple property access that could trigger warning
+            var vehicle = r.file.Vehicle; // Avoid multiple property access that could trigger warning
+            
+            return new InstructorAppointmentDto
+            {
+                AppointmentId = r.appointment.AppointmentId,
+                Date = r.appointment.Date,
+                StartHour = r.appointment.StartHour.ToString(@"hh\:mm"),
+                EndHour = r.appointment.EndHour.ToString(@"hh\:mm"),
+                FileId = r.file.FileId,
+                FirstName = student?.FirstName,
+                LastName = student?.LastName,
+                PhoneNo = student?.PhoneNumber,
+                LicensePlateNumber = vehicle?.LicensePlateNumber,
+                Type = vehicle?.License?.Type
+            };
         }).ToList();
 
         return Ok(appointments);
