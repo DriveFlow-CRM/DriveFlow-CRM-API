@@ -1,4 +1,4 @@
-﻿using DriveFlow_CRM_API.Controllers;          
+using DriveFlow_CRM_API.Controllers;          
 using System.Text.Json.Serialization;
 
 namespace DriveFlow_CRM_API.Json
@@ -45,6 +45,7 @@ namespace DriveFlow_CRM_API.Json
     // ───────────────────────── ADDRESS CONTROLLER ─────────────────────────
     [JsonSerializable(typeof(AddressCreateDto))]
     [JsonSerializable(typeof(AddressDto))]
+    [JsonSerializable(typeof(AddressUpdateDto))]
 
     // ─────────────────────── AUTOSCHOOL CONTROLLER ───────────────────────
     [JsonSerializable(typeof(SchoolAdminInfoDto))]
@@ -81,6 +82,29 @@ namespace DriveFlow_CRM_API.Json
     [JsonSerializable(typeof(StudentDataDto))]
     [JsonSerializable(typeof(FileVehicleDto))]
     [JsonSerializable(typeof(FilePaymentDto))]
+
+    // ───────────────────── AUTOSCHOOLPAGE CONTROLLER ─────────────────────
+    [JsonSerializable(typeof(AutoSchoolLandingDto))]
+    [JsonSerializable(typeof(AutoSchoolDetailsDto))]
+    [JsonSerializable(typeof(AddressDetailsDto))]
+    [JsonSerializable(typeof(TeachingCategoryDetailsDto))]
+    [JsonSerializable(typeof(SchoolVehicleDto))]
+    [JsonSerializable(typeof(List<AutoSchoolLandingDto>))]
+    [JsonSerializable(typeof(List<SchoolVehicleDto>))]
+    [JsonSerializable(typeof(List<TeachingCategoryDetailsDto>))]
+
+    // ───────────────────── TEACHINGCATEGORY CONTROLLER ─────────────────────
+    [JsonSerializable(typeof(TeachingCategoryResponseDto))]
+    [JsonSerializable(typeof(TeachingCategoryCreateDto))]
+    [JsonSerializable(typeof(TeachingCategoryUpdateDto))]
+    [JsonSerializable(typeof(List<TeachingCategoryResponseDto>))]
+
+    // ───────────────────── INSTRUCTOR CONTROLLER ─────────────────────
+    [JsonSerializable(typeof(InstructorAssignedFileDto))]
+    [JsonSerializable(typeof(List<InstructorAssignedFileDto>))]
+    [JsonSerializable(typeof(InstructorFileDetailsDto))]
+    [JsonSerializable(typeof(InstructorAppointmentDto))]
+    [JsonSerializable(typeof(List<InstructorAppointmentDto>))]
 
     internal partial class AppJsonContext : JsonSerializerContext
     {

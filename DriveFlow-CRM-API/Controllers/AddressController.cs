@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 using DriveFlow_CRM_API.Models;
 
@@ -153,6 +154,88 @@ public class AddressController : ControllerBase
             new { addressId = address.AddressId, message = "Address created successfully" });
     }
 
+    // ────────────────────────────── UPDATE ADDRESS ──────────────────────────────
+    /// <summary>
+    /// Updates an existing address.
+    /// </summary>
+    /// <remarks>
+    /// <para><strong>Sample request</strong></para>
+    ///
+    /// ```json
+    /// {
+    ///   "streetName": "Stelelor",
+    ///   "addressNumber": "15",
+    ///   "postcode": "335508",
+    ///   "cityId": 1882
+    /// }
+    /// ```
+    /// </remarks>
+    /// <param name="addressId">The ID of the address to update</param>
+    /// <param name="dto">The updated address data</param>
+    /// <response code="200">Address updated successfully.</response>
+    /// <response code="400">Invalid input data or city does not exist.</response>
+    /// <response code="401">No valid JWT supplied.</response>
+    /// <response code="403">User is not authorized to update this address.</response>
+    /// <response code="404">Address not found.</response>
+    [HttpPut("update/{addressId:int}")]
+    [Authorize(Roles = "SuperAdmin,SchoolAdmin")]
+    public async Task<IActionResult> UpdateAddressAsync(int addressId, [FromBody] AddressUpdateDto dto)
+    {
+        // Validate input
+        if (string.IsNullOrWhiteSpace(dto.StreetName) ||
+            string.IsNullOrWhiteSpace(dto.AddressNumber) ||
+            string.IsNullOrWhiteSpace(dto.Postcode) ||
+            dto.CityId <= 0)
+        {
+            return BadRequest(new
+            {
+                message = "All of 'streetName', 'addressNumber', 'postcode' and a positive 'cityId' are required."
+            });
+        }
+
+        // Check if address exists
+        var address = await _db.Addresses.FindAsync(addressId);
+        if (address == null)
+        {
+            return NotFound(new { message = "Address not found." });
+        }
+
+        // For SchoolAdmin, verify they own this address
+        if (User.IsInRole("SchoolAdmin"))
+        {
+            var schoolIdClaim = User.FindFirst("schoolId")?.Value;
+            if (string.IsNullOrEmpty(schoolIdClaim) || !int.TryParse(schoolIdClaim, out int schoolId))
+            {
+                return Forbid();
+            }
+
+            var addressBelongsToSchool = await _db.AutoSchools
+                .AnyAsync(s => s.AutoSchoolId == schoolId && s.AddressId == addressId);
+
+            if (!addressBelongsToSchool)
+            {
+                return Forbid();
+            }
+        }
+
+        // Verify city exists
+        var cityExists = await _db.Cities.AnyAsync(c => c.CityId == dto.CityId);
+        if (!cityExists)
+        {
+            return BadRequest(new { message = "City with the specified ID does not exist." });
+        }
+
+        // Update address
+        address.StreetName = dto.StreetName.Trim();
+        address.AddressNumber = dto.AddressNumber.Trim();
+        address.Postcode = dto.Postcode.Trim();
+        address.CityId = dto.CityId;
+
+        await _db.SaveChangesAsync();
+
+        return Ok(new { message = "Address updated successfully" });
+    }
+
     // ────────────────────────────── DELETE ADDRESS ──────────────────────────────
     /// <summary>
     /// Deletes an existing address (SuperAdmin only).
@@ -174,6 +257,7 @@ public class AddressController : ControllerBase
 
         return NoContent();                   
     }
+
 }
 
 // ─────────────────────── DTOs ───────────────────────
@@ -194,6 +278,17 @@ public sealed class AddressDto
 /// Payload used when creating a new address.
 /// </summary>
 public sealed class AddressCreateDto
+{
+    public string StreetName { get; init; } = default!;
+    public string AddressNumber { get; init; } = default!;
+    public string Postcode { get; init; } = default!;
+    public int CityId { get; init; }
+}
+
+/// <summary>
+/// DTO for updating an existing address.
+/// </summary>
+public sealed class AddressUpdateDto
 {
     public string StreetName { get; init; } = default!;
     public string AddressNumber { get; init; } = default!;

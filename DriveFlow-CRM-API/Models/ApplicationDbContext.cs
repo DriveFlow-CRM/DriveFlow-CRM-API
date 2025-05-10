@@ -77,8 +77,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         // ───────── City ↔ Address (1 : M) ─────────
         builder.Entity<City>(entity =>
         {
-            entity.HasIndex(c => c.Name).IsUnique();
-
             entity.HasMany(c => c.Addresses)
                   .WithOne(a => a.City)
                   .HasForeignKey(a => a.CityId)
