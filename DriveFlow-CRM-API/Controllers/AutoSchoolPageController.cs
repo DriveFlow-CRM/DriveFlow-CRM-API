@@ -153,6 +153,12 @@ public class AutoSchoolPageController : ControllerBase
                         v.LicensePlateNumber,
                         TransmissionType = v.TransmissionType.ToString().ToLowerInvariant(),
                         v.Color,
+                        Brand = v.Brand,
+                        Model = v.Model,
+                        v.YearOfProduction,
+                        FuelType = v.FuelType.HasValue ? v.FuelType.ToString() : null,
+                        v.EngineSizeLiters,
+                        PowertrainType = v.PowertrainType.HasValue ? v.PowertrainType.ToString() : null,
                         LicenseType = v.License == null ? null : v.License.Type
                     })
                     .ToList(),
@@ -208,6 +214,12 @@ public class AutoSchoolPageController : ControllerBase
                 LicensePlateNumber = v.LicensePlateNumber,
                 TransmissionType = v.TransmissionType,
                 Color = v.Color,
+                Brand = v.Brand,
+                Model = v.Model,
+                YearOfProduction = v.YearOfProduction,
+                FuelType = v.FuelType,
+                EngineSizeLiters = v.EngineSizeLiters,
+                PowertrainType = v.PowertrainType,
                 LicenseType = v.LicenseType
             }).ToList(),
             TeachingCategories = school.TeachingCategories.Select(tc => new TeachingCategoryDetailsDto
@@ -319,6 +331,24 @@ public class SchoolVehicleDto
     
     /// <summary>Vehicle color</summary>
     public string? Color { get; set; }
+    
+    /// <summary>Vehicle brand/manufacturer</summary>
+    public string? Brand { get; set; }
+    
+    /// <summary>Vehicle model</summary>
+    public string? Model { get; set; }
+    
+    /// <summary>Year of production</summary>
+    public int? YearOfProduction { get; set; }
+    
+    /// <summary>Fuel type</summary>
+    public string? FuelType { get; set; }
+    
+    /// <summary>Engine size in liters</summary>
+    public decimal? EngineSizeLiters { get; set; }
+    
+    /// <summary>Powertrain type</summary>
+    public string? PowertrainType { get; set; }
     
     /// <summary>License type required to drive the vehicle</summary>
     public string? LicenseType { get; set; }
