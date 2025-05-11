@@ -130,7 +130,7 @@ public class FileController : ControllerBase
 
 
 
-    [HttpGet("/{schoolId}")]
+    [HttpGet("fetchAll/{schoolId}")]
     [Authorize(Roles = "SchoolAdmin")]
     public async Task<IActionResult> GetStudentFileRecords(int schoolId)
     {
