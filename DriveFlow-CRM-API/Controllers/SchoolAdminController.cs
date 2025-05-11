@@ -12,7 +12,7 @@ namespace DriveFlow_CRM_API.Controllers;
 
 [ApiController]
 [Route("api/[controller]/autoschool/{schoolId:int}")]
-[Authorize(Policy = "SchoolAdmin")]
+[Authorize(Policy = "SchoolAdmin,SuperAdmin")]
 public class SchoolAdminController : ControllerBase
 {
     // ───────────────────────────── fields & ctor ─────────────────────────────
@@ -62,6 +62,7 @@ public class SchoolAdminController : ControllerBase
     /// Authenticated user does not belong to the specified school.
     /// </response>
     [HttpPost("create/instructor")]
+    [Authorize(Roles ="SchoolAdmin")]
     public async Task<IActionResult> CreateInstructorAsync(
     int schoolId,
     [FromBody] InstructorCreateDto dto)
@@ -164,6 +165,8 @@ public class SchoolAdminController : ControllerBase
     /// <response code="403">Authenticated user does not belong to the specified school.</response>
 
     [HttpPost("create/student")]
+    [Authorize(Roles = "SchoolAdmin")]
+
     public async Task<IActionResult> CreateStudentAsync(
     int schoolId,
     [FromBody] StudentCreateDto dto)
@@ -278,8 +281,27 @@ public class SchoolAdminController : ControllerBase
     /// <response code="403">Authenticated admin does not belong to the specified school.</response>
     /// <response code="404">User not found.</response>
     [HttpGet("getUser/{userId}")]
+    [Authorize(Roles ="SchoolAdmin,SuperAdmin")]
     public async Task<IActionResult> GetUserAsync(int schoolId, string userId)
     {
+        //Ionut: Per issue, now this method can also be called by SuperAdmin.
+
+
+        // ─── check if the School Admin belongs to the same school ───
+        var currentUser = await _users.GetUserAsync(User);
+        if (currentUser is null)
+            return NotFound(new { message = "User not found" });
+
+        bool isSuperAdmin = await _users.IsInRoleAsync(currentUser, "SuperAdmin");
+        bool isSchoolAdmin = await _users.IsInRoleAsync(currentUser, "SuperAdmin");
+
+        if (isSchoolAdmin && currentUser.AutoSchoolId != schoolId && !isSuperAdmin) 
+            return Forbid();
+
+
+
+
+
         // ─── validate & fetch target user ───
         if (string.IsNullOrWhiteSpace(userId))
             return BadRequest(new { message = "userId cannot be empty." });
@@ -288,12 +310,10 @@ public class SchoolAdminController : ControllerBase
                                .AsNoTracking()
                                .FirstOrDefaultAsync(u => u.Id == userId);
 
-        if (user is null)
+        if (user == null)
             return NotFound(new { message = "User not found" });
-
-        if (user.AutoSchoolId != schoolId) return Forbid();
-
         var roles = await _users.GetRolesAsync(user);
+
 
         // ─── Instructor branch ───
         if (roles.Contains("Instructor"))
@@ -356,8 +376,27 @@ public class SchoolAdminController : ControllerBase
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">Authenticated admin does not belong to the specified school.</response>
     [HttpGet("getUsers")]
+    [Authorize(Roles = "SchoolAdmin,SuperAdmin")]
     public async Task<IActionResult> GetUsersAsync(int schoolId)
     {
+        //Ionut: I think we should check if the School Admin belongs to the same school too.
+        //       Also per issue, now SuperAdmin can call this method too.
+
+        var user = await _users.GetUserAsync(User);
+        if (user is null)
+            return NotFound(new { message = "User not found" });
+
+        bool isSchoolAdmin = await _users.IsInRoleAsync(user, "SchoolAdmin");
+        bool isSuperAdmin = await _users.IsInRoleAsync(user, "SuperAdmin");
+
+        if (isSchoolAdmin && user.AutoSchoolId != schoolId && !isSuperAdmin)
+            return Forbid();
+
+
+
+
+
+
         // ─── fetch all users from this school ───
         var users = await _users.Users
             .AsNoTracking()
@@ -405,8 +444,27 @@ public class SchoolAdminController : ControllerBase
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">Authenticated admin does not belong to the specified school.</response>
     [HttpGet("getUsers/{type}")]
+    [Authorize(Roles = "SchoolAdmin,SuperAdmin")]
     public async Task<IActionResult> GetUsersByTypeAsync(int schoolId, string type)
     {
+        // ---check if the School Admin belongs to the same school too.
+
+
+        var user = await _users.GetUserAsync(User);
+        if (user is null)
+            return NotFound(new { message = "User not found" });
+
+        bool isSchoolAdmin = await _users.IsInRoleAsync(user, "SchoolAdmin");
+        bool isSuperAdmin = await _users.IsInRoleAsync(user, "SuperAdmin");
+
+        if (isSchoolAdmin && user.AutoSchoolId != schoolId && !isSuperAdmin)
+            return Forbid();
+
+
+
+
+
+
         // ─── validate "type" input ───
         if (string.IsNullOrWhiteSpace(type))
             return BadRequest(new { message = "User type is required. Use 'Instructor' or 'Student'." });
@@ -467,6 +525,7 @@ public class SchoolAdminController : ControllerBase
     /// <response code="403">Student belongs to a different school.</response>
     /// <response code="404">Student not found.</response>
     [HttpPut("update/student/{userId}")]
+    [Authorize(Roles ="SchoolAdmin")]
     public async Task<IActionResult> UpdateStudentAsync(
       int schoolId,
       string userId,
@@ -548,6 +607,8 @@ public class SchoolAdminController : ControllerBase
     /// <response code="403">Instructor belongs to a different school.</response>
     /// <response code="404">Instructor not found.</response>
     [HttpPut("update/instructor/{userId}")]
+    [Authorize(Roles = "SchoolAdmin")]
+
     public async Task<IActionResult> UpdateInstructorAsync(
     int schoolId,
     string userId,
@@ -642,6 +703,8 @@ public class SchoolAdminController : ControllerBase
     /// <response code="403">User belongs to a different school.</response>
     /// <response code="404">User not found.</response>
     [HttpDelete("deleteUser/{userId}")]
+    [Authorize(Roles = "SchoolAdmin")]
+
     public async Task<IActionResult> DeleteUserAsync(int schoolId, string userId)
     {
         var user = await _users.Users.FirstOrDefaultAsync(u => u.Id == userId);
