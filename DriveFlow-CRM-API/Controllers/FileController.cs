@@ -7,12 +7,13 @@ using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace DriveFlow_CRM_API.Controllers;
 
 [ApiController]
 [Route("api/file")]
-[Authorize(Roles = "SchoolAdmin")]
+[Authorize(Roles = "SchoolAdmin,SuperAdmin")]
 public class FileController : ControllerBase
 {
 
@@ -130,15 +131,26 @@ public class FileController : ControllerBase
 
 
 
-    [HttpGet("/{schoolId}")]
-    [Authorize(Roles = "SchoolAdmin")]
+    [HttpGet("fetchAll/{schoolId}")]
+    [Authorize(Roles = "SchoolAdmin,SuperAdmin")]
     public async Task<IActionResult> GetStudentFileRecords(int schoolId)
     {
         var autoSchool = await _db.AutoSchools.FindAsync(schoolId);
         if (autoSchool == null)
             return BadRequest("Auto school not found.");
-        if (_users.GetUserAsync(User).Result?.AutoSchoolId != schoolId)
-            return Forbid("You are not allowed to see the files of this auto school.");
+
+
+        var user = await _users.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("You are not properly logged in to fetch files.");
+
+        // Check if the user is a SchoolAdmin
+        bool isSchoolAdmin = await _users.IsInRoleAsync(user, "SchoolAdmin");
+        bool isSuperAdmin = await _users.IsInRoleAsync(user, "SuperAdmin");
+
+        if (isSchoolAdmin && user.AutoSchoolId != schoolId && !isSuperAdmin)
+            return Forbid();
+
 
 
         var all_files = _db.Files.Include(f=>f.Student).Where(f=>f.Student.AutoSchoolId == schoolId).ToList();
@@ -362,7 +374,7 @@ public class FileController : ControllerBase
 
         if (userAdmin == null || userAdmin.AutoSchoolId != userStudent.AutoSchoolId)
         {
-            return Forbid("This student does not belong to your auto school");
+            return Forbid();
         }
 
 
@@ -512,7 +524,7 @@ public class FileController : ControllerBase
 
         if (userAdmin.AutoSchoolId != schoolId)
         {
-            return Forbid("This student does not belong to your auto school");
+            return Forbid();
         }
 
 
@@ -618,7 +630,7 @@ public class FileController : ControllerBase
 
         if (schoolAdmin?.AutoSchoolId != fileSchoolId)
         {
-            return Forbid("You can not edit the files nor payments of other auto schools");
+            return Forbid();
         }
         // all ok here
         // 
@@ -667,10 +679,17 @@ public class FileController : ControllerBase
 
         if(file.Student.AutoSchoolId != user.AutoSchoolId)
         {
-            return Forbid("You can not delete the files of other auto schools");
+            return Forbid();
         }
+
+        var paymemts = _db.Payments.Where(p => p.FileId == file.FileId);
         _db.Files.Remove(file);
         await _db.SaveChangesAsync();
+
+        _db.Payments.RemoveRange(paymemts);
+        await _db.SaveChangesAsync();
+
+
         return Ok(new
         {
             message = "File deleted successfully"

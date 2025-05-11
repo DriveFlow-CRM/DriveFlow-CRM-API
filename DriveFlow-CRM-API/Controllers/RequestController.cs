@@ -140,7 +140,7 @@ public class RequestController : ControllerBase
             return Unauthorized("User not found.");
 
         if (User.IsInRole("SchoolAdmin") && user.AutoSchoolId != AutoSchoolId)
-            return Forbid("You are not authorized to view this school's requests.");
+            return Forbid();
 
         var Requests = await _db.Requests
             .AsNoTracking()
@@ -210,7 +210,7 @@ public class RequestController : ControllerBase
                 break;
             default:
                 return BadRequest("Invalid status update value.");
-        }
+        }   
 
         var user = _users.GetUserAsync(User).Result;
         if (user == null)
@@ -219,7 +219,7 @@ public class RequestController : ControllerBase
 
 
         if (User.IsInRole("SchoolAdmin") && user.AutoSchoolId != request.AutoSchoolId)
-            return Forbid("You are not authorized to view this school's requests.");
+            return Forbid();
 
 
         request.Status = requestDto.Status; // Update the status of the request, that's all we do here.
@@ -251,7 +251,7 @@ public class RequestController : ControllerBase
             return NotFound("Request not found.");
 
         if (User.IsInRole("SchoolAdmin") && user.AutoSchoolId != request.AutoSchoolId)
-            return Forbid("You are not authorized to view this school's requests.");
+            return Forbid();
 
         _db.Requests.Remove(request);
 
