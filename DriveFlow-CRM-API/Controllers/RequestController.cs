@@ -86,7 +86,7 @@ public class RequestController : ControllerBase
         await _db.Requests.AddAsync(newRequest);
         await _db.SaveChangesAsync();
         return Created(
-            $"/api/request/school/{schoolId}/fetchSchoolRequests",
+            $"/api/request/school/{schoolId}/createRequest",
             new FetchRequestDto()
             {
                 id = newRequest.RequestId,
