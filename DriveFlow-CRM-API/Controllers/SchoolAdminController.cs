@@ -12,7 +12,7 @@ namespace DriveFlow_CRM_API.Controllers;
 
 [ApiController]
 [Route("api/[controller]/autoschool/{schoolId:int}")]
-[Authorize(Policy = "SchoolAdmin,SuperAdmin")]
+[Authorize(Roles = "SchoolAdmin,SuperAdmin")]
 public class SchoolAdminController : ControllerBase
 {
     // ───────────────────────────── fields & ctor ─────────────────────────────
