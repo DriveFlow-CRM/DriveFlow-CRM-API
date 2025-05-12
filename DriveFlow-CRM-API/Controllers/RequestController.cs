@@ -76,7 +76,19 @@ public class RequestController : ControllerBase
 
         await _db.Requests.AddAsync(newRequest);
         await _db.SaveChangesAsync();
-        return Ok("Request was sent successfully!");
+        return Created(
+            $"/api/request/school/{schoolId}/fetchSchoolRequests",
+            new FetchRequestDto()
+            {
+                id = newRequest.RequestId,
+                firstName = newRequest.FirstName,
+                lastName = newRequest.LastName,
+                phoneNr = newRequest.PhoneNumber,
+                drivingCategory = newRequest.DrivingCategory,
+                requestDate = newRequest.RequestDate,
+                status = newRequest.Status
+            }
+        );
     }
 
 
@@ -140,7 +152,7 @@ public class RequestController : ControllerBase
             return Unauthorized("User not found.");
 
         if (User.IsInRole("SchoolAdmin") && user.AutoSchoolId != AutoSchoolId)
-            return Forbid("You are not authorized to view this school's requests.");
+            return Forbid();
 
         var Requests = await _db.Requests
             .AsNoTracking()
@@ -148,13 +160,13 @@ public class RequestController : ControllerBase
             .OrderBy(r => r.RequestId)
             .Select(r => new FetchRequestDto
             {
-                RequestId = r.RequestId,
-                FirstName = r.FirstName,
-                LastName = r.LastName,
-                PhoneNr = r.PhoneNumber,
-                DrivingCategory = (r.DrivingCategory != null ? r.DrivingCategory : "N/A"),
-                RequestDate = r.RequestDate,
-                Status = r.Status
+                id = r.RequestId,
+                firstName = r.FirstName,
+                lastName = r.LastName,
+                phoneNr = r.PhoneNumber,
+                drivingCategory = (r.DrivingCategory != null ? r.DrivingCategory : "N/A"),
+                requestDate = r.RequestDate,
+                status = r.Status
 
             })
             .ToListAsync();
@@ -186,7 +198,7 @@ public class RequestController : ControllerBase
     /// <response code="200">Request updated successfully.</response>
     /// <response code="400">RequestId or the new Status was not a valid value</response>>
     /// <response code="401">No valid JWT supplied.</response>
-    /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
+    /// <response code="403">User is forbidden from updating the requests of this auto school.</response>
 
 
     [HttpPut("update/{requestId}/updateRequestStatus")]
@@ -196,9 +208,9 @@ public class RequestController : ControllerBase
 
         var request = await _db.Requests.FindAsync(requestId);
         if (request == null)
-            return NotFound("Request not found.");
+            return BadRequest("Request not found.");
 
-        if ( requestDto== null)
+        if (requestDto== null)
         {
             return BadRequest("Request data is required.");
         }
@@ -219,19 +231,32 @@ public class RequestController : ControllerBase
 
 
         if (User.IsInRole("SchoolAdmin") && user.AutoSchoolId != request.AutoSchoolId)
-            return Forbid("You are not authorized to view this school's requests.");
+            return Forbid();
+
+
+
+
 
 
         request.Status = requestDto.Status; // Update the status of the request, that's all we do here.
 
         await _db.SaveChangesAsync();
-        return Ok("Request status updated successfully.");
+        return Ok(new FetchRequestDto()
+        {
+            id = request.RequestId,
+            firstName = request.FirstName,
+            lastName = request.LastName,
+            phoneNr = request.PhoneNumber,
+            drivingCategory = (request.DrivingCategory != null ? request.DrivingCategory : "N/A"),
+            requestDate = request.RequestDate,
+            status = request.Status
+        });
     }
 
 
     // ────────────────────────────── DELETE REQUEST ──────────────────────────────
     /// <summary>Delete a request (SchoolAdmin, SuperAdmin only).</summary>
-    /// <response code="200">Requests deleted successfully.</response>
+    /// <response code="204">Requests deleted successfully.</response>
     /// <response code="400">Request does not exist</response>
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
@@ -248,16 +273,16 @@ public class RequestController : ControllerBase
 
         var request = await _db.Requests.FindAsync(requestId);
         if (request == null)
-            return NotFound("Request not found.");
+            return BadRequest("Request not found.");
 
         if (User.IsInRole("SchoolAdmin") && user.AutoSchoolId != request.AutoSchoolId)
-            return Forbid("You are not authorized to view this school's requests.");
+            return Forbid();
 
         _db.Requests.Remove(request);
 
         await _db.SaveChangesAsync();
 
-        return Ok("Request deleted successfully.");
+        return NoContent();
     }
 }
 
@@ -278,27 +303,26 @@ public sealed class CreateRequestDto
 
 public sealed class FetchRequestDto
 {
-    public int RequestId { get; init; }
-    public string FirstName { get; init; } = default!;
+    public int id { get; init; }
+    public string firstName { get; init; } = default!;
 
-    public string LastName { get; init; } = default!;
+    public string lastName { get; init; } = default!;
 
-    public string PhoneNr { get; init; } = default!;
-    public string DrivingCategory { get; init; } = default!;
-    public DateTime RequestDate { get; init; } = default;
-    public string Status { get; init; } = default!;
+    public string phoneNr { get; init; } = default!;
+    public string drivingCategory { get; init; } = default!;
+    public DateTime requestDate { get; init; } = default;
+    public string status { get; init; } = default!;
 
 }
 
-
+/// <summary>
+/// DTO for updating the status of a request.
+/// Only accepts updating the status of a request
+/// Not other fields, so i suppose there's no point in
+/// it having other fields.
+/// </summary>
 public sealed class UpdateRequestDto
 {
-    public int? RequestId { get; init; }
-    public string? FirstName { get; init; } = default!;
-    public string? LastName { get; init; } = default!;
-    public string? PhoneNr { get; init; } = default!;
-    public string? DrivingCategory { get; init; } = default!;
-    public DateTime? RequestDate { get; init; } = default;
+
     public string Status { get; init; } = default!;
-    public int? AutoSchoolId { get; init; } = default!;
 }
