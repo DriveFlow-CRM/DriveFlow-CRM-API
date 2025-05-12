@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using DriveFlow_CRM_API.Models;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace DriveFlow_CRM_API.Controllers;
 
@@ -58,6 +59,7 @@ public class RequestController : ControllerBase
     /// <response code="400">Empty request</response>>
 
     [HttpPost("school/{schoolId}/createRequest")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateRequest(int schoolId, [FromBody] CreateRequestDto requestDto)
     {
         if(_db.AutoSchools.Find(schoolId)==null)
@@ -288,17 +290,17 @@ public class RequestController : ControllerBase
 
     [HttpDelete("delete/{requestId}/deleteRequest")]
     [Authorize(Roles = "SchoolAdmin,SuperAdmin")]
-
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DeleteRequest(int requestId)
     {
 
         var user = _users.GetUserAsync(User).Result;
         if (user == null)
-            return Unauthorized("User not found.");
+            return Unauthorized();
 
         var request = await _db.Requests.FindAsync(requestId);
         if (request == null)
-            return BadRequest("Request not found.");
+            return BadRequest();
 
         if (User.IsInRole("SchoolAdmin") && user.AutoSchoolId != request.AutoSchoolId)
             return Forbid();
