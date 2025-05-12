@@ -34,7 +34,7 @@ public class RequestController : ControllerBase
     // ────────────────────────────── CREATE REQUEST ──────────────────────────────
 
     /// <summary>Create a new enrollment Request for someone wishing to start their courses
-    /// (Student, SchoolAdmin, SuperAdmin only).</summary>
+    /// (Any/No Role)</summary>
     /// <remarks> SchoolAdmin's SchoolId must match the AutoSchoolId given as method paramether.
     /// <para> <strong>Sample Request body</strong> </para> 
     /// ```json
@@ -47,7 +47,7 @@ public class RequestController : ControllerBase
     ///}
     /// ```
     /// </remarks>
-    /// <response code="200">Request sent succesffully.</response>
+    /// <response code="201">Request sent succesffully.</response>
     /// <response code="400">Empty request</response>>
 
     [HttpPost("school/{schoolId}/createRequest")]
@@ -174,6 +174,17 @@ public class RequestController : ControllerBase
     }
 
 
+    /*
+     *     ///    "firstName": "Maria",
+    ///    "lastName": "Ionescu",
+    ///    "phoneNr": "0721234234",
+    ///    "drivingCategory": "A2",
+    ///    "requestDate": "2025-10-12",
+     */
+
+
+
+
 
     // ────────────────────────────── UPDATE REQUEST ──────────────────────────────
     /// <summary>Update the status of a request (SchoolAdmin, SuperAdmin only).</summary>
@@ -181,18 +192,25 @@ public class RequestController : ControllerBase
     /// If the user is a SchoolAdmin, then his SchoolId must match the parameter SchoolId.
     /// The only status values allowed are: APPROVED, REJECTED, PENDING.
     /// That's the only thing that is going to be changed.
+    /// On update success, also returns the entire Request Object with ID inclusive.
+    /// NOTE: 'status' must be one of "APPROVED,PENDING,REJECTED".
     /// <para> <strong>Sample request body</strong> </para> 
     /// ```json
     ///
     ///  {
-    ///    "firstName": "Maria",
-    ///    "lastName": "Ionescu",
-    ///    "phoneNr": "0721234234",
-    ///    "drivingCategory": "A2",
-    ///    "requestDate": "2025-10-12",
     ///    "status": "APPROVED"
     ///  }
-    /// 
+    ///  
+    /// Also returns the entire updated object on 201Create, eg:
+    ///  {
+    ///    "requestId": 34567,
+    ///    "firstName": "Elena",
+    ///    "lastName": "Georgescu",
+    ///    "phoneNr": "0734567890",
+    ///    "drivingCategory": "C",
+    ///    "requestDate": "2025-10-20",
+    ///    "status": "APPROVED"
+    ///  }
     /// ```
     /// </remarks>
     /// <response code="200">Request updated successfully.</response>
