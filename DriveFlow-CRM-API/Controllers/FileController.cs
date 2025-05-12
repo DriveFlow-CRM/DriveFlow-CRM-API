@@ -10,9 +10,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DriveFlow_CRM_API.Controllers;
 
+
+
+/// <summary>
+/// This controller handles the creation, retrieval, update, and deletion of student files.
+/// </summary>
 [ApiController]
 [Route("api/file")]
 [Authorize(Roles = "SchoolAdmin")]
+
 public class FileController : ControllerBase
 {
 

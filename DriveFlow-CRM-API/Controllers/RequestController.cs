@@ -7,6 +7,13 @@ using System.Security.Claims;
 
 namespace DriveFlow_CRM_API.Controllers;
 
+/// <summary>
+/// 
+/// This controller handles the requests for the enrollment requests.
+/// Allows for anyone to create a request.
+/// But only the SuperAdmin and SchoolAdmin roles can see and update or delete the requests.
+/// </summary>
+
 [ApiController]
 [Route("api/request")]
 public class RequestController : ControllerBase
