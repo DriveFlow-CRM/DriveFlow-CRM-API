@@ -642,7 +642,6 @@ public class FileController : ControllerBase
     /// </remarks>
     /// <param name="fileId">The ID of the file to be deleted.</param>
     /// <response code="200">File deleted successfully</response>
-    /// <response code="400">You cannot delete files of other auto schools</response>
     /// <response code="401">No valid JWT supplied</response>
     /// <response code="403">User is forbidden from deleting files of this auto school</response>
     /// <response code="404">File not found</response>
