@@ -34,6 +34,7 @@ public class ApplicationUserTeachingCategoryController : ControllerBase
     /// ```json
     /// [
     ///   {
+    ///     "applicationUserTeachingCategoryId": 1,
     ///     "teachingCategoryId": 10,
     ///     "code": "B1",
     ///     "licenseId": 1,
@@ -99,6 +100,7 @@ public class ApplicationUserTeachingCategoryController : ControllerBase
                                 .Where(autc => autc.TeachingCategory.AutoSchoolId == schoolId)
                                 .Select(autc => new InstructorTeachingCategoryResponseDto
                                 {
+                                    ApplicationUserTeachingCategoryId = autc.ApplicationUserTeachingCategoryId,
                                     TeachingCategoryId = autc.TeachingCategoryId,
                                     Code = autc.TeachingCategory.Code,
                                     LicenseId = autc.TeachingCategory.LicenseId ?? 0,
@@ -124,6 +126,7 @@ public class ApplicationUserTeachingCategoryController : ControllerBase
     /// ```json
     /// [
     ///   {
+    ///     "applicationUserTeachingCategoryId": 1,
     ///     "instructorId": "abc123",
     ///     "firstName": "John",
     ///     "lastName": "Doe",
@@ -184,6 +187,7 @@ public class ApplicationUserTeachingCategoryController : ControllerBase
                                 .Where(autc => autc.User.AutoSchoolId == schoolId)
                                 .Select(autc => new 
                                 {
+                                    ApplicationUserTeachingCategoryId = autc.ApplicationUserTeachingCategoryId,
                                     UserId = autc.UserId,
                                     FirstName = autc.User.FirstName,
                                     LastName = autc.User.LastName,
@@ -197,6 +201,7 @@ public class ApplicationUserTeachingCategoryController : ControllerBase
                     .Where(u => instructorIds.Contains(u.UserId))
                     .Select(u => new TeachingCategoryInstructorResponseDto
                     {
+                        ApplicationUserTeachingCategoryId = u.ApplicationUserTeachingCategoryId,
                         InstructorId = u.UserId,
                         FirstName = u.FirstName,
                         LastName = u.LastName,
@@ -230,7 +235,7 @@ public class ApplicationUserTeachingCategoryController : ControllerBase
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">Caller is SchoolAdmin of a different school.</response>
     /// <response code="409">Link already exists.</response>
-    [HttpPost("link")]
+    [HttpPost("create")]
     [Authorize(Roles = "SchoolAdmin")]
     public async Task<IActionResult> LinkInstructorToTeachingCategory(int schoolId, [FromBody] InstructorTeachingCategoryLinkDto dto)
     {
@@ -260,7 +265,7 @@ public class ApplicationUserTeachingCategoryController : ControllerBase
 
         // Check if instructor belongs to the specified school
         if (instructor.AutoSchoolId != schoolId)
-            return BadRequest(new { message = "The instructor does not belong to the specified school." });
+            return Forbid();
 
         // Check if teaching category exists and belongs to the specified school
         var teachingCategory = await _db.TeachingCategories
@@ -304,16 +309,14 @@ public class ApplicationUserTeachingCategoryController : ControllerBase
     /// (SchoolAdmin only, same school).
     /// </summary>
     /// <param name="schoolId">School identifier from the route.</param>
-    /// <param name="instructorId">Instructor identifier from the route.</param>
-    /// <param name="teachingCategoryId">Teaching category identifier from the route.</param>
+    /// <param name="applicationUserTeachingCategoryId">ApplicationUserTeachingCategory identifier from the route.</param>
     /// <response code="200">Link deleted successfully.</response>
-    /// <response code="400">Invalid instructorId or teachingCategoryId.</response>
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">Caller is SchoolAdmin of a different school.</response>
     /// <response code="404">Link not found.</response>
-    [HttpDelete("unlink/instructor/{instructorId}/teachingCategory/{teachingCategoryId:int}")]
+    [HttpDelete("delete/{applicationUserTeachingCategoryId:int}")]
     [Authorize(Roles = "SchoolAdmin")]
-    public async Task<IActionResult> UnlinkInstructorFromTeachingCategory(int schoolId, string instructorId, int teachingCategoryId)
+    public async Task<IActionResult> UnlinkInstructorFromTeachingCategory(int schoolId, int applicationUserTeachingCategoryId)
     {
         // Identify caller (id & associated school)
         var callerId = _users.GetUserId(User)!;
@@ -326,42 +329,22 @@ public class ApplicationUserTeachingCategoryController : ControllerBase
         if (caller?.AutoSchoolId != schoolId)
             return Forbid();
 
-        // Check if instructor exists and belongs to the specified school
-        var instructor = await _users.Users
-                                    .AsNoTracking()
-                                    .FirstOrDefaultAsync(u => u.Id == instructorId);
-
-        if (instructor == null)
-            return BadRequest(new { message = "Instructor not found." });
-
-        // Check if user is an instructor
-        var isInstructor = await _users.IsInRoleAsync(instructor, "Instructor");
-        if (!isInstructor)
-            return BadRequest(new { message = "The specified user is not an instructor." });
-
-        // Check if instructor belongs to the specified school
-        if (instructor.AutoSchoolId != schoolId)
-            return Forbid();
-
-        // Check if teaching category exists and belongs to the specified school
-        var teachingCategory = await _db.TeachingCategories
-                                       .AsNoTracking()
-                                       .FirstOrDefaultAsync(tc => tc.TeachingCategoryId == teachingCategoryId);
-
-        if (teachingCategory == null)
-            return BadRequest(new { message = "Teaching category not found." });
-
-        // Check if teaching category belongs to the specified school
-        if (teachingCategory.AutoSchoolId != schoolId)
-            return Forbid();
-
         // Find link
         var link = await _db.ApplicationUserTeachingCategories
-                          .FirstOrDefaultAsync(autc => autc.UserId == instructorId && 
-                                                     autc.TeachingCategoryId == teachingCategoryId);
+                          .Include(autc => autc.User)
+                          .Include(autc => autc.TeachingCategory)
+                          .FirstOrDefaultAsync(autc => autc.ApplicationUserTeachingCategoryId == applicationUserTeachingCategoryId);
 
         if (link == null)
-            return NotFound(new { message = "Link between instructor and teaching category not found." });
+            return NotFound(new { message = "Link not found." });
+
+        // Check if the instructor belongs to the specified school
+        if (link.User?.AutoSchoolId != schoolId)
+            return Forbid();
+
+        // Check if the teaching category belongs to the specified school
+        if (link.TeachingCategory?.AutoSchoolId != schoolId)
+            return Forbid();
 
         // Delete link
         _db.ApplicationUserTeachingCategories.Remove(link);
@@ -373,6 +356,7 @@ public class ApplicationUserTeachingCategoryController : ControllerBase
 
 public sealed class InstructorTeachingCategoryResponseDto
 {
+    public int ApplicationUserTeachingCategoryId { get; init; }
     public int TeachingCategoryId { get; init; }
     public string Code { get; init; } = null!;
     public int LicenseId { get; init; }
@@ -385,6 +369,7 @@ public sealed class InstructorTeachingCategoryResponseDto
 
 public sealed class TeachingCategoryInstructorResponseDto
 {
+    public int ApplicationUserTeachingCategoryId { get; init; }
     public string InstructorId { get; init; } = null!;
     public string? FirstName { get; init; }
     public string? LastName { get; init; }
