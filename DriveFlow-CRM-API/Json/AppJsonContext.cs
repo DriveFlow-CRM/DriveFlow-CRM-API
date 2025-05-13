@@ -116,6 +116,11 @@ namespace DriveFlow_CRM_API.Json
     [JsonSerializable(typeof(List<TeachingCategoryInstructorResponseDto>))]
     [JsonSerializable(typeof(InstructorTeachingCategoryLinkDto))]
 
+    // ───────────────────── INSTRUCTOR AVAILABILITY CONTROLLER ─────────────────────
+    [JsonSerializable(typeof(InstructorAvailabilityDto))]
+    [JsonSerializable(typeof(List<InstructorAvailabilityDto>))]
+    [JsonSerializable(typeof(CreateInstructorAvailabilityDto))]
+
     internal partial class AppJsonContext : JsonSerializerContext
     {
     }
