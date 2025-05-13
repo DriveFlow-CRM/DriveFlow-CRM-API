@@ -114,7 +114,7 @@ public class InstructorController : ControllerBase
                 Email = student?.Email,
                 ScholarshipStartDate = f.ScholarshipStartDate,
                 LicensePlateNumber = vehicle?.LicensePlateNumber,
-                TransmissionType = vehicle != null ? vehicle.TransmissionType.ToString().ToLowerInvariant() : null,
+                TransmissionType = vehicle != null ? vehicle.TransmissionType.ToString() : null,
                 Status = f.Status.ToString().ToLowerInvariant(),
                 Type = vehicle?.License?.Type,
                 Color = vehicle?.Color

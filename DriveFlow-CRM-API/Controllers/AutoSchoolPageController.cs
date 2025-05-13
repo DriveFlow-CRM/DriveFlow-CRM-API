@@ -151,7 +151,7 @@ public class AutoSchoolPageController : ControllerBase
                     .Select(v => new
                     {
                         v.LicensePlateNumber,
-                        TransmissionType = v.TransmissionType.ToString().ToLowerInvariant(),
+                        TransmissionType = v.TransmissionType.ToString(),
                         v.Color,
                         Brand = v.Brand,
                         Model = v.Model,

@@ -190,7 +190,7 @@ public class FileController : ControllerBase
                     {
                         VehicleId = 0,
                         LicensePlateNumber = "N/A",
-                        TransmissionType = TransmissionType.Manual,
+                        TransmissionType = TransmissionType.MANUAL,
                         Color = "N/A"
                     };
                 }

@@ -162,7 +162,7 @@ public sealed class VehicleNegativeTest
         db.Vehicles.Add(new Vehicle
         {
             LicensePlateNumber = "CJ-999-AAA",
-            TransmissionType = TransmissionType.Manual,
+            TransmissionType = TransmissionType.MANUAL,
             AutoSchoolId = 1,
             LicenseId = 3
         });
@@ -253,7 +253,7 @@ public sealed class VehicleNegativeTest
         {
             VehicleId = 7,
             LicensePlateNumber = "B-000-AAA",
-            TransmissionType = TransmissionType.Manual,
+            TransmissionType = TransmissionType.MANUAL,
             AutoSchoolId = 2
         });
         db.Users.Add(new ApplicationUser { Id = "adm1", AutoSchoolId = 1 });

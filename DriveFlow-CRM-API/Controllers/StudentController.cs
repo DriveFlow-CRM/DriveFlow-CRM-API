@@ -128,7 +128,7 @@ public class StudentController : ControllerBase
     ///     "sessionsPayed": 30
     ///   },
     ///   "instructor": {
-    ///     "userId": 501,
+    ///     "userId": "501",
     ///     "firstName": "Andrei",
     ///     "lastName": "Popescu",
     ///     "email": "andrei.popescu@school.ro",
@@ -137,8 +137,14 @@ public class StudentController : ControllerBase
     ///   },
     ///   "vehicle": {
     ///     "licensePlateNumber": "B-123-XYZ",
-    ///     "transmissionType": "manual",
+    ///     "transmissionType": "MANUAL",
     ///     "color": "red",
+    ///     "brand": "Dacia",
+    ///     "model": "Logan",
+    ///     "yearOfProduction": 2021,
+    ///     "fuelType": "BENZINA",
+    ///     "engineSizeLiters": 1.6,
+    ///     "powertrainType": "COMBUSTIBIL",
     ///     "type": "B"
     ///   },
     ///   "appointments": [
@@ -251,7 +257,7 @@ public class StudentController : ControllerBase
             Vehicle = fileData.Vehicle != null ? new VehicleDetailsDto
             {
                 LicensePlateNumber = fileData.Vehicle.LicensePlateNumber,
-                TransmissionType = fileData.Vehicle.TransmissionType.ToString().ToLower(),
+                TransmissionType = fileData.Vehicle.TransmissionType.ToString(),
                 Color = fileData.Vehicle.Color,
                 Brand = fileData.Vehicle.Brand,
                 Model = fileData.Vehicle.Model,
