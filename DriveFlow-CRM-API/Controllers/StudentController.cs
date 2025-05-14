@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using File = DriveFlow_CRM_API.Models.File;
+using DriveFlow_CRM_API.Models.DTOs;
 
 namespace DriveFlow_CRM_API.Controllers;
 
@@ -84,6 +85,9 @@ public class StudentController : ControllerBase
 
         // 3. Query files with required joins and projection
         var files = await _db.Files
+            .Include(f => f.Instructor)
+            .Include(f => f.TeachingCategory)
+                .ThenInclude(tc => tc.License)
             .Where(f => f.StudentId == studentId)
             .Select(f => new
             {
@@ -91,7 +95,11 @@ public class StudentController : ControllerBase
                 Status = f.Status.ToString(),
                 FirstName = f.Instructor != null ? f.Instructor.FirstName : null,
                 LastName = f.Instructor != null ? f.Instructor.LastName : null,
-                Type = f.Vehicle != null && f.Vehicle.License != null ? f.Vehicle.License.Type : null
+#pragma warning disable CS8602 // Dereference of a possibly null reference
+                Type = f.TeachingCategory != null ? 
+                       (f.TeachingCategory.License != null ? f.TeachingCategory.License.Type : f.TeachingCategory.Code) : 
+                       null
+#pragma warning restore CS8602
             })
             .ToListAsync();
 
@@ -198,7 +206,8 @@ public class StudentController : ControllerBase
                                Payment = _db.Payments.FirstOrDefault(p => p.FileId == f.FileId),
                                Instructor = f.Instructor,
                                Vehicle = f.Vehicle,
-                               License = f.Vehicle != null ? f.Vehicle.License : null
+                               TeachingCategory = f.TeachingCategory,
+                               License = f.TeachingCategory != null ? f.TeachingCategory.License : null
                            }).FirstOrDefaultAsync();
 
         if (fileData == null)
@@ -265,11 +274,170 @@ public class StudentController : ControllerBase
                 FuelType = fileData.Vehicle.FuelType.HasValue ? fileData.Vehicle.FuelType.ToString() : null,
                 EngineSizeLiters = fileData.Vehicle.EngineSizeLiters,
                 PowertrainType = fileData.Vehicle.PowertrainType.HasValue ? fileData.Vehicle.PowertrainType.ToString() : null,
-                Type = fileData.License?.Type
+                Type = fileData.License?.Type ?? fileData.TeachingCategory?.Code
             } : null,
             Appointments = appointmentDtos,
             AppointmentsCompleted = completedCount
         };
+
+        return Ok(result);
+    }
+    
+    /// <summary>
+    /// Retrieves all future appointments for the authenticated student across all their files.
+    /// </summary>
+    /// <remarks>
+    /// Returns a list of all upcoming appointments for the student with essential details including date, time, and license type.
+    /// <para>
+    /// <strong>Sample response format</strong>:
+    /// </para>
+    /// <code>
+    /// [
+    ///   {
+    ///     "appointmentId": 701,
+    ///     "date": "2025-03-01",
+    ///     "startHour": "10:00",
+    ///     "endHour": "12:00",
+    ///     "fileId": 201,
+    ///     "instructorName": "Andrei Popescu",
+    ///     "licenseType": "B"
+    ///   },
+    ///   {
+    ///     "appointmentId": 702,
+    ///     "date": "2025-03-03",
+    ///     "startHour": "14:00",
+    ///     "endHour": "16:00",
+    ///     "fileId": 201,
+    ///     "instructorName": "Andrei Popescu",
+    ///     "licenseType": "B"
+    ///   }
+    /// ]
+    /// </code>
+    /// </remarks>
+    /// <response code="200">Future appointments retrieved successfully. Returns empty array if no appointments found.</response>
+    /// <response code="401">User is not authenticated.</response>
+    [HttpGet("future-appointments")]
+    public async Task<ActionResult<IEnumerable<StudentAppointmentDto>>> GetFutureAppointments()
+    {
+        // 1. Get authenticated user's ID
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        // Get current date/time
+        var now = DateTime.Now;
+        
+        // 2. Query appointments from all student's files that are in the future
+        var appointments = await (from a in _db.Appointments
+                               join f in _db.Files on a.FileId equals f.FileId
+                               join instructor in _db.ApplicationUsers on f.InstructorId equals instructor.Id into instructorJoin
+                               from instructor in instructorJoin.DefaultIfEmpty()
+                               join tc in _db.TeachingCategories on f.TeachingCategoryId equals tc.TeachingCategoryId into tcJoin
+                               from tc in tcJoin.DefaultIfEmpty()
+                               join license in _db.Licenses on tc.LicenseId equals license.LicenseId into licenseJoin
+                               from license in licenseJoin.DefaultIfEmpty()
+                               where f.StudentId == userId && 
+                                     (a.Date > now.Date || 
+                                     (a.Date == now.Date && a.StartHour > new TimeSpan(now.Hour, now.Minute, 0)))
+                               orderby a.Date, a.StartHour
+                               select new StudentAppointmentDto
+                               {
+                                   AppointmentId = a.AppointmentId,
+                                   Date = a.Date,
+                                   StartHour = a.StartHour.ToString(@"hh\:mm"),
+                                   EndHour = a.EndHour.ToString(@"hh\:mm"),
+                                   FileId = f.FileId,
+                                   InstructorName = instructor != null ? $"{instructor.FirstName} {instructor.LastName}" : "N/A",
+                                   LicenseType = license != null ? license.Type : tc != null ? tc.Code : "N/A"
+                               }).ToListAsync();
+
+        return Ok(appointments);
+    }
+
+    /// <summary>
+    /// Retrieves all appointments (past and future) for the authenticated student across all their files.
+    /// </summary>
+    /// <remarks>
+    /// Returns a comprehensive list of all appointments for the student with essential details and status.
+    /// <para>
+    /// <strong>Sample response format</strong>:
+    /// </para>
+    /// <code>
+    /// [
+    ///   {
+    ///     "appointmentId": 701,
+    ///     "date": "2025-03-01",
+    ///     "startHour": "10:00",
+    ///     "endHour": "12:00",
+    ///     "fileId": 201,
+    ///     "instructorName": "Andrei Popescu",
+    ///     "licenseType": "B",
+    ///     "status": "completed"
+    ///   },
+    ///   {
+    ///     "appointmentId": 702,
+    ///     "date": "2025-03-03",
+    ///     "startHour": "14:00",
+    ///     "endHour": "16:00",
+    ///     "fileId": 201,
+    ///     "instructorName": "Andrei Popescu",
+    ///     "licenseType": "B",
+    ///     "status": "pending"
+    ///   }
+    /// ]
+    /// </code>
+    /// </remarks>
+    /// <response code="200">All appointments retrieved successfully. Returns empty array if no appointments found.</response>
+    /// <response code="401">User is not authenticated.</response>
+    [HttpGet("all-appointments")]
+    public async Task<ActionResult<IEnumerable<StudentAppointmentFullDto>>> GetAllAppointments()
+    {
+        // 1. Get authenticated user's ID
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        // Get current date/time for status determination
+        var now = DateTime.Now;
+        
+        // 2. Query all appointments from all student's files (past and future)
+        var appointments = await (from a in _db.Appointments
+                               join f in _db.Files on a.FileId equals f.FileId
+                               join instructor in _db.ApplicationUsers on f.InstructorId equals instructor.Id into instructorJoin
+                               from instructor in instructorJoin.DefaultIfEmpty()
+                               join tc in _db.TeachingCategories on f.TeachingCategoryId equals tc.TeachingCategoryId into tcJoin
+                               from tc in tcJoin.DefaultIfEmpty()
+                               join license in _db.Licenses on tc.LicenseId equals license.LicenseId into licenseJoin
+                               from license in licenseJoin.DefaultIfEmpty()
+                               where f.StudentId == userId
+                               orderby a.Date, a.StartHour
+                               select new 
+                               {
+                                   AppointmentId = a.AppointmentId,
+                                   Date = a.Date,
+                                   StartHour = a.StartHour,
+                                   EndHour = a.EndHour,
+                                   FileId = f.FileId,
+                                   InstructorName = instructor != null ? $"{instructor.FirstName} {instructor.LastName}" : "N/A",
+                                   LicenseType = license != null ? license.Type : tc != null ? tc.Code : "N/A"
+                               }).ToListAsync();
+
+        // Convert to DTO with status
+        var result = appointments.Select(a => new StudentAppointmentFullDto
+        {
+            AppointmentId = a.AppointmentId,
+            Date = a.Date,
+            StartHour = a.StartHour.ToString(@"hh\:mm"),
+            EndHour = a.EndHour.ToString(@"hh\:mm"),
+            FileId = a.FileId,
+            InstructorName = a.InstructorName,
+            LicenseType = a.LicenseType,
+            Status = a.Date.Add(a.EndHour) < now ? "completed" : "pending"
+        }).ToList();
 
         return Ok(result);
     }
@@ -309,173 +477,9 @@ public sealed class StudentFileDto
 }
 
 /// <summary>
-/// DTO representing detailed information about a student's file.
+/// DTO representing a student's future appointment.
 /// </summary>
-public sealed class FileDetailsDto
-{
-    /// <summary>
-    /// Unique identifier of the file.
-    /// </summary>
-    public int FileId { get; init; }
-    
-    /// <summary>
-    /// Current status of the file.
-    /// </summary>
-    public string Status { get; init; } = default!;
-    
-    /// <summary>
-    /// Date when the scholarship started.
-    /// </summary>
-    public DateTime? ScholarshipStartDate { get; init; }
-    
-    /// <summary>
-    /// Expiry date of the criminal record.
-    /// </summary>
-    public DateTime? CriminalRecordExpiryDate { get; init; }
-    
-    /// <summary>
-    /// Expiry date of the medical record.
-    /// </summary>
-    public DateTime? MedicalRecordExpiryDate { get; init; }
-    
-    /// <summary>
-    /// Payment details associated with the file.
-    /// </summary>
-    public PaymentDetailsDto? Payment { get; init; }
-    
-    /// <summary>
-    /// Instructor details associated with the file.
-    /// </summary>
-    public InstructorDetailsDto? Instructor { get; init; }
-    
-    /// <summary>
-    /// Vehicle details associated with the file.
-    /// </summary>
-    public VehicleDetailsDto? Vehicle { get; init; }
-    
-    /// <summary>
-    /// List of appointments associated with the file.
-    /// </summary>
-    public List<AppointmentDetailsDto> Appointments { get; init; } = new();
-    
-    /// <summary>
-    /// Count of completed appointments.
-    /// </summary>
-    public int AppointmentsCompleted { get; init; }
-}
-
-/// <summary>
-/// DTO representing payment details for a file.
-/// </summary>
-public sealed class PaymentDetailsDto
-{
-    /// <summary>
-    /// Indicates if the payment is for a scholarship.
-    /// </summary>
-    public bool ScholarshipPayment { get; init; }
-    
-    /// <summary>
-    /// Number of sessions paid for.
-    /// </summary>
-    public int SessionsPayed { get; init; }
-}
-
-/// <summary>
-/// DTO representing instructor details.
-/// </summary>
-public sealed class InstructorDetailsDto
-{
-    /// <summary>
-    /// Unique identifier of the instructor.
-    /// </summary>
-    public string UserId { get; init; } = default!;
-    
-    /// <summary>
-    /// First name of the instructor.
-    /// </summary>
-    public string? FirstName { get; init; }
-    
-    /// <summary>
-    /// Last name of the instructor.
-    /// </summary>
-    public string? LastName { get; init; }
-    
-    /// <summary>
-    /// Email address of the instructor.
-    /// </summary>
-    public string? Email { get; init; }
-    
-    /// <summary>
-    /// Phone number of the instructor.
-    /// </summary>
-    public string? Phone { get; init; }
-    
-    /// <summary>
-    /// Role of the instructor.
-    /// </summary>
-    public string Role { get; init; } = default!;
-}
-
-/// <summary>
-/// DTO representing vehicle details.
-/// </summary>
-public sealed class VehicleDetailsDto
-{
-    /// <summary>
-    /// License plate number of the vehicle.
-    /// </summary>
-    public string LicensePlateNumber { get; init; } = default!;
-    
-    /// <summary>
-    /// Transmission type of the vehicle.
-    /// </summary>
-    public string TransmissionType { get; init; } = default!;
-    
-    /// <summary>
-    /// Color of the vehicle.
-    /// </summary>
-    public string? Color { get; init; }
-    
-    /// <summary>
-    /// Vehicle brand/manufacturer.
-    /// </summary>
-    public string? Brand { get; init; }
-    
-    /// <summary>
-    /// Vehicle model.
-    /// </summary>
-    public string? Model { get; init; }
-    
-    /// <summary>
-    /// Year of production.
-    /// </summary>
-    public int? YearOfProduction { get; init; }
-    
-    /// <summary>
-    /// Fuel type.
-    /// </summary>
-    public string? FuelType { get; init; }
-    
-    /// <summary>
-    /// Engine size in liters.
-    /// </summary>
-    public decimal? EngineSizeLiters { get; init; }
-    
-    /// <summary>
-    /// Powertrain type.
-    /// </summary>
-    public string? PowertrainType { get; init; }
-    
-    /// <summary>
-    /// Type of license associated with the vehicle.
-    /// </summary>
-    public string? Type { get; init; }
-}
-
-/// <summary>
-/// DTO representing appointment details.
-/// </summary>
-public sealed class AppointmentDetailsDto
+public sealed class StudentAppointmentDto
 {
     /// <summary>
     /// Unique identifier of the appointment.
@@ -488,17 +492,73 @@ public sealed class AppointmentDetailsDto
     public DateTime Date { get; init; }
     
     /// <summary>
-    /// Start hour of the appointment.
+    /// Start hour of the appointment in HH:MM format.
     /// </summary>
     public string StartHour { get; init; } = default!;
     
     /// <summary>
-    /// End hour of the appointment.
+    /// End hour of the appointment in HH:MM format.
     /// </summary>
     public string EndHour { get; init; } = default!;
     
     /// <summary>
-    /// Status of the appointment.
+    /// ID of the file associated with this appointment.
+    /// </summary>
+    public int FileId { get; init; }
+    
+    /// <summary>
+    /// Full name of the instructor.
+    /// </summary>
+    public string InstructorName { get; init; } = default!;
+    
+    /// <summary>
+    /// License type associated with this appointment.
+    /// </summary>
+    public string LicenseType { get; init; } = default!;
+}
+
+/// <summary>
+/// DTO representing a student's appointment with status information.
+/// </summary>
+public sealed class StudentAppointmentFullDto
+{
+    /// <summary>
+    /// Unique identifier of the appointment.
+    /// </summary>
+    public int AppointmentId { get; init; }
+    
+    /// <summary>
+    /// Date of the appointment.
+    /// </summary>
+    public DateTime Date { get; init; }
+    
+    /// <summary>
+    /// Start hour of the appointment in HH:MM format.
+    /// </summary>
+    public string StartHour { get; init; } = default!;
+    
+    /// <summary>
+    /// End hour of the appointment in HH:MM format.
+    /// </summary>
+    public string EndHour { get; init; } = default!;
+    
+    /// <summary>
+    /// ID of the file associated with this appointment.
+    /// </summary>
+    public int FileId { get; init; }
+    
+    /// <summary>
+    /// Full name of the instructor.
+    /// </summary>
+    public string InstructorName { get; init; } = default!;
+    
+    /// <summary>
+    /// License type associated with this appointment.
+    /// </summary>
+    public string LicenseType { get; init; } = default!;
+    
+    /// <summary>
+    /// Status of the appointment (completed or pending).
     /// </summary>
     public string Status { get; init; } = default!;
 } 

@@ -1,4 +1,5 @@
-using DriveFlow_CRM_API.Controllers;          
+using DriveFlow_CRM_API.Controllers;
+using DriveFlow_CRM_API.Models.DTOs;          
 using System.Text.Json.Serialization;
 
 namespace DriveFlow_CRM_API.Json

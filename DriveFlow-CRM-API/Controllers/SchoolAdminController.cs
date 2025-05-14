@@ -149,7 +149,7 @@ public class SchoolAdminController : ControllerBase
     ///     "scholarshipStartDate":    "2024-04-25",
     ///     "criminalRecordExpiryDate": "2025-04-25",
     ///     "medicalRecordExpiryDate":  "2024-10-25",
-    ///     "status":        "Draft",
+    ///     "status":        "APPROVED",
     ///     "instructorId":  null,
     ///     "vehicleId":     null,
     ///     "teachingCategoryId": null
@@ -225,9 +225,9 @@ public class SchoolAdminController : ControllerBase
 
             var studentFile = new File
             {
-                ScholarshipStartDate = dto.File.ScholarshipStartDate,
-                CriminalRecordExpiryDate = dto.File.CriminalRecordExpiryDate,
-                MedicalRecordExpiryDate = dto.File.MedicalRecordExpiryDate,
+                ScholarshipStartDate = dto.File.ScholarshipStartDate.Date,
+                CriminalRecordExpiryDate = dto.File.CriminalRecordExpiryDate.Date,
+                MedicalRecordExpiryDate = dto.File.MedicalRecordExpiryDate.Date,
                 Status = statusEnum,
                 InstructorId = instructorId,
                 VehicleId = dto.File.VehicleId,

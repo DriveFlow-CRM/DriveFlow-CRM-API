@@ -35,7 +35,7 @@ public class File
     public DateTime? MedicalRecordExpiryDate { get; set; }
 
     /// <summary>Current processing status of the file.</summary>
-    public FileStatus Status { get; set; } = FileStatus.Draft;
+    public FileStatus Status { get; set; } = FileStatus.APPROVED;
 
     // ─────────────── Relationships ───────────────
 
@@ -78,7 +78,8 @@ public class File
 
 public enum FileStatus
 {
-    Draft,
-    Approved,
-    Rejected
+    APPROVED,
+    ARCHIVED,
+    EXPIRED,
+    FINALISED
 }

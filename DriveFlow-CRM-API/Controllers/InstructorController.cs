@@ -48,8 +48,8 @@ public class InstructorController : ControllerBase
     ///     "email": "maria.ionescu@email.com",
     ///     "scholarshipStartDate": "2025-02-01",
     ///     "licensePlateNumber": "B‑12‑XYZ",
-    ///     "transmissionType": "manual",
-    ///     "status": "archived",
+    ///     "transmissionType": "MANUAL",
+    ///     "status": "ARCHIVED",
     ///     "type": "B",
     ///     "color": "red"
     ///   },
@@ -60,8 +60,8 @@ public class InstructorController : ControllerBase
     ///     "email": "andrei.pop@example.com",
     ///     "scholarshipStartDate": "2025-03-10",
     ///     "licensePlateNumber": "CJ‑34‑ABC",
-    ///     "transmissionType": "automatic",
-    ///     "status": "archived",
+    ///     "transmissionType": "AUTOMATIC",
+    ///     "status": "ARCHIVED",
     ///     "type": "BE",
     ///     "color": "blue"
     ///   }
@@ -82,20 +82,20 @@ public class InstructorController : ControllerBase
             return Unauthorized();
         }
 
-        // 2. Check if caller is Instructor role and verify access rights if so
-        var isCallerInstructor = User.IsInRole("Instructor");
-        if (isCallerInstructor && userId != instructorId)
+        // 2. Verify the authenticated user is the same as the requested instructorId
+        if (userId != instructorId)
         {
-            return Forbid(); // Return 403 Forbidden if instructor trying to access another instructor's data
+            return Forbid(); // Return 403 Forbidden if trying to access another instructor's data
         }
 
-        // 3. Query files with required joins and projection
+        // 3. Query files with required joins
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
         var files = await _db.Files
             .Where(f => f.InstructorId == instructorId)
             .Include(f => f.Student)
             .Include(f => f.Vehicle)
-                .ThenInclude(v => v.License)
+            .Include(f => f.TeachingCategory)
+                .ThenInclude(tc => tc.License)
             .AsNoTracking()
             .ToListAsync();
 #pragma warning restore CS8602
@@ -105,6 +105,7 @@ public class InstructorController : ControllerBase
         {
             var student = f.Student; // Avoid multiple property access that could trigger warning
             var vehicle = f.Vehicle; // Avoid multiple property access that could trigger warning
+            var teachingCategory = f.TeachingCategory; // Avoid multiple property access
             
             return new InstructorAssignedFileDto
             {
@@ -112,11 +113,11 @@ public class InstructorController : ControllerBase
                 LastName = student?.LastName,
                 PhoneNumber = student?.PhoneNumber,
                 Email = student?.Email,
-                ScholarshipStartDate = f.ScholarshipStartDate,
+                ScholarshipStartDate = f.ScholarshipStartDate?.Date,
                 LicensePlateNumber = vehicle?.LicensePlateNumber,
                 TransmissionType = vehicle != null ? vehicle.TransmissionType.ToString() : null,
-                Status = f.Status.ToString().ToLowerInvariant(),
-                Type = vehicle?.License?.Type,
+                Status = f.Status.ToString(),
+                Type = teachingCategory?.License?.Type ?? teachingCategory?.Code,
                 Color = vehicle?.Color
             };
         }).ToList();
@@ -140,14 +141,14 @@ public class InstructorController : ControllerBase
     ///   "scholarshipStartDate": "2025-02-01",
     ///   "criminalRecordExpiryDate": "2026-02-01",
     ///   "medicalRecordExpiryDate": "2025-08-01",
-    ///   "status": "active",
+    ///   "status": "APPROVED",
     ///   "scholarshipPayment": true,
     ///   "sessionsPayed": 30,
     ///   "minDrivingLessonsRequired": 30,
     ///   "lessonsMade": [
-    ///     "2025-03-01T09:00:00",
-    ///     "2025-03-05T14:00:00",
-    ///     "2025-03-12T12:00:00"
+    ///     "2025-03-01",
+    ///     "2025-03-05",
+    ///     "2025-03-12"
     ///   ]
     /// }
     /// ```
@@ -194,17 +195,17 @@ public class InstructorController : ControllerBase
             LastName = file.Student?.LastName,
             Email = file.Student?.Email,
             PhoneNo = file.Student?.PhoneNumber,
-            ScholarshipStartDate = file.ScholarshipStartDate,
-            CriminalRecordExpiryDate = file.CriminalRecordExpiryDate,
-            MedicalRecordExpiryDate = file.MedicalRecordExpiryDate,
-            Status = file.Status.ToString().ToLowerInvariant(),
+            ScholarshipStartDate = file.ScholarshipStartDate?.Date,
+            CriminalRecordExpiryDate = file.CriminalRecordExpiryDate?.Date,
+            MedicalRecordExpiryDate = file.MedicalRecordExpiryDate?.Date,
+            Status = file.Status.ToString(),
             ScholarshipPayment = payment != null && payment.ScholarshipBasePayment,
             SessionsPayed = payment != null ? payment.SessionsPayed : 0,
             MinDrivingLessonsRequired = file.TeachingCategory?.MinDrivingLessonsReq ?? 0,
             LessonsMade = file.Appointments
                 .Where(a => a.Date.Add(a.EndHour) <= now)
                 .OrderBy(a => a.Date)
-                .Select(a => a.Date.Add(a.StartHour))
+                .Select(a => a.Date.Add(a.StartHour).Date)
                 .ToList()
         };
 
@@ -275,7 +276,11 @@ public class InstructorController : ControllerBase
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
         var query = from instructor in _db.ApplicationUsers
                     where instructor.Id == instructorId
-                    join file in _db.Files.Include(f => f.Student).Include(f => f.Vehicle).ThenInclude(v => v.License)
+                    join file in _db.Files
+                        .Include(f => f.Student)
+                        .Include(f => f.Vehicle)
+                        .Include(f => f.TeachingCategory)
+                            .ThenInclude(tc => tc.License)
                         on instructor.Id equals file.InstructorId
                     join appointment in _db.Appointments
                         on file.FileId equals appointment.FileId
@@ -292,11 +297,12 @@ public class InstructorController : ControllerBase
         {
             var student = r.file.Student; // Avoid multiple property access that could trigger warning
             var vehicle = r.file.Vehicle; // Avoid multiple property access that could trigger warning
+            var teachingCategory = r.file.TeachingCategory; // Avoid multiple property access
             
             return new InstructorAppointmentDto
             {
                 AppointmentId = r.appointment.AppointmentId,
-                Date = r.appointment.Date,
+                Date = r.appointment.Date.Date,
                 StartHour = r.appointment.StartHour.ToString(@"hh\:mm"),
                 EndHour = r.appointment.EndHour.ToString(@"hh\:mm"),
                 FileId = r.file.FileId,
@@ -304,7 +310,7 @@ public class InstructorController : ControllerBase
                 LastName = student?.LastName,
                 PhoneNo = student?.PhoneNumber,
                 LicensePlateNumber = vehicle?.LicensePlateNumber,
-                Type = vehicle?.License?.Type
+                Type = teachingCategory?.License?.Type ?? teachingCategory?.Code
             };
         }).ToList();
 
