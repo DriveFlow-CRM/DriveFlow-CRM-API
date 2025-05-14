@@ -85,7 +85,7 @@ public class VehicleController : ControllerBase
                                 {
                                     VehicleId = v.VehicleId,
                                     LicensePlateNumber = v.LicensePlateNumber,
-                                    TransmissionType = v.TransmissionType.ToString().ToLowerInvariant(),
+                                    TransmissionType = v.TransmissionType.ToString(),
                                     Color = v.Color,
                                     Brand = v.Brand,
                                     Model = v.Model,
@@ -112,7 +112,7 @@ public class VehicleController : ControllerBase
     /// ```json
     /// {
     ///   "licensePlateNumber": "CJ-456-ABC",
-    ///   "transmissionType": "automatic",
+    ///   "transmissionType": "AUTOMATIC",
     ///   "color": "blue",
     ///   "brand": "Toyota",
     ///   "model": "Corolla", 
@@ -157,7 +157,7 @@ public class VehicleController : ControllerBase
         }
 
         if (!Enum.TryParse<TransmissionType>(dto.TransmissionType, true, out var transEnum))
-            return BadRequest(new { message = "transmissionType must be 'manual' or 'automatic'." });
+            return BadRequest(new { message = "transmissionType must be 'MANUAL' or 'AUTOMATIC'." });
 
         // Validate FuelType and PowertrainType if provided
         TipCombustibil? fuelType = null;
@@ -234,7 +234,7 @@ public class VehicleController : ControllerBase
     /// ```json
     /// {
     ///   "licensePlateNumber": "BV-476-DEF",
-    ///   "transmissionType": "manual",
+    ///   "transmissionType": "MANUAL",
     ///   "color": "green",
     ///   "brand": "Toyota",
     ///   "model": "Corolla", 
@@ -281,7 +281,7 @@ public class VehicleController : ControllerBase
         }
 
         if (!Enum.TryParse<TransmissionType>(dto.TransmissionType, true, out var transEnum))
-            return BadRequest(new { message = "transmissionType must be 'manual' or 'automatic'." });
+            return BadRequest(new { message = "transmissionType must be 'MANUAL' or 'AUTOMATIC'." });
 
         // Validate FuelType and PowertrainType if provided
         TipCombustibil? fuelType = null;

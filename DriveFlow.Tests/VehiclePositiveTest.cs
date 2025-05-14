@@ -67,9 +67,9 @@ public sealed class VehiclePositiveTest
         db.AutoSchools.Add(new AutoSchool { AutoSchoolId = 1, Name = "DriveFlow" });
         db.Licenses.Add(new License { LicenseId = 1, Type = "B" });
         db.Vehicles.AddRange(
-            new Vehicle { LicensePlateNumber = "B-200-BBB", TransmissionType = TransmissionType.Automatic, AutoSchoolId = 1, LicenseId = 1 },
-            new Vehicle { LicensePlateNumber = "B-100-AAA", TransmissionType = TransmissionType.Manual, AutoSchoolId = 1, LicenseId = 1 },
-            new Vehicle { LicensePlateNumber = "B-150-CCC", TransmissionType = TransmissionType.Manual, AutoSchoolId = 1, LicenseId = 1 });
+            new Vehicle { LicensePlateNumber = "B-200-BBB", TransmissionType = TransmissionType.AUTOMATIC, AutoSchoolId = 1, LicenseId = 1 },
+            new Vehicle { LicensePlateNumber = "B-100-AAA", TransmissionType = TransmissionType.MANUAL, AutoSchoolId = 1, LicenseId = 1 },
+            new Vehicle { LicensePlateNumber = "B-150-CCC", TransmissionType = TransmissionType.MANUAL, AutoSchoolId = 1, LicenseId = 1 });
         db.Users.Add(new ApplicationUser { Id = "sa1" });
         await db.SaveChangesAsync();
 
@@ -141,7 +141,7 @@ public sealed class VehiclePositiveTest
         {
             VehicleId = 5,
             LicensePlateNumber = "CJ-000-AAA",
-            TransmissionType = TransmissionType.Manual,
+            TransmissionType = TransmissionType.MANUAL,
             AutoSchoolId = 1,
             LicenseId = 3
         });
@@ -165,7 +165,7 @@ public sealed class VehiclePositiveTest
 
         var veh = await db.Vehicles.FindAsync(5);
         veh!.LicensePlateNumber.Should().Be("CJ-555-BBB");
-        veh.TransmissionType.Should().Be(TransmissionType.Automatic);
+        veh.TransmissionType.Should().Be(TransmissionType.AUTOMATIC);
         veh.Color.Should().Be("blue");
         veh.LicenseId.Should().Be(4);
     }
@@ -181,7 +181,7 @@ public sealed class VehiclePositiveTest
         {
             VehicleId = 9,
             LicensePlateNumber = "B-999-ZZZ",
-            TransmissionType = TransmissionType.Manual,
+            TransmissionType = TransmissionType.MANUAL,
             AutoSchoolId = 1
         });
         db.Users.Add(new ApplicationUser { Id = "adm3", AutoSchoolId = 1 });

@@ -382,3 +382,4 @@ public sealed class InstructorTeachingCategoryLinkDto
     public string InstructorId { get; init; } = null!;
     public int TeachingCategoryId { get; init; }
 }
+ 

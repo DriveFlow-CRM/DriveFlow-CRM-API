@@ -90,8 +90,8 @@ public class Vehicle
 /// <summary>Manual / Automatic transmission.</summary>
 public enum TransmissionType
 {
-    Manual,
-    Automatic
+    MANUAL,
+    AUTOMATIC
 }
 
 // ───────────────  Fuel Type enum ───────────────
