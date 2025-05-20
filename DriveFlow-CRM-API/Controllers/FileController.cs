@@ -762,6 +762,7 @@ public class FileController : ControllerBase
 
         // Process appointments for counting completed ones
         var now = DateTime.Now;
+#pragma warning disable CS8602 // Dereference of a possibly null reference
         var appointments = file.Appointments
             .Select(a => new AppointmentDetailsDto
             {
@@ -772,6 +773,7 @@ public class FileController : ControllerBase
                 Status = a.Date.Add(a.EndHour) < now ? "completed" : "pending"
             })
             .ToList();
+#pragma warning restore CS8602
 
         int completedCount = appointments.Count(a => a.Status == "completed");
 
