@@ -468,10 +468,10 @@ public class InstructorAvailabilityDto
     public DateTime Date { get; set; }
     
     /// <summary>Start time of availability interval (format: hh:mm)</summary>
-    public string StartHour { get; set; }
+    public required string StartHour { get; set; }
     
     /// <summary>End time of availability interval (format: hh:mm)</summary>
-    public string EndHour { get; set; }
+    public required string EndHour { get; set; }
 }
 
 /// <summary>
@@ -486,10 +486,10 @@ public class CreateInstructorAvailabilityDto
     /// <summary>Start time of availability interval (format: hh:mm)</summary>
     [Required]
     [RegularExpression(@"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$", ErrorMessage = "Start time must be in format 'hh:mm'")]
-    public string StartHour { get; set; }
+    public required string StartHour { get; set; }
     
     /// <summary>End time of availability interval (format: hh:mm)</summary>
     [Required]
     [RegularExpression(@"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$", ErrorMessage = "End time must be in format 'hh:mm'")]
-    public string EndHour { get; set; }
+    public required string EndHour { get; set; }
 } 
