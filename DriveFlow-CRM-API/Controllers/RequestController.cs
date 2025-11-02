@@ -249,7 +249,7 @@ public class RequestController : ControllerBase
                 break;
             default:
                 return BadRequest("Invalid status update value.");
-        }
+        }   
 
         var user = _users.GetUserAsync(User).Result;
         if (user == null)
@@ -259,9 +259,6 @@ public class RequestController : ControllerBase
 
         if (User.IsInRole("SchoolAdmin") && user.AutoSchoolId != request.AutoSchoolId)
             return Forbid();
-
-
-
 
 
 

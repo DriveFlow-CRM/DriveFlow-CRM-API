@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using DriveFlow_CRM_API.Models.DTOs; // Pentru a accesa tipurile din CommonDTOs
+using DriveFlow_CRM_API.Controllers; // Pentru a accesa tipurile din StudentController
 
 namespace DriveFlow_CRM_API.Controllers;
 
@@ -17,8 +20,8 @@ namespace DriveFlow_CRM_API.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/file")]
-[Authorize(Roles = "SchoolAdmin")]
 
+[Authorize(Roles = "SchoolAdmin,SuperAdmin")]
 public class FileController : ControllerBase
 {
 
@@ -48,7 +51,7 @@ public class FileController : ControllerBase
     //        "scholarshipStartDate": "2025-01-10",
     //        "criminalRecordExpiryDate": "2026-01-10",
     //        "medicalRecordExpiryDate": "2025-07-10",
-    //        "status": "inProgress",
+    //        "status": "APPROVED",
 
     //        "teachingCategory": {
     //          "teachingCategoryId": 10,
@@ -94,9 +97,9 @@ public class FileController : ControllerBase
     ///      {
     ///        "fileId": 501,
     ///        "scholarshipStartDate": "2025-01-10",
-    ///       "criminalRecordExpiryDate": "2026-01-10",
+    ///       "criminalRecordExpiryDate": "2025-12-10",
     ///        "medicalRecordExpiryDate": "2025-07-10",
-    ///        "status": "inProgress",
+    ///        "status": "APPROVED",
     ///
     ///        "teachingCategory": {
     ///          "teachingCategoryId": 10,
@@ -109,7 +112,7 @@ public class FileController : ControllerBase
     ///        "vehicle": {
     ///          "vehicleId": 301,
     ///          "licensePlateNumber": "CJ-456-ABC",
-    ///          "transmissionType": "manual",
+    ///          "transmissionType": "MANUAL",
     ///          "color": "blue"
     ///        },
     ///        "instructor": {
@@ -137,21 +140,37 @@ public class FileController : ControllerBase
 
 
     [HttpGet("fetchAll/{schoolId}")]
-    [Authorize(Roles = "SchoolAdmin")]
-    [ProducesResponseType(typeof(List<StudentFileRecordsDto>), StatusCodes.Status200OK)]
+
+    [Authorize(Roles = "SchoolAdmin,SuperAdmin")]
     public async Task<IActionResult> GetStudentFileRecords(int schoolId)
     {
         var autoSchool = await _db.AutoSchools.FindAsync(schoolId);
         if (autoSchool == null)
             return BadRequest("Auto school not found.");
-        if (_users.GetUserAsync(User).Result?.AutoSchoolId != schoolId)
-            return Forbid("You are not allowed to see the files of this auto school.");
 
 
-        var all_files = _db.Files.Include(f=>f.Student).Where(f=>f.Student.AutoSchoolId == schoolId).ToList();
-        //   var students = _db.ApplicationUsers.Where(st=>st.Id )
+        var user = await _users.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("You are not properly logged in to fetch files.");
+
+        // Check if the user is a SchoolAdmin
+        bool isSchoolAdmin = await _users.IsInRoleAsync(user, "SchoolAdmin");
+        bool isSuperAdmin = await _users.IsInRoleAsync(user, "SuperAdmin");
+
+        if (isSchoolAdmin && user.AutoSchoolId != schoolId && !isSuperAdmin)
+            return Forbid();
+
+
+
+        var all_files = _db.Files
+            .Include(f => f.Student)
+            .Where(f => f.Student.AutoSchoolId == schoolId)
+            .ToList();
 
         var students = _db.ApplicationUsers
+            .Include(u => u.AutoSchool)
+            .ThenInclude(a => a.Address)
+            .ThenInclude(c => c.City)
             .Where(user => all_files.Select(file => file.StudentId).Contains(user.Id))
             .ToList();
 
@@ -163,11 +182,15 @@ public class FileController : ControllerBase
             List<StudentFileDataDto> files = new List<StudentFileDataDto>();
             foreach (var file in student.StudentFiles)
             {
-
+#pragma warning disable CS8602 // Dereference of a possibly null reference
                 var payment = _db.Payments.Where(p => p.FileId == file.FileId).FirstOrDefault();
                 var vehicle = _db.Vehicles.Where(v => v.VehicleId == file.VehicleId).FirstOrDefault();
                 var instructor = _db.ApplicationUsers.Where(i => i.Id == file.InstructorId).FirstOrDefault();
-                var teachingCategory = _db.TeachingCategories.Where(tc => tc.TeachingCategoryId == file.TeachingCategoryId).FirstOrDefault();
+                var teachingCategory = _db.TeachingCategories
+                    .Include(tc => tc.License)
+                    .Where(tc => tc.TeachingCategoryId == file.TeachingCategoryId)
+                    .FirstOrDefault();
+#pragma warning restore CS8602
 
                 if (payment == null)
                 {
@@ -185,7 +208,7 @@ public class FileController : ControllerBase
                     {
                         VehicleId = 0,
                         LicensePlateNumber = "N/A",
-                        TransmissionType = TransmissionType.Manual,
+                        TransmissionType = TransmissionType.MANUAL,
                         Color = "N/A"
                     };
                 }
@@ -211,16 +234,6 @@ public class FileController : ControllerBase
                     };
                 }
 
-                if (teachingCategory.License == null)
-                {
-                    teachingCategory.License = new License()
-                    {
-                        Type = "N/A"
-                    };
-                }
-
-
-
                 TeachingCategoryDto teachingCategoryDto = new TeachingCategoryDto()
                 {
                     TeachingCategoryId = teachingCategory.TeachingCategoryId,
@@ -228,7 +241,9 @@ public class FileController : ControllerBase
                     SessionDuration = teachingCategory.SessionDuration,
                     ScholarshipPrice = teachingCategory.ScholarshipPrice,
                     MinDrivingLessonsReq = teachingCategory.MinDrivingLessonsReq,
-                    LicenseType = teachingCategory.License.Type,
+#pragma warning disable CS8602 // Dereference of a possibly null reference
+                    LicenseType = teachingCategory.License?.Type ?? teachingCategory.Code,
+#pragma warning restore CS8602
                 };
 
 
@@ -258,11 +273,13 @@ public class FileController : ControllerBase
 
                 switch (file.Status)
                 {
-                    case FileStatus.Draft:
+                    case FileStatus.APPROVED:
                         break;
-                    case FileStatus.Approved:
+                    case FileStatus.ARCHIVED:
                         break;
-                    case FileStatus.Rejected:
+                    case FileStatus.EXPIRED:
+                        break;
+                    case FileStatus.FINALISED:
                         break;
                     default:
                         break;
@@ -272,9 +289,9 @@ public class FileController : ControllerBase
                 {
 
                     fileId = file.FileId,
-                    scholarshipStartDate = file.ScholarshipStartDate,
-                    criminalRecordExpiryDate = file.CriminalRecordExpiryDate,
-                    medicalRecordExpiryDate = file.MedicalRecordExpiryDate,
+                    scholarshipStartDate = file.ScholarshipStartDate?.Date,
+                    criminalRecordExpiryDate = file.CriminalRecordExpiryDate?.Date,
+                    medicalRecordExpiryDate = file.MedicalRecordExpiryDate?.Date,
                     status = file.Status.ToString(),
 
                     teachingCategory = teachingCategoryDto,
@@ -291,6 +308,8 @@ public class FileController : ControllerBase
                 LastName = student.LastName,
                 Email = student.Email,
                 PhoneNumber = student.PhoneNumber,
+                Address = student.AutoSchool?.Address != null ? 
+                    $"{student.AutoSchool.Address.StreetName} {student.AutoSchool.Address.AddressNumber}, {student.AutoSchool.Address.City?.Name}" : null,
                 Cnp = student.Cnp,
                 AutoSchoolId = schoolId,
             };
@@ -324,9 +343,9 @@ public class FileController : ControllerBase
     /// 
      ///     {
      ///      "scholarshipStartDate": "2025-01-10",
-     ///      "criminalRecordExpiryDate": "2026-01-10",
+     ///      "criminalRecordExpiryDate": "2025-12-10",
      ///      "medicalRecordExpiryDate": "2025-07-10",
-     ///      "status": "Approved",  
+     ///      "status": "APPROVED",  
      ///      "teachingCategoryId": 1,
      ///      "vehicleId": 1,       
      ///      "instructorId": "419decbe-6af1-4d84-9b45-c1ef796f4603",      
@@ -370,22 +389,25 @@ public class FileController : ControllerBase
 
         if (userAdmin == null || userAdmin.AutoSchoolId != userStudent.AutoSchoolId)
         {
-            return Forbid("This student does not belong to your auto school");
+            return Forbid();
         }
 
 
         var instructor = await _db.ApplicationUsers.FindAsync(fileDto.instructorId);
-
-        if (instructor != null && instructor.AutoSchoolId != userStudent.AutoSchoolId)
-            return BadRequest("Instructor does not belong to the same auto school.");
+        if (instructor == null)
+            return BadRequest("Instructor not found or not assigned to a valid instructor.");
 
         var vehicle = await _db.Vehicles.FindAsync(fileDto.vehicleId);
+        if (vehicle == null)
+            return BadRequest("Vehicle not found.");
 
-        if (vehicle != null && vehicle.AutoSchoolId != userAdmin.AutoSchoolId)
-            return BadRequest("Vehicle does not belong to the same auto school.");
-        var teachingCategory = await _db.TeachingCategories.FindAsync(fileDto.teachingCategoryId);
+        // Include the License relationship when retrieving TeachingCategory
+        var teachingCategory = await _db.TeachingCategories
+            .Include(tc => tc.License)
+            .FirstOrDefaultAsync(tc => tc.TeachingCategoryId == fileDto.teachingCategoryId);
+            
         if (teachingCategory == null)
-            return BadRequest("Teaching Category not found.");
+            return BadRequest("Teaching category not found.");
 
         if (teachingCategory.AutoSchoolId != userAdmin.AutoSchoolId)
             return BadRequest("This school does not have this teaching category");
@@ -399,14 +421,17 @@ public class FileController : ControllerBase
 
         switch (fileDto.status)
         {
-            case "Draft":
-                localStatus = FileStatus.Draft;
+            case "APPROVED":
+                localStatus = FileStatus.APPROVED;
                 break;
-            case "Approved":
-                localStatus = FileStatus.Approved;
+            case "ARCHIVED":
+                localStatus = FileStatus.ARCHIVED;
                 break;
-            case "Rejected":
-                localStatus = FileStatus.Rejected;
+            case "EXPIRED":
+                localStatus = FileStatus.EXPIRED;
+                break;
+            case "FINALISED":
+                localStatus = FileStatus.FINALISED;
                 break;
             default:
                 return BadRequest("Invalid file status.");
@@ -415,12 +440,10 @@ public class FileController : ControllerBase
 
         var file = new Models.File
         {
-            ScholarshipStartDate = fileDto.scholarshipStartDate,
-            CriminalRecordExpiryDate = fileDto.criminalRecordExpiryDate,
-            MedicalRecordExpiryDate = fileDto.medicalRecordExpiryDate,
-            //File.cs/FileStatus class, DRAFT/APPROVED/REJECTED,
-            //astept sa imi spui gabi cum modificam aici
-            //pe card vad sa apara ca `open`
+            ScholarshipStartDate = fileDto.scholarshipStartDate.Date,
+            CriminalRecordExpiryDate = fileDto.criminalRecordExpiryDate.Date,
+            MedicalRecordExpiryDate = fileDto.medicalRecordExpiryDate.Date,
+            //FileStatus enum values: APPROVED, ARCHIVED, EXPIRED, FINALISED
             Status = localStatus,
             TeachingCategoryId = fileDto.teachingCategoryId,
             StudentId = studentId,
@@ -468,10 +491,10 @@ public class FileController : ControllerBase
     ///     
     /// ``` Json example
     /// {
-    ///  "scholarshipStartDate": "2725-05-10T15:08:18.604Z",
-    ///  "criminalRecordExpiryDate": "2725-05-10T15:08:18.604Z",
-    ///  "medicalRecordExpiryDate": "2725-05-10T15:08:18.604Z",
-    ///  "status": "Rejected",
+    ///  "scholarshipStartDate": "2025-05-10",
+    ///  "criminalRecordExpiryDate": "2025-10-10",
+    ///  "medicalRecordExpiryDate": "2025-12-10",
+    ///  "status": "APPROVED",
     ///  "instructorId": "419decbe-6af1-4d84-9b45-c1ef796f4603",
     ///  "vehicleId": 1,
     ///  "teachingCategoryId": 1
@@ -500,29 +523,37 @@ public class FileController : ControllerBase
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public async Task<IActionResult> EditFile(int fileId, [FromBody] EditFileDto fileDto)
     {
-
-
-        var file = await _db.Files.FindAsync(fileId);
-        if (file == null)
-            return BadRequest("File not found.");
-
-        
         var userAdmin = await _users.GetUserAsync(User);
+        if (userAdmin == null)
+            return Unauthorized("You are not properly logged in to edit files.");
 
-        if(userAdmin == null)
+        // Get the file with its related student
+        var file = await _db.Files
+            .Include(f => f.Student)
+            .FirstOrDefaultAsync(f => f.FileId == fileId);
+
+        if (file == null)
+            return NotFound("File not found.");
+
+        if (file.Student.AutoSchoolId != userAdmin.AutoSchoolId)
+            return Forbid("You can only edit files from your own auto school.");
+
+        // Get the teaching category if one was provided
+        TeachingCategory? teachingCategory = null;
+        if (fileDto.TeachingCategoryId.HasValue)
         {
-            return Unauthorized("You aren't logged in properly");
+            teachingCategory = await _db.TeachingCategories
+                .Include(tc => tc.License)
+                .FirstOrDefaultAsync(tc => tc.TeachingCategoryId == fileDto.TeachingCategoryId);
+                
+            if (teachingCategory == null)
+                return BadRequest("Teaching category not found.");
+
+#pragma warning disable CS8602 // Dereference of a possibly null reference
+            if (teachingCategory.AutoSchoolId != userAdmin.AutoSchoolId)
+                return BadRequest("Teaching category does not belong to the same auto school.");
+#pragma warning restore CS8602
         }
-
-      //  return Ok(fileDto);
-
-        int? schoolId = _db.Files.Include(f => f.Student).Select(f => f.Student.AutoSchoolId).First();
-
-        if (userAdmin.AutoSchoolId != schoolId)
-        {
-            return Forbid("This student does not belong to your auto school");
-        }
-
 
         if (fileDto.InstructorId != null)
         {
@@ -533,7 +564,7 @@ public class FileController : ControllerBase
                 return BadRequest("Instructor does not exist");
             }
 
-            if (instructor.AutoSchoolId != schoolId)
+            if (instructor.AutoSchoolId != userAdmin.AutoSchoolId)
                 return BadRequest("Instructor does not belong to the same auto school.");
         }
         if (fileDto.VehicleId != null)
@@ -541,34 +572,42 @@ public class FileController : ControllerBase
             var vehicle = await _db.Vehicles.FindAsync(fileDto.VehicleId);
             if (vehicle == null)
                 return BadRequest("Vehicle not found.");
-            if (vehicle.AutoSchoolId != schoolId)
+            if (vehicle.AutoSchoolId != userAdmin.AutoSchoolId)
                 return BadRequest("Vehicle does not belong to the same auto school.");
         }
-        if (fileDto.TeachingCategoryId != null)
-        {
-            var teachingCategory = await _db.TeachingCategories.FindAsync(fileDto.TeachingCategoryId);
-            if (teachingCategory == null)
-                return BadRequest("Teaching Category not found.");
-
-            if (teachingCategory.AutoSchoolId != schoolId)
-                return BadRequest("This school does not have this teaching category");
-
-        }
-
-
-
-
-        file.VehicleId = fileDto.VehicleId;
-
-
-        file.ScholarshipStartDate = fileDto.ScholarshipStartDate;
-        file.CriminalRecordExpiryDate  = fileDto.CriminalRecordExpiryDate;
-        file.MedicalRecordExpiryDate = fileDto.MedicalRecordExpiryDate;
+        if (fileDto.ScholarshipStartDate.HasValue)
+            file.ScholarshipStartDate = fileDto.ScholarshipStartDate.Value.Date;
+            
+        if (fileDto.CriminalRecordExpiryDate.HasValue)
+            file.CriminalRecordExpiryDate = fileDto.CriminalRecordExpiryDate.Value.Date;
+            
+        if (fileDto.MedicalRecordExpiryDate.HasValue)
+            file.MedicalRecordExpiryDate = fileDto.MedicalRecordExpiryDate.Value.Date;
 
         file.TeachingCategoryId = fileDto.TeachingCategoryId;
         file.InstructorId = fileDto.InstructorId;
         file.VehicleId = fileDto.VehicleId;
 
+        if (fileDto.Status != null)
+        {
+            switch (fileDto.Status)
+            {
+                case "APPROVED":
+                    file.Status = FileStatus.APPROVED;
+                    break;
+                case "ARCHIVED":
+                    file.Status = FileStatus.ARCHIVED;
+                    break;
+                case "EXPIRED":
+                    file.Status = FileStatus.EXPIRED;
+                    break;
+                case "FINALISED":
+                    file.Status = FileStatus.FINALISED;
+                    break;
+                default:
+                    return BadRequest($"Invalid file status. Allowed values: {string.Join(", ", Enum.GetNames(typeof(FileStatus)))}.");
+            }
+        }
 
         await _db.SaveChangesAsync();
         return Ok(new
@@ -627,7 +666,7 @@ public class FileController : ControllerBase
 
         if (schoolAdmin?.AutoSchoolId != fileSchoolId)
         {
-            return Forbid("You can not edit the files nor payments of other auto schools");
+            return Forbid();
         }
         // all ok here
         // 
@@ -675,19 +714,126 @@ public class FileController : ControllerBase
 
         if(file.Student.AutoSchoolId != user.AutoSchoolId)
         {
-            return Forbid("You can not delete the files of other auto schools");
+            return Forbid();
         }
+
+        var paymemts = _db.Payments.Where(p => p.FileId == file.FileId);
         _db.Files.Remove(file);
         await _db.SaveChangesAsync();
+
+        _db.Payments.RemoveRange(paymemts);
+        await _db.SaveChangesAsync();
+
+
         return Ok(new
         {
             message = "File deleted successfully"
         });
     }
 
+    [HttpGet("details/{fileId}")]
+    [Authorize(Roles = "SchoolAdmin,Instructor,Student")]
+    public async Task<IActionResult> GetFileDetails(int fileId)
+    {
+        var user = await _users.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("You are not properly logged in to view file details.");
 
+        var file = await _db.Files
+            .Include(f => f.Student)
+            .Include(f => f.TeachingCategory)
+                .ThenInclude(tc => tc.License)
+            .Include(f => f.Vehicle)
+                .ThenInclude(v => v.License)
+            .Include(f => f.Instructor)
+            .Include(f => f.Appointments)
+            .FirstOrDefaultAsync(f => f.FileId == fileId);
 
+        if (file == null)
+            return NotFound("File not found.");
 
+        // Check authorization based on role
+        bool isSchoolAdmin = await _users.IsInRoleAsync(user, "SchoolAdmin");
+        bool isInstructor = await _users.IsInRoleAsync(user, "Instructor");
+        bool isStudent = await _users.IsInRoleAsync(user, "Student");
+        bool isSuperAdmin = await _users.IsInRoleAsync(user, "SuperAdmin");
+
+        if (isSchoolAdmin && user.AutoSchoolId != file.Student.AutoSchoolId && !isSuperAdmin)
+            return Forbid();
+        if (isInstructor && file.InstructorId != user.Id)
+            return Forbid();
+        if (isStudent && file.StudentId != user.Id)
+            return Forbid();
+
+        // Get payment for the file
+        var payment = await _db.Payments.FirstOrDefaultAsync(p => p.FileId == fileId);
+
+        // Process appointments for counting completed ones
+        var now = DateTime.Now;
+#pragma warning disable CS8602 // Dereference of a possibly null reference
+        var appointments = file.Appointments
+            .Select(a => new AppointmentDetailsDto
+            {
+                AppointmentId = a.AppointmentId,
+                Date = a.Date,
+                StartHour = a.StartHour.ToString(@"hh\:mm"),
+                EndHour = a.EndHour.ToString(@"hh\:mm"),
+                Status = a.Date.Add(a.EndHour) < now ? "completed" : "pending"
+            })
+            .ToList();
+#pragma warning restore CS8602
+
+        int completedCount = appointments.Count(a => a.Status == "completed");
+
+        // Create and return the FileDetailsDto
+        var fileDetailsDto = new FileDetailsDto
+        {
+            FileId = file.FileId,
+            ScholarshipStartDate = file.ScholarshipStartDate?.Date,
+            CriminalRecordExpiryDate = file.CriminalRecordExpiryDate?.Date,
+            MedicalRecordExpiryDate = file.MedicalRecordExpiryDate?.Date,
+            Status = file.Status.ToString(),
+            Payment = payment != null
+                ? new PaymentDetailsDto
+                {
+                    ScholarshipPayment = payment.ScholarshipBasePayment,
+                    SessionsPayed = payment.SessionsPayed
+                }
+                : null,
+            Instructor = file.Instructor != null
+                ? new InstructorDetailsDto
+                {
+                    UserId = file.Instructor.Id,
+                    FirstName = file.Instructor.FirstName,
+                    LastName = file.Instructor.LastName,
+                    Email = file.Instructor.Email,
+                    Phone = file.Instructor.PhoneNumber,
+                    Role = "Instructor"
+                }
+                : null,
+            Vehicle = file.Vehicle != null
+                ? new VehicleDetailsDto
+                {
+                    LicensePlateNumber = file.Vehicle.LicensePlateNumber,
+                    TransmissionType = file.Vehicle.TransmissionType.ToString(),
+                    Color = file.Vehicle.Color,
+                    Brand = file.Vehicle.Brand,
+                    Model = file.Vehicle.Model,
+                    YearOfProduction = file.Vehicle.YearOfProduction,
+                    FuelType = file.Vehicle.FuelType.HasValue ? file.Vehicle.FuelType.ToString() : null,
+                    EngineSizeLiters = file.Vehicle.EngineSizeLiters,
+                    PowertrainType = file.Vehicle.PowertrainType.HasValue ? file.Vehicle.PowertrainType.ToString() : null,
+#pragma warning disable CS8602 // Dereference of a possibly null reference
+                    Type = file.TeachingCategory?.License?.Type ?? file.TeachingCategory?.Code
+#pragma warning restore CS8602
+                }
+                : null,
+            Appointments = appointments,
+            AppointmentsCompleted = completedCount
+        };
+
+        return Ok(fileDetailsDto);
+    }
 }
 
 /// Used for EditFile !!!!!
@@ -744,8 +890,6 @@ public sealed class StudentDataDto
 
     public string? Cnp { get; init; } = default!;
 
-    public string? UserName { get; init; } = default!;
-
     public int? AutoSchoolId { get; init; } = default!;
 }
 public sealed class StudentFileDataInstructorDto
@@ -776,19 +920,17 @@ public sealed class FileVehicleDto
 
 public sealed class EditFileDto
 {
-
     public DateTime? ScholarshipStartDate { get; init; } = default!;
     public DateTime? CriminalRecordExpiryDate { get; init; } = default!;
     public DateTime? MedicalRecordExpiryDate { get; init; } = default!;
 
-    public string Status { get; set; } = "Draft";
+    public string Status { get; set; } = "APPROVED";
 
     public int? VehicleId { get; set; } = default!;
 
     public string? InstructorId { get; init; } = default!;
 
     public int? TeachingCategoryId { get; init; } = default!;
-
 }
 
 

@@ -1,4 +1,5 @@
-using DriveFlow_CRM_API.Controllers;          
+using DriveFlow_CRM_API.Controllers;
+using DriveFlow_CRM_API.Models.DTOs;          
 using System.Text.Json.Serialization;
 
 namespace DriveFlow_CRM_API.Json
@@ -108,6 +109,18 @@ namespace DriveFlow_CRM_API.Json
     [JsonSerializable(typeof(InstructorFileDetailsDto))]
     [JsonSerializable(typeof(InstructorAppointmentDto))]
     [JsonSerializable(typeof(List<InstructorAppointmentDto>))]
+
+    // ───────────────────── INSTRUCTOR CATEGORIES CONTROLLER ─────────────────────
+    [JsonSerializable(typeof(InstructorTeachingCategoryResponseDto))]
+    [JsonSerializable(typeof(List<InstructorTeachingCategoryResponseDto>))]
+    [JsonSerializable(typeof(TeachingCategoryInstructorResponseDto))]
+    [JsonSerializable(typeof(List<TeachingCategoryInstructorResponseDto>))]
+    [JsonSerializable(typeof(InstructorTeachingCategoryLinkDto))]
+
+    // ───────────────────── INSTRUCTOR AVAILABILITY CONTROLLER ─────────────────────
+    [JsonSerializable(typeof(InstructorAvailabilityDto))]
+    [JsonSerializable(typeof(List<InstructorAvailabilityDto>))]
+    [JsonSerializable(typeof(CreateInstructorAvailabilityDto))]
 
     internal partial class AppJsonContext : JsonSerializerContext
     {

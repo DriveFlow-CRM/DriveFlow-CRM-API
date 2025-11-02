@@ -168,7 +168,9 @@ namespace DriveFlow_CRM_API.Controllers
                     fuelType = file.Vehicle.FuelType.HasValue ? file.Vehicle.FuelType.ToString() : null,
                     engineSizeLiters = file.Vehicle.EngineSizeLiters,
                     powertrainType = file.Vehicle.PowertrainType.HasValue ? file.Vehicle.PowertrainType.ToString() : null,
-                    licenseType = file.Vehicle.License?.Type ?? "Not specified"
+#pragma warning disable CS8602 // Dereference of a possibly null reference
+                    licenseType = file.TeachingCategory.License?.Type ?? file.TeachingCategory.Code
+#pragma warning restore CS8602
                 },
                 instructor = file.Instructor == null ? null : new
                 {
