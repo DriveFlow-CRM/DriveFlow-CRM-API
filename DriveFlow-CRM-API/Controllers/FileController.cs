@@ -13,8 +13,14 @@ using DriveFlow_CRM_API.Controllers; // Pentru a accesa tipurile din StudentCont
 
 namespace DriveFlow_CRM_API.Controllers;
 
+
+
+/// <summary>
+/// This controller handles the creation, retrieval, update, and deletion of student files.
+/// </summary>
 [ApiController]
 [Route("api/file")]
+
 [Authorize(Roles = "SchoolAdmin,SuperAdmin")]
 public class FileController : ControllerBase
 {
@@ -134,6 +140,7 @@ public class FileController : ControllerBase
 
 
     [HttpGet("fetchAll/{schoolId}")]
+
     [Authorize(Roles = "SchoolAdmin,SuperAdmin")]
     public async Task<IActionResult> GetStudentFileRecords(int schoolId)
     {
@@ -364,12 +371,13 @@ public class FileController : ControllerBase
     /// 
     /// 
     /// </remarks>
-    /// <response code = "200">File and Payment method created with success</response>
+    /// <response code = "201">File and Payment method created with success</response>
     /// <response code = "400">Invalid user ID</response>
     /// <response code = "401">No valid JWT supplied</response>
     /// <response code = "403">User is forbidden from seeing the files of this auto school</response>
     [HttpPost("createFile/{studentId}")]
     [Authorize(Roles = "SchoolAdmin")]
+    [ProducesResponseType(typeof(CreateFileResponseDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateFile(string studentId,[FromBody] CreateFileDto fileDto )
     {
 
@@ -466,8 +474,7 @@ public class FileController : ControllerBase
         await _db.Payments.AddAsync(payment);
         await _db.SaveChangesAsync();
 
-
-        return Ok(new CreateFileResponseDto()
+        return Created($"/api/file/createFile/{file.FileId}", new CreateFileResponseDto
         {
             FileId = file.FileId,
             PaymentId = payment.PaymentId,
@@ -513,6 +520,7 @@ public class FileController : ControllerBase
 
     [HttpPut("editFile/{fileId}")]
     [Authorize(Roles = "SchoolAdmin")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public async Task<IActionResult> EditFile(int fileId, [FromBody] EditFileDto fileDto)
     {
         var userAdmin = await _users.GetUserAsync(User);
@@ -631,6 +639,7 @@ public class FileController : ControllerBase
 
     [HttpPut("editPayment/{paymentId}")]
     [Authorize(Roles = "SchoolAdmin")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public async Task<IActionResult> EditPayment(int paymentId,[FromBody] PaymentDto paymentDto)
     {
 
@@ -681,7 +690,6 @@ public class FileController : ControllerBase
     /// </remarks>
     /// <param name="fileId">The ID of the file to be deleted.</param>
     /// <response code="200">File deleted successfully</response>
-    /// <response code="400">You cannot delete files of other auto schools</response>
     /// <response code="401">No valid JWT supplied</response>
     /// <response code="403">User is forbidden from deleting files of this auto school</response>
     /// <response code="404">File not found</response>

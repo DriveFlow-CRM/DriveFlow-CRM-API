@@ -4,8 +4,16 @@ using Microsoft.EntityFrameworkCore;
 using DriveFlow_CRM_API.Models;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace DriveFlow_CRM_API.Controllers;
+
+/// <summary>
+/// 
+/// This controller handles the requests for the enrollment requests.
+/// Allows for anyone to create a request.
+/// But only the SuperAdmin and SchoolAdmin roles can see and update or delete the requests.
+/// </summary>
 
 [ApiController]
 [Route("api/request")]
@@ -34,7 +42,7 @@ public class RequestController : ControllerBase
     // ────────────────────────────── CREATE REQUEST ──────────────────────────────
 
     /// <summary>Create a new enrollment Request for someone wishing to start their courses
-    /// (Student, SchoolAdmin, SuperAdmin only).</summary>
+    /// (Any/No Role)</summary>
     /// <remarks> SchoolAdmin's SchoolId must match the AutoSchoolId given as method paramether.
     /// <para> <strong>Sample Request body</strong> </para> 
     /// ```json
@@ -47,10 +55,11 @@ public class RequestController : ControllerBase
     ///}
     /// ```
     /// </remarks>
-    /// <response code="200">Request sent succesffully.</response>
+    /// <response code="201">Request sent succesffully.</response>
     /// <response code="400">Empty request</response>>
 
     [HttpPost("school/{schoolId}/createRequest")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateRequest(int schoolId, [FromBody] CreateRequestDto requestDto)
     {
         if(_db.AutoSchools.Find(schoolId)==null)
@@ -76,7 +85,19 @@ public class RequestController : ControllerBase
 
         await _db.Requests.AddAsync(newRequest);
         await _db.SaveChangesAsync();
-        return Ok("Request was sent successfully!");
+        return Created(
+            $"/api/request/school/{schoolId}/createRequest",
+            new FetchRequestDto()
+            {
+                id = newRequest.RequestId,
+                firstName = newRequest.FirstName,
+                lastName = newRequest.LastName,
+                phoneNr = newRequest.PhoneNumber,
+                drivingCategory = newRequest.DrivingCategory,
+                requestDate = newRequest.RequestDate,
+                status = newRequest.Status
+            }
+        );
     }
 
 
@@ -148,18 +169,29 @@ public class RequestController : ControllerBase
             .OrderBy(r => r.RequestId)
             .Select(r => new FetchRequestDto
             {
-                RequestId = r.RequestId,
-                FirstName = r.FirstName,
-                LastName = r.LastName,
-                PhoneNr = r.PhoneNumber,
-                DrivingCategory = (r.DrivingCategory != null ? r.DrivingCategory : "N/A"),
-                RequestDate = r.RequestDate,
-                Status = r.Status
+                id = r.RequestId,
+                firstName = r.FirstName,
+                lastName = r.LastName,
+                phoneNr = r.PhoneNumber,
+                drivingCategory = (r.DrivingCategory != null ? r.DrivingCategory : "N/A"),
+                requestDate = r.RequestDate,
+                status = r.Status
 
             })
             .ToListAsync();
         return Ok(Requests);
     }
+
+
+    /*
+     *     ///    "firstName": "Maria",
+    ///    "lastName": "Ionescu",
+    ///    "phoneNr": "0721234234",
+    ///    "drivingCategory": "A2",
+    ///    "requestDate": "2025-10-12",
+     */
+
+
 
 
 
@@ -169,24 +201,31 @@ public class RequestController : ControllerBase
     /// If the user is a SchoolAdmin, then his SchoolId must match the parameter SchoolId.
     /// The only status values allowed are: APPROVED, REJECTED, PENDING.
     /// That's the only thing that is going to be changed.
+    /// On update success, also returns the entire Request Object with ID inclusive.
+    /// NOTE: 'status' must be one of "APPROVED,PENDING,REJECTED".
     /// <para> <strong>Sample request body</strong> </para> 
     /// ```json
     ///
     ///  {
-    ///    "firstName": "Maria",
-    ///    "lastName": "Ionescu",
-    ///    "phoneNr": "0721234234",
-    ///    "drivingCategory": "A2",
-    ///    "requestDate": "2025-10-12",
     ///    "status": "APPROVED"
     ///  }
-    /// 
+    ///  
+    /// Also returns the entire updated object on 201Create, eg:
+    ///  {
+    ///    "requestId": 34567,
+    ///    "firstName": "Elena",
+    ///    "lastName": "Georgescu",
+    ///    "phoneNr": "0734567890",
+    ///    "drivingCategory": "C",
+    ///    "requestDate": "2025-10-20",
+    ///    "status": "APPROVED"
+    ///  }
     /// ```
     /// </remarks>
     /// <response code="200">Request updated successfully.</response>
     /// <response code="400">RequestId or the new Status was not a valid value</response>>
     /// <response code="401">No valid JWT supplied.</response>
-    /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
+    /// <response code="403">User is forbidden from updating the requests of this auto school.</response>
 
 
     [HttpPut("update/{requestId}/updateRequestStatus")]
@@ -196,9 +235,9 @@ public class RequestController : ControllerBase
 
         var request = await _db.Requests.FindAsync(requestId);
         if (request == null)
-            return NotFound("Request not found.");
+            return BadRequest("Request not found.");
 
-        if ( requestDto== null)
+        if (requestDto== null)
         {
             return BadRequest("Request data is required.");
         }
@@ -222,33 +261,43 @@ public class RequestController : ControllerBase
             return Forbid();
 
 
+
         request.Status = requestDto.Status; // Update the status of the request, that's all we do here.
 
         await _db.SaveChangesAsync();
-        return Ok("Request status updated successfully.");
+        return Ok(new FetchRequestDto()
+        {
+            id = request.RequestId,
+            firstName = request.FirstName,
+            lastName = request.LastName,
+            phoneNr = request.PhoneNumber,
+            drivingCategory = (request.DrivingCategory != null ? request.DrivingCategory : "N/A"),
+            requestDate = request.RequestDate,
+            status = request.Status
+        });
     }
 
 
     // ────────────────────────────── DELETE REQUEST ──────────────────────────────
     /// <summary>Delete a request (SchoolAdmin, SuperAdmin only).</summary>
-    /// <response code="200">Requests deleted successfully.</response>
+    /// <response code="204">Requests deleted successfully.</response>
     /// <response code="400">Request does not exist</response>
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">User is forbidden from seeing the requests of this auto school.</response>
 
     [HttpDelete("delete/{requestId}/deleteRequest")]
     [Authorize(Roles = "SchoolAdmin,SuperAdmin")]
-
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DeleteRequest(int requestId)
     {
 
         var user = _users.GetUserAsync(User).Result;
         if (user == null)
-            return Unauthorized("User not found.");
+            return Unauthorized();
 
         var request = await _db.Requests.FindAsync(requestId);
         if (request == null)
-            return NotFound("Request not found.");
+            return BadRequest();
 
         if (User.IsInRole("SchoolAdmin") && user.AutoSchoolId != request.AutoSchoolId)
             return Forbid();
@@ -257,7 +306,7 @@ public class RequestController : ControllerBase
 
         await _db.SaveChangesAsync();
 
-        return Ok("Request deleted successfully.");
+        return NoContent();
     }
 }
 
@@ -278,27 +327,26 @@ public sealed class CreateRequestDto
 
 public sealed class FetchRequestDto
 {
-    public int RequestId { get; init; }
-    public string FirstName { get; init; } = default!;
+    public int id { get; init; }
+    public string firstName { get; init; } = default!;
 
-    public string LastName { get; init; } = default!;
+    public string lastName { get; init; } = default!;
 
-    public string PhoneNr { get; init; } = default!;
-    public string DrivingCategory { get; init; } = default!;
-    public DateTime RequestDate { get; init; } = default;
-    public string Status { get; init; } = default!;
+    public string phoneNr { get; init; } = default!;
+    public string drivingCategory { get; init; } = default!;
+    public DateTime requestDate { get; init; } = default;
+    public string status { get; init; } = default!;
 
 }
 
-
+/// <summary>
+/// DTO for updating the status of a request.
+/// Only accepts updating the status of a request
+/// Not other fields, so i suppose there's no point in
+/// it having other fields.
+/// </summary>
 public sealed class UpdateRequestDto
 {
-    public int? RequestId { get; init; }
-    public string? FirstName { get; init; } = default!;
-    public string? LastName { get; init; } = default!;
-    public string? PhoneNr { get; init; } = default!;
-    public string? DrivingCategory { get; init; } = default!;
-    public DateTime? RequestDate { get; init; } = default;
+
     public string Status { get; init; } = default!;
-    public int? AutoSchoolId { get; init; } = default!;
 }
