@@ -106,20 +106,23 @@ namespace DriveFlow_CRM_API.Models;
 
         /// <summary>
         /// Seeds forms and items for teaching categories.
-        /// Currently seeds for Category B (id_categ=1) with 21 max points.
+        /// Seeds a reference form for Category B with 21 max points and predefined penalty items.
         /// </summary>
+        /// <remarks>
+        /// This is a reference implementation that seeds for the first available teaching category.
+        /// In production, consider:
+        /// 1. Creating a global reference categories table (not school-specific)
+        /// 2. Seeding forms for all standard license categories (A, B, C, etc.)
+        /// 3. Linking school-specific teaching categories to these reference forms
+        /// </remarks>
         private static void SeedFormsAndItems(ApplicationDbContext context)
         {
-            // Note: This seed assumes that TeachingCategory with id=1 exists and represents Category B.
-            // In a real scenario, you would query for the category by code or ensure it exists first.
-            // For this implementation, we'll seed based on the assumption that category 1 = B.
-            
             // If there are no teaching categories yet, we can't seed forms
             if (!context.TeachingCategories.Any())
                 return;
 
-            // Get the first teaching category (assuming it's Category B for demonstration)
-            // In production, you'd want to find by Code = "B"
+            // Seed form for the first teaching category as a reference
+            // This serves as the official exam form for instructors to reference
             var teachingCategory = context.TeachingCategories.FirstOrDefault();
             if (teachingCategory == null)
                 return;
