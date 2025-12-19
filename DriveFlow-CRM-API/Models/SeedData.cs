@@ -19,9 +19,24 @@ namespace DriveFlow_CRM_API.Models;
             using var context = new ApplicationDbContext(
                 serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
 
-            // Abort seeding if at least one role already exists.
-            if (context.Roles.Any())
-                return;
+            // Seed roles and users if not already present
+            if (!context.Roles.Any())
+            {
+                SeedRolesAndUsers(context);
+            }
+
+            // Seed forms and items if not already present
+            if (!context.Formulars.Any())
+            {
+                SeedFormsAndItems(context);
+            }
+        }
+
+        /// <summary>
+        /// Seeds default roles and users.
+        /// </summary>
+        private static void SeedRolesAndUsers(ApplicationDbContext context)
+        {
 
             // ──────────────── Roles ────────────────
             context.Roles.AddRange(
@@ -86,6 +101,54 @@ namespace DriveFlow_CRM_API.Models;
             );
 
             // Commit all inserts in a single transaction.
+            context.SaveChanges();
+        }
+
+        /// <summary>
+        /// Seeds forms and items for teaching categories.
+        /// Currently seeds for Category B (id_categ=1) with 21 max points.
+        /// </summary>
+        private static void SeedFormsAndItems(ApplicationDbContext context)
+        {
+            // Note: This seed assumes that TeachingCategory with id=1 exists and represents Category B.
+            // In a real scenario, you would query for the category by code or ensure it exists first.
+            // For this implementation, we'll seed based on the assumption that category 1 = B.
+            
+            // If there are no teaching categories yet, we can't seed forms
+            if (!context.TeachingCategories.Any())
+                return;
+
+            // Get the first teaching category (assuming it's Category B for demonstration)
+            // In production, you'd want to find by Code = "B"
+            var teachingCategory = context.TeachingCategories.FirstOrDefault();
+            if (teachingCategory == null)
+                return;
+
+            // Create form for Category B with 21 max points
+            var formular = new Formular
+            {
+                TeachingCategoryId = teachingCategory.TeachingCategoryId,
+                MaxPoints = 21
+            };
+            context.Formulars.Add(formular);
+            context.SaveChanges(); // Save to get the FormularId
+
+            // Create predefined items for Category B
+            var items = new List<Item>
+            {
+                new Item { FormularId = formular.FormularId, Description = "Semnalizare la schimbarea direcției", PenaltyPoints = 3, OrderIndex = 1 },
+                new Item { FormularId = formular.FormularId, Description = "Neasigurare la plecarea de pe loc", PenaltyPoints = 3, OrderIndex = 2 },
+                new Item { FormularId = formular.FormularId, Description = "Neasigurare la schimbarea benzii", PenaltyPoints = 3, OrderIndex = 3 },
+                new Item { FormularId = formular.FormularId, Description = "Neacordare prioritate pietoni", PenaltyPoints = 3, OrderIndex = 4 },
+                new Item { FormularId = formular.FormularId, Description = "Nerespectare semnalizare semafor", PenaltyPoints = 3, OrderIndex = 5 },
+                new Item { FormularId = formular.FormularId, Description = "Viteză neadaptată la condiții", PenaltyPoints = 2, OrderIndex = 6 },
+                new Item { FormularId = formular.FormularId, Description = "Distanță necorespunzătoare față de vehiculul din față", PenaltyPoints = 2, OrderIndex = 7 },
+                new Item { FormularId = formular.FormularId, Description = "Poziționare incorectă pe carosabil", PenaltyPoints = 2, OrderIndex = 8 },
+                new Item { FormularId = formular.FormularId, Description = "Folosire necorespunzătoare ambreiaj/frână", PenaltyPoints = 1, OrderIndex = 9 },
+                new Item { FormularId = formular.FormularId, Description = "Oprire/staționare neregulamentară", PenaltyPoints = 2, OrderIndex = 10 }
+            };
+
+            context.Items.AddRange(items);
             context.SaveChanges();
         }
     }

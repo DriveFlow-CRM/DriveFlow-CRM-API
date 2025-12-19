@@ -40,7 +40,7 @@ public sealed class ApplicationDbContextFactory
                  "SslMode=Required;";
 
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                      .UseMySql(cs, ServerVersion.AutoDetect(cs))
+                      .UseMySql(cs, new MySqlServerVersion(new Version(8, 0, 21)))
                       .Options;
 
         return new ApplicationDbContext(options);

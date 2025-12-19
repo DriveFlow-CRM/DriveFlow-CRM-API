@@ -197,4 +197,24 @@ namespace DriveFlow_CRM_API.Models.DTOs
         /// </summary>
         public string Status { get; init; } = default!;
     }
+
+    /// <summary>
+    /// DTO representing an individual exam item (penalty).
+    /// </summary>
+    public sealed record ItemDto(
+        int id_item,
+        string description,
+        int penaltyPoints,
+        int orderIndex
+    );
+
+    /// <summary>
+    /// DTO representing an exam form with its items.
+    /// </summary>
+    public sealed record FormDto(
+        int id_formular,
+        int id_categ,
+        int maxPoints,
+        IEnumerable<ItemDto> items
+    );
 } 

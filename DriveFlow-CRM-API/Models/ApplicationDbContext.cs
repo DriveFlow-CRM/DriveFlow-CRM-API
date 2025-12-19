@@ -56,6 +56,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     /// <summary>Driving lessons and exam appointments.</summary>
     public DbSet<Appointment> Appointments { get; set; }
 
+    /// <summary>Exam forms for teaching categories.</summary>
+    public DbSet<Formular> Formulars { get; set; }
+
+    /// <summary>Exam items (penalties) within forms.</summary>
+    public DbSet<Item> Items { get; set; }
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -222,6 +228,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(j => j.TeachingCategory)
                   .WithMany(tc => tc.ApplicationUserTeachingCategories)
                   .HasForeignKey(j => j.TeachingCategoryId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ───────── TeachingCategory ↔ Formular (1 : 1, cascade) ─────────
+        builder.Entity<Formular>(entity =>
+        {
+            entity.HasOne(f => f.TeachingCategory)
+                  .WithOne()
+                  .HasForeignKey<Formular>(f => f.TeachingCategoryId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ───────── Formular ↔ Item (1 : M, cascade) ─────────
+        builder.Entity<Item>(entity =>
+        {
+            entity.HasOne(i => i.Formular)
+                  .WithMany(f => f.Items)
+                  .HasForeignKey(i => i.FormularId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
     }

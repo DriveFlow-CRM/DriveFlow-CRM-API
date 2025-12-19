@@ -466,6 +466,56 @@ namespace DriveFlow_CRM_API.Migrations
                     b.ToTable("TeachingCategories");
                 });
 
+            modelBuilder.Entity("DriveFlow_CRM_API.Models.Formular", b =>
+                {
+                    b.Property<int>("FormularId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("TeachingCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxPoints")
+                        .HasColumnType("int");
+
+                    b.HasKey("FormularId");
+
+                    b.HasIndex("TeachingCategoryId")
+                        .IsUnique();
+
+                    b.ToTable("Formulars");
+                });
+
+            modelBuilder.Entity("DriveFlow_CRM_API.Models.Item", b =>
+                {
+                    b.Property<int>("ItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("FormularId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("PenaltyPoints")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.HasKey("ItemId");
+
+                    b.HasIndex("FormularId");
+
+                    b.HasIndex("FormularId", "Description")
+                        .IsUnique();
+
+                    b.ToTable("Items");
+                });
+
             modelBuilder.Entity("DriveFlow_CRM_API.Models.Vehicle", b =>
                 {
                     b.Property<int>("VehicleId")
@@ -828,6 +878,28 @@ namespace DriveFlow_CRM_API.Migrations
                     b.Navigation("License");
                 });
 
+            modelBuilder.Entity("DriveFlow_CRM_API.Models.Formular", b =>
+                {
+                    b.HasOne("DriveFlow_CRM_API.Models.TeachingCategory", "TeachingCategory")
+                        .WithOne()
+                        .HasForeignKey("DriveFlow_CRM_API.Models.Formular", "TeachingCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TeachingCategory");
+                });
+
+            modelBuilder.Entity("DriveFlow_CRM_API.Models.Item", b =>
+                {
+                    b.HasOne("DriveFlow_CRM_API.Models.Formular", "Formular")
+                        .WithMany("Items")
+                        .HasForeignKey("FormularId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Formular");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -928,6 +1000,11 @@ namespace DriveFlow_CRM_API.Migrations
                     b.Navigation("ApplicationUserTeachingCategories");
 
                     b.Navigation("Files");
+                });
+
+            modelBuilder.Entity("DriveFlow_CRM_API.Models.Formular", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("DriveFlow_CRM_API.Models.Vehicle", b =>
