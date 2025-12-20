@@ -32,3 +32,24 @@ public sealed record FinalizeResponse(
     int maxPoints,
     string result
 );
+
+/// <summary>DTO for mistake breakdown with item details.</summary>
+public sealed record MistakeBreakdownDto(
+    int id_item,
+    string description,
+    int count,
+    int penaltyPoints
+);
+
+/// <summary>DTO for viewing a complete session form with all details.</summary>
+public sealed record SessionFormViewDto(
+    int id,
+    DateOnly appointmentDate,
+    string studentName,
+    string instructorName,
+    int? totalPoints,
+    int maxPoints,
+    string? result,
+    bool isLocked,
+    IEnumerable<MistakeBreakdownDto> mistakes
+);
