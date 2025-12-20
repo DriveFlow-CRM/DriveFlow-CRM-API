@@ -1,5 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.IO;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace DriveFlow_CRM_API;
 /// <summary>
@@ -8,10 +11,8 @@ namespace DriveFlow_CRM_API;
 /// </summary>
 /// <remarks>
 /// <para>
-/// • Reads the JawsDB connection URI from the <c>JAWSDB_URL</c> environment variable.<br/>
-/// • Converts that URI into a MySQL connection string and configures the Pomelo provider.<br/>
-/// • Throws <see cref="System.InvalidOperationException"/> if <c>JAWSDB_URL</c> is missing
-///   so design-time operations fail fast.
+/// • Resolves the connection string from the standard "DefaultConnection" key (env/appsettings).
+/// • Falls back to converting a JawsDB URI from <c>JAWSDB_URL</c> when needed.
 /// </para>
 /// </remarks>
 
@@ -20,28 +21,41 @@ public sealed class ApplicationDbContextFactory
 {
     private const string JawsVar = "JAWSDB_URL";
 
-    /// <inheritdoc />
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <c>JAWSDB_URL</c> is not defined.
-    /// </exception>
     public ApplicationDbContext CreateDbContext(string[] args)
     {
-        var uriString = Environment.GetEnvironmentVariable(JawsVar)
-                       ?? throw new InvalidOperationException(
-                           $"Environment variable '{JawsVar}' is not set.");
+        DotNetEnv.Env.Load();
 
-        // Convert URI  (mysql://user:pass@host:port/db) → key=value;...
-        var uri = new Uri(uriString);
-        var userPass = uri.UserInfo.Split(':', 2);
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: true)
+            .AddEnvironmentVariables()
+            .Build();
 
-        var cs = $"Server={uri.Host};Port={uri.Port};" +
+        string? cs = null;
+
+        var jawsDbUrl = configuration[JawsVar];
+        if (!string.IsNullOrWhiteSpace(jawsDbUrl))
+        {
+            var uri = new Uri(jawsDbUrl);
+            var userPass = uri.UserInfo.Split(':', 2);
+
+            cs = $"Server={uri.Host};Port={uri.Port};" +
                  $"Database={uri.AbsolutePath.TrimStart('/')};" +
                  $"User ID={userPass[0]};Password={userPass[1]};" +
                  "SslMode=Required;";
+        }
+        else
+        {
+            cs = configuration.GetConnectionString("DefaultConnection");
+        }
+
+        if (string.IsNullOrWhiteSpace(cs))
+            throw new InvalidOperationException(
+                "No database connection configured. Set JAWSDB_URL or ConnectionStrings__DefaultConnection.");
 
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                      .UseMySql(cs, ServerVersion.AutoDetect(cs))
-                      .Options;
+            .UseMySql(cs, ServerVersion.AutoDetect(cs))
+            .Options;
 
         return new ApplicationDbContext(options);
     }
