@@ -94,12 +94,11 @@ public partial class Program
         });
 
         // ───────────────────────────── Database & Identity ────────────────────────────────
-        // 3. Resolve the base connection string from appsettings.json or environment variables.
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        // 3. Resolve the base connection string: prefer JAWSDB_URL, fallback to DefaultConnection.
+        string? connectionString = null;
 
-        // 4. Convert Heroku-style JawsDB URI → MySQL connection string when present.
         var jawsDbUrl = Environment.GetEnvironmentVariable("JAWSDB_URL");
-        if (!string.IsNullOrEmpty(jawsDbUrl))
+        if (!string.IsNullOrWhiteSpace(jawsDbUrl))
         {
             var uri = new Uri(jawsDbUrl);
             connectionString =
@@ -107,6 +106,16 @@ public partial class Program
                 $"User ID={uri.UserInfo.Split(':')[0]};" +
                 $"Password={uri.UserInfo.Split(':')[1]};" +
                 $"Port={uri.Port};SSL Mode=Required;";
+        }
+        else
+        {
+            connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        }
+
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
+                "No database connection configured. Set JAWSDB_URL or ConnectionStrings__DefaultConnection.");
         }
 
         // 5. Register the application's DbContext (Pomelo MySQL provider).

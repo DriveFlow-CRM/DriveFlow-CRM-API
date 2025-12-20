@@ -148,8 +148,7 @@ public sealed class VehicleNegativeTest
         bad.StatusCode.Should().Be(400);
 
         var msg = (string)bad.Value!.GetType().GetProperty("message")!.GetValue(bad.Value)!;
-        msg.Should().Contain("manual")
-           .And.Contain("automatic");
+        msg.Should().ContainAll("MANUAL", "AUTOMATIC"); // Changed to uppercase
     }
 
     // ───────── POST /api/vehicle/create – duplicate plate ─────────

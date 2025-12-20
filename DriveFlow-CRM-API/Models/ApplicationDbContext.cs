@@ -56,6 +56,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     /// <summary>Driving lessons and exam appointments.</summary>
     public DbSet<Appointment> Appointments { get; set; }
 
+    /// <summary>Official exam forms (one per teaching category).</summary>
+    public DbSet<ExamForm> ExamForms { get; set; }
+
+    /// <summary>Individual items/infractions on exam forms.</summary>
+    public DbSet<ExamItem> ExamItems { get; set; }
+
+    /// <summary>Session forms for recording mistakes during driving lessons.</summary>
+    public DbSet<SessionForm> SessionForms { get; set; }
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -207,6 +216,30 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                .HasForeignKey(ia => ia.InstructorId)
                .OnDelete(DeleteBehavior.Cascade);
 
+        // ───────── TeachingCategory ↔ ExamForm (1 : 1, cascade) ─────────
+        builder.Entity<ExamForm>(entity =>
+        {
+            entity.HasIndex(ef => ef.TeachingCategoryId)
+                  .IsUnique();
+
+            entity.HasOne(ef => ef.TeachingCategory)
+                  .WithOne()
+                  .HasForeignKey<ExamForm>(ef => ef.TeachingCategoryId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ───────── ExamForm ↔ ExamItem (1 : M, cascade) ─────────
+        builder.Entity<ExamItem>(entity =>
+        {
+            entity.HasIndex(ei => new { ei.FormId, ei.Description })
+                  .IsUnique();
+
+            entity.HasOne(ei => ei.ExamForm)
+                  .WithMany(ef => ef.Items)
+                  .HasForeignKey(ei => ei.FormId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
         // ───────── ApplicationUserTeachingCategory join (M : N, cascade) ─────────
         builder.Entity<ApplicationUserTeachingCategory>(entity =>
         {
@@ -223,6 +256,23 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                   .WithMany(tc => tc.ApplicationUserTeachingCategories)
                   .HasForeignKey(j => j.TeachingCategoryId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ───────── SessionForm ↔ Appointment (1 : 1, cascade) ─────────
+        builder.Entity<SessionForm>(entity =>
+        {
+            entity.HasIndex(sf => sf.AppointmentId)
+                  .IsUnique();
+
+            entity.HasOne(sf => sf.Appointment)
+                  .WithOne()
+                  .HasForeignKey<SessionForm>(sf => sf.AppointmentId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(sf => sf.ExamForm)
+                  .WithMany()
+                  .HasForeignKey(sf => sf.FormId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

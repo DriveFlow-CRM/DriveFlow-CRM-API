@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DriveFlow_CRM_API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251219212320_AddExamFormAndItems")]
+    partial class AddExamFormAndItems
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -475,48 +478,6 @@ namespace DriveFlow_CRM_API.Migrations
                     b.ToTable("Requests");
                 });
 
-            modelBuilder.Entity("DriveFlow_CRM_API.Models.SessionForm", b =>
-                {
-                    b.Property<int>("SessionFormId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("AppointmentId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("FinalizedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("FormId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsLocked")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("MistakesJson")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Result")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<int?>("TotalPoints")
-                        .HasColumnType("int");
-
-                    b.HasKey("SessionFormId");
-
-                    b.HasIndex("AppointmentId")
-                        .IsUnique();
-
-                    b.HasIndex("FormId");
-
-                    b.ToTable("SessionForms");
-                });
-
             modelBuilder.Entity("DriveFlow_CRM_API.Models.TeachingCategory", b =>
                 {
                     b.Property<int>("TeachingCategoryId")
@@ -903,25 +864,6 @@ namespace DriveFlow_CRM_API.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("AutoSchool");
-                });
-
-            modelBuilder.Entity("DriveFlow_CRM_API.Models.SessionForm", b =>
-                {
-                    b.HasOne("DriveFlow_CRM_API.Models.Appointment", "Appointment")
-                        .WithOne()
-                        .HasForeignKey("DriveFlow_CRM_API.Models.SessionForm", "AppointmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DriveFlow_CRM_API.Models.ExamForm", "ExamForm")
-                        .WithMany()
-                        .HasForeignKey("FormId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Appointment");
-
-                    b.Navigation("ExamForm");
                 });
 
             modelBuilder.Entity("DriveFlow_CRM_API.Models.TeachingCategory", b =>
