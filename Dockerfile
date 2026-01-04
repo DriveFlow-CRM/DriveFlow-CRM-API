@@ -4,6 +4,9 @@ WORKDIR /source
 # Copy only the API project
 COPY DriveFlow-CRM-API/ ./
 
+# Move into the actual project directory (contains the csproj)
+WORKDIR /source/DriveFlow-CRM-API
+
 # Configure NuGet properly
 RUN mkdir -p /root/.nuget/NuGet && \
     echo '<?xml version="1.0" encoding="utf-8"?><configuration><packageSources><clear /><add key="nuget.org" value="https://api.nuget.org/v3/index.json" /></packageSources></configuration>' > /root/.nuget/NuGet/NuGet.Config
