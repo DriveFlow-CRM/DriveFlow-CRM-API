@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -337,8 +338,8 @@ public class InstructorController : ControllerBase
     /// <response code="200">Items stats retrieved successfully.</response>
     /// <response code="401">User is not authenticated.</response>
     /// <response code="403">User is not authorized to access these appointments.</response>
-    [HttpGet("{instructorId}/stats/cohort/{from}/{to}")]
-    public async Task<ActionResult<InstructorCohortStatsDto>> GetInstructorCohortStats(int instructorId,DateTime from,DateTime to )
+    [HttpGet("{instructorId}/stats/cohort")]
+    public async Task<ActionResult<string>> GetInstructorCohortStats(string instructorId)
     {
 
         // 1. Get authenticated user's ID
@@ -353,6 +354,55 @@ public class InstructorController : ControllerBase
         {
             return Forbid(); // Return 403 Forbidden if trying to access another instructor's data
         }
+
+        DateTime from,to;
+
+        if (Request.Query.ContainsKey("from")) {
+            var fromStr = Request.Query["from"].ToString();
+            if(!DateTime.TryParse(fromStr, out from))
+            {
+                return BadRequest("Invalid 'from' date format.");
+            }
+        }
+        else
+        {
+            from = DateTime.MinValue;
+        }
+
+        if (Request.Query.ContainsKey("to"))
+        {
+            var toStr = Request.Query["to"].ToString();
+            if (!DateTime.TryParse(toStr, out to))
+            {
+                return BadRequest("Invalid 'to' date format.");
+            }
+        }
+        else
+        {
+            to = DateTime.Now;
+        }
+
+
+        var obj = _db.SessionForms
+                .Where(s => s.SessionFormId == 2)
+                .Select(s => s.MistakesJson).ToList().First().ToString();
+
+
+        try
+        {
+            List<(int id_item, int count)> items = System.Text.Json.JsonSerializer.Deserialize<List<(int id_item, int count)>>(obj)!;
+        }catch(Exception ex)
+        {
+            return BadRequest("Deserialization error: " + ex.Message);
+        }
+        return Ok("Passed Deserialization"); 
+
+
+
+
+
+
+
 
         var sessionForms = await _db.SessionForms
             .Include(f=>f.Appointment)
@@ -445,14 +495,32 @@ public class InstructorController : ControllerBase
 
 
 
-public record Bucket(
+/// <summary>
+/// Histogram bucket used by cohort statistics endpoints.
+/// </summary>
+/// <remarks>
+/// Human‑readable label describes the score range (for example "0-10", "11-20", "21+")
+/// and <c>count</c> contains the number of session forms that fall into that bucket.
+/// </remarks>
+/// <param name="bucket">Bucket label (presentation string).</param>
+/// <param name="count">Number of items/sessions in the bucket.</param>
+public sealed class Bucket(
     string bucket,
     int count
 );
 
-
-
-public record StudentItemAgg(
+/// <summary>
+/// Per‑student aggregation of exam items (mistakes) occurring in the cohort.
+/// </summary>
+/// <remarks>
+/// Contains the student identifier and display name together with a sequence of
+/// tuples where each tuple is the exam item id and its aggregated occurrence count
+/// for that student.
+/// </remarks>
+/// <param name="studentId">Primary key / identifier of the student.</param>
+/// <param name="studentName">Display name for the student (suitable for UI).</param>
+/// <param name="items">Sequence of tuples (<c>id_item</c>, <c>count</c>) representing item id and aggregated count.</param>
+public sealed class StudentItemAgg(
     int studentId,
     string studentName,
     IEnumerable<(
@@ -460,8 +528,17 @@ public record StudentItemAgg(
         int count)>
             items);
 
-
-public record InstructorCohortStatsDto(
+/// <summary>
+/// Top‑level DTO returned by the instructor cohort statistics endpoint.
+/// </summary>
+/// <remarks>
+/// Bundles a histogram of total points, per‑student top item aggregations and the
+/// cohort failure rate.  The <c>failureRate</c> is expressed as a fraction (0.0 - 1.0).
+/// </remarks>
+/// <param name="histogramTotalPoints">Score distribution as an ordered sequence of <see cref="Bucket"/>.</param>
+/// <param name="topItemsByStudent">Per‑student aggregated mistake counts.</param>
+/// <param name="failureRate">Failure rate expressed as a fraction between 0 and 1.</param>
+public sealed class InstructorCohortStatsDto(
     IEnumerable<Bucket> histogramTotalPoints,
     IEnumerable<StudentItemAgg> topItemsByStudent,
     double failureRate
