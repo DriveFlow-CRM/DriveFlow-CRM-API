@@ -316,7 +316,158 @@ public class InstructorController : ControllerBase
 
         return Ok(appointments);
     }
+
+    /// <summary>
+    /// Retrieves a distribution chart of mistakes made by students in a specific cohort.
+    /// </summary>
+    /// <remarks>
+    /// <para><strong>Sample response</strong></para>
+    ///
+    /// ``` json
+    ///{
+    ///  "histogramTotalPoints": [ { "bucket": "0-10", "count": 5 }, { "bucket": "21+", "count": 3 } ],
+    ///  "topItemsByStudent": [
+    ///    { "studentId": 101, "studentName": "Ionescu Maria", "items": [ { "id_item": 2, "count": 5 } ] }
+    ///  ],
+    ///  "failureRate": 0.37
+    ///}
+    /// ```
+    /// </remarks>
+    /// <param name="instructorId">The ID of the instructor whose appointments to retrieve</param>
+    /// <response code="200">Items stats retrieved successfully.</response>
+    /// <response code="401">User is not authenticated.</response>
+    /// <response code="403">User is not authorized to access these appointments.</response>
+    [HttpGet("{instructorId}/stats/cohort/{from}/{to}")]
+    public async Task<ActionResult<InstructorCohortStatsDto>> GetInstructorCohortStats(int instructorId,DateTime from,DateTime to )
+    {
+
+        // 1. Get authenticated user's ID
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+     
+        if (!User.IsInRole("Instructor"))
+        {
+            return Forbid(); // Return 403 Forbidden if trying to access another instructor's data
+        }
+
+        var sessionForms = await _db.SessionForms
+            .Include(f=>f.Appointment)
+                .ThenInclude(a=>a.File)
+                    .ThenInclude(fi=>fi.Student)
+            .Include(f => f.ExamForm)
+                .ThenInclude(e=>e.Items)
+            .Where(f => f.Appointment.File.InstructorId == userId
+                        && f.Appointment.Date >= from
+                        && f.Appointment.Date <= to)
+            .AsNoTracking()
+            .ToListAsync();
+
+        int bucket1 = 0;
+        int bucket2 = 0;
+        int bucket3 = 0;
+        float failCount = 0;
+
+        foreach(var student in sessionForms.GroupBy(s=>s.Appointment.File.Student))
+        {
+            var itemAgg = student.SelectMany(s => s.ExamForm.Items)
+                                 .GroupBy(i => i.ItemId)
+                                 .Select(g => (id_item: g.Key, count: g.Count()))
+                                 .ToList();
+
+
+        }
+
+        foreach ( var form in sessionForms)
+        {
+            var items = form.ExamForm?.Items;
+            if(form.TotalPoints <=10)
+            {
+                bucket1++;
+            }
+            else if(form.TotalPoints <=20)
+            {
+                bucket2++;
+            }
+            else
+            {
+                bucket3++;
+            }
+            if(form.TotalPoints >= form.ExamForm.MaxPoints)
+            {
+                failCount++;
+            }
+        }
+
+        if(sessionForms.Count == 0)
+        {
+            return Ok(new InstructorCohortStatsDto(
+                new List<Bucket>()
+                {
+                    new Bucket("0-10", 0),
+                    new Bucket("11-20", 0),
+                    new Bucket("21+", 0)
+                },
+                new List<StudentItemAgg>(),
+                0));
+        }
+        float failureRate = (float)Math.Round((float)failCount / sessionForms.Count, 2);
+
+
+
+
+        // 3. Query files with required joins
+        //var files = await _db.Files
+        //    .Where(f => f.InstructorId == instructorId)
+        //    .Include(f => f.Student)
+        //    .Include(f => f.Vehicle)
+        //    .Include(f => f.TeachingCategory)
+        //        .ThenInclude(tc => tc.License)
+        //    .AsNoTracking()
+        //    .ToListAsync();
+
+
+
+        // 4. Map to DTOs after materializing the query, with additional null checks
+
+
+        return Ok(null);
+    }
+
+
 }
+
+
+
+
+
+
+public record Bucket(
+    string bucket,
+    int count
+);
+
+
+
+public record StudentItemAgg(
+    int studentId,
+    string studentName,
+    IEnumerable<(
+        int id_item,
+        int count)>
+            items);
+
+
+public record InstructorCohortStatsDto(
+    IEnumerable<Bucket> histogramTotalPoints,
+    IEnumerable<StudentItemAgg> topItemsByStudent,
+    double failureRate
+);
+
+
 
 /// <summary>
 /// DTO for instructor assigned file information
