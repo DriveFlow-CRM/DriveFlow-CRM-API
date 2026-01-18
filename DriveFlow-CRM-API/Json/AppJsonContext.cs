@@ -113,6 +113,7 @@ namespace DriveFlow_CRM_API.Json
     [JsonSerializable(typeof(List<Bucket>))]
     [JsonSerializable(typeof(StudentItemAgg))]
     [JsonSerializable(typeof(List<StudentItemAgg>))]
+    [JsonSerializable(typeof(List<(int,int)>))]
     [JsonSerializable(typeof(InstructorCohortStatsDto))]
 
     // ───────────────────── INSTRUCTOR CATEGORIES CONTROLLER ─────────────────────

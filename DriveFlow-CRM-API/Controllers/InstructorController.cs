@@ -322,15 +322,81 @@ public class InstructorController : ControllerBase
     /// Retrieves a distribution chart of mistakes made by students in a specific cohort.
     /// </summary>
     /// <remarks>
-    /// <para><strong>Sample response</strong></para>
+    /// <para><strong>Sample response for</strong></para>
     ///
-    /// ``` json
-    ///{
-    ///  "histogramTotalPoints": [ { "bucket": "0-10", "count": 5 }, { "bucket": "21+", "count": 3 } ],
-    ///  "topItemsByStudent": [
-    ///    { "studentId": 101, "studentName": "Ionescu Maria", "items": [ { "id_item": 2, "count": 5 } ] }
+    /// ``` 
+    ///    {
+    ///  "histogramtotalpoints": [
+    ///    {
+    ///      "bucket": "0-10",
+    ///      "count": 0
+    ///    },
+    ///    {
+    ///      "bucket": "11-20",
+    ///      "count": 3
+    ///    },
+    ///    {
+    ///    "bucket": "21+",
+    ///      "count": 3
+    ///    }
     ///  ],
-    ///  "failureRate": 0.37
+    ///  "topitemsbystudent": [
+    ///    {
+    ///      "studentid": "419decbe-6af1-4d84-9b45-c1ef796f4604",
+    ///      "studentname": "Mihail Constantin",
+    ///      "items": [
+    ///        {
+    ///          "id_item": 20,
+    ///          "count": 2
+    ///        },
+    ///        {
+    ///    "id_item": 11,
+    ///          "count": 1
+    ///        },
+    ///        {
+    ///    "id_item": 21,
+    ///          "count": 1
+    ///        }
+    ///      ]
+    ///    },
+    ///    {
+    ///    "studentid": "419decbe-6af1-4d84-9b45-c1ef796f4605",
+    ///      "studentname": "Ana Absinte",
+    ///      "items": [
+    ///        {
+    ///        "id_item": 5,
+    ///          "count": 2
+    ///        },
+    ///        {
+    ///        "id_item": 38,
+    ///          "count": 2
+    ///        },
+    ///        {
+    ///        "id_item": 15,
+    ///          "count": 2
+    ///        }
+    ///      ]
+    ///    },
+    ///    {
+    ///    "studentid": "419decbe-6af1-4d84-9b45-c1ef796f4606",
+    ///      "studentname": "Sandu Ilie",
+    ///      "items": [
+    ///        {
+    ///        "id_item": 73,
+    ///          "count": 3
+    ///        },
+    ///        {
+    ///        "id_item": 76,
+    ///          "count": 1
+    ///        },
+    ///        {
+    ///        "id_item": 78,
+    ///          "count": 1
+    ///        }
+    ///      ]
+    ///    }
+    ///  ],
+    ///  "failureRate": 0.5
     ///}
     /// ```
     /// </remarks>
@@ -339,7 +405,7 @@ public class InstructorController : ControllerBase
     /// <response code="401">User is not authenticated.</response>
     /// <response code="403">User is not authorized to access these appointments.</response>
     [HttpGet("{instructorId}/stats/cohort")]
-    public async Task<ActionResult<string>> GetInstructorCohortStats(string instructorId)
+    public async Task<ActionResult<InstructorCohortStatsDto>> GetInstructorCohortStats(string instructorId)
     {
 
         // 1. Get authenticated user's ID
@@ -383,76 +449,40 @@ public class InstructorController : ControllerBase
         }
 
 
-        var obj = _db.SessionForms
-                .Where(s => s.SessionFormId == 2)
-                .Select(s => s.MistakesJson).ToList().First().ToString();
+        //var obj = _db.SessionForms
+        //        .Where(s => s.SessionFormId == 2)
+        //        .Select(s => s.MistakesJson).ToList().First().ToString();
 
 
-        try
-        {
-            List<(int id_item, int count)> items = System.Text.Json.JsonSerializer.Deserialize<List<(int id_item, int count)>>(obj)!;
-        }catch(Exception ex)
-        {
-            return BadRequest("Deserialization error: " + ex.Message);
-        }
-        return Ok("Passed Deserialization"); 
-
-
-
-
+        //try
+        //{
+        //    List<(int id_item, int count)> items = System.Text.Json.JsonSerializer.Deserialize<List<(int id_item, int count)>>(obj)!;
+        //}catch(Exception ex)
+        //{
+        //    return BadRequest("Deserialization error: " + ex.Message);
+        //}
 
 
 
 
         var sessionForms = await _db.SessionForms
-            .Include(f=>f.Appointment)
-                .ThenInclude(a=>a.File)
-                    .ThenInclude(fi=>fi.Student)
-            .Include(f => f.ExamForm)
-                .ThenInclude(e=>e.Items)
-            .Where(f => f.Appointment.File.InstructorId == userId
+            .Where(f => f.Appointment.File.InstructorId == instructorId
                         && f.Appointment.Date >= from
-                        && f.Appointment.Date <= to)
+                        && f.Appointment.Date <= to.AddYears(2))
+            .Select(f => new
+            {
+                f.TotalPoints,
+                f.MistakesJson,
+                f.Result,
+                f.Appointment.File.StudentId,
+                f.Appointment.File.Student.FirstName,
+                f.Appointment.File.Student.LastName,
+            })
             .AsNoTracking()
             .ToListAsync();
 
-        int bucket1 = 0;
-        int bucket2 = 0;
-        int bucket3 = 0;
-        float failCount = 0;
 
-        foreach(var student in sessionForms.GroupBy(s=>s.Appointment.File.Student))
-        {
-            var itemAgg = student.SelectMany(s => s.ExamForm.Items)
-                                 .GroupBy(i => i.ItemId)
-                                 .Select(g => (id_item: g.Key, count: g.Count()))
-                                 .ToList();
-
-
-        }
-
-        foreach ( var form in sessionForms)
-        {
-            var items = form.ExamForm?.Items;
-            if(form.TotalPoints <=10)
-            {
-                bucket1++;
-            }
-            else if(form.TotalPoints <=20)
-            {
-                bucket2++;
-            }
-            else
-            {
-                bucket3++;
-            }
-            if(form.TotalPoints >= form.ExamForm.MaxPoints)
-            {
-                failCount++;
-            }
-        }
-
-        if(sessionForms.Count == 0)
+        if (sessionForms.Count == 0)
         {
             return Ok(new InstructorCohortStatsDto(
                 new List<Bucket>()
@@ -464,88 +494,171 @@ public class InstructorController : ControllerBase
                 new List<StudentItemAgg>(),
                 0));
         }
-        float failureRate = (float)Math.Round((float)failCount / sessionForms.Count, 2);
+        ///0-10 | 11-20 | 21+ points buckets
+        int bucket1 = 0;
+        int bucket2 = 0;
+        int bucket3 = 0;
+
+        foreach(var se in sessionForms)
+        {
+            if(se.TotalPoints <=10)
+            {
+                bucket1++;
+            }
+            else if(se.TotalPoints <=20)
+            {
+                bucket2++;
+            }
+            else
+            {
+                bucket3++;
+            }
+        }
+        var studentMistakesAgg = new List<StudentItemAgg>();
+
+        List<(string, string)> students = sessionForms
+          .Select(s => (s.StudentId, s.FirstName + " " + s.LastName))
+          .Distinct()
+          .ToList();
 
 
 
 
-        // 3. Query files with required joins
-        //var files = await _db.Files
-        //    .Where(f => f.InstructorId == instructorId)
-        //    .Include(f => f.Student)
-        //    .Include(f => f.Vehicle)
-        //    .Include(f => f.TeachingCategory)
-        //        .ThenInclude(tc => tc.License)
-        //    .AsNoTracking()
-        //    .ToListAsync();
+        foreach (var student in students)
+        {
+            Dictionary<int, int> allMistakes = new Dictionary<int, int>();
+            List<string> mistakesjson = sessionForms
+                .Where(se => se.StudentId == student.Item1)
+                .Select(se => se.MistakesJson)
+                .ToList();
+            foreach (string mistake in mistakesjson)
+            {
+                List<StudentItem> items = System.Text.Json.JsonSerializer.Deserialize<List<StudentItem>>(mistake)!;
+                if(items.Count==0)
+                {
+                    continue;
+                }
+
+                foreach (var pair in items)
+                {
+                    if (allMistakes.ContainsKey(pair.id_item))
+                    {
+                        allMistakes[pair.id_item] = allMistakes[pair.id_item] + pair.count;
+                    }
+                    else
+                    {
+                        allMistakes.Add(pair.id_item, pair.count);
+                    }
+                }
+            }
+
+
+            var top = allMistakes
+                .OrderByDescending(kv => kv.Value)
+                .Take(3)
+                .Select(kv => (kv.Key, kv.Value))
+                .ToList();
+
+            List<StudentItem> topItems = new List<StudentItem>();   
+            foreach (var t in top)
+            {
+                topItems.Add( new StudentItem(t.Item1, t.Item2));
+            }
+
+            studentMistakesAgg.Add(new StudentItemAgg(student.Item1, student.Item2, topItems ));
+        }
 
 
 
-        // 4. Map to DTOs after materializing the query, with additional null checks
+
+        float failureRate = 0;
+        failureRate = float.Round((float)sessionForms.Where(s=>s.Result=="FAILED").Count() / sessionForms.Count() ,2);
 
 
-        return Ok(null);
+        //return Ok(studentMistakesAgg[);
+
+        return Ok(new InstructorCohortStatsDto(
+            new List<Bucket>()
+            {
+                new Bucket("0-10", bucket1),
+                new Bucket("11-20", bucket2),
+                new Bucket("21+", bucket3)
+            },
+            studentMistakesAgg,
+            failureRate));
     }
 
 
 }
 
+public sealed class Bucket
+{
+    /// <summary>Bucket label (presentation string).</summary>
+    public string bucket { get; init; }
+
+    /// <summary>Number of items/sessions in the bucket.</summary>
+    public int count { get; init; }
+
+    public Bucket(string bucket, int count)
+    {
+        this.bucket = bucket;
+        this.count = count;
+    }
+}
 
 
 
+public sealed class StudentItem
+{
+    /// <summary>Primary key / identifier of the student (Identity user id).</summary>
+    public int id_item { get; init; }
+
+    /// <summary>Display name for the student (suitable for UI).</summary>
+    public int count { get; init; }
+
+    public StudentItem(int id_item, int count)
+    {
+        this.id_item= id_item;
+        this.count = count;
+    }
+}
 
 
-/// <summary>
-/// Histogram bucket used by cohort statistics endpoints.
-/// </summary>
-/// <remarks>
-/// Human‑readable label describes the score range (for example "0-10", "11-20", "21+")
-/// and <c>count</c> contains the number of session forms that fall into that bucket.
-/// </remarks>
-/// <param name="bucket">Bucket label (presentation string).</param>
-/// <param name="count">Number of items/sessions in the bucket.</param>
-public sealed class Bucket(
-    string bucket,
-    int count
-);
+public sealed class StudentItemAgg
+{
+    /// <summary>Primary key / identifier of the student (Identity user id).</summary>
+    public string studentid { get; init; }
 
-/// <summary>
-/// Per‑student aggregation of exam items (mistakes) occurring in the cohort.
-/// </summary>
-/// <remarks>
-/// Contains the student identifier and display name together with a sequence of
-/// tuples where each tuple is the exam item id and its aggregated occurrence count
-/// for that student.
-/// </remarks>
-/// <param name="studentId">Primary key / identifier of the student.</param>
-/// <param name="studentName">Display name for the student (suitable for UI).</param>
-/// <param name="items">Sequence of tuples (<c>id_item</c>, <c>count</c>) representing item id and aggregated count.</param>
-public sealed class StudentItemAgg(
-    int studentId,
-    string studentName,
-    IEnumerable<(
-        int id_item,
-        int count)>
-            items);
+    /// <summary>Display name for the student (suitable for UI).</summary>
+    public string studentname { get; init; }
 
-/// <summary>
-/// Top‑level DTO returned by the instructor cohort statistics endpoint.
-/// </summary>
-/// <remarks>
-/// Bundles a histogram of total points, per‑student top item aggregations and the
-/// cohort failure rate.  The <c>failureRate</c> is expressed as a fraction (0.0 - 1.0).
-/// </remarks>
-/// <param name="histogramTotalPoints">Score distribution as an ordered sequence of <see cref="Bucket"/>.</param>
-/// <param name="topItemsByStudent">Per‑student aggregated mistake counts.</param>
-/// <param name="failureRate">Failure rate expressed as a fraction between 0 and 1.</param>
-public sealed class InstructorCohortStatsDto(
-    IEnumerable<Bucket> histogramTotalPoints,
-    IEnumerable<StudentItemAgg> topItemsByStudent,
-    double failureRate
-);
+    public IEnumerable<StudentItem> items { get; init; } 
+    public StudentItemAgg(string studentid, string studentname, IEnumerable<StudentItem> items)
+    {
+        this.studentid = studentid;
+        this.studentname = studentname;
+        this.items = items;
+    }
+}
 
+public sealed class InstructorCohortStatsDto
+{
+    /// <summary>Score distribution as an ordered sequence of <see cref="Bucket"/>.</summary>
+    public IEnumerable<Bucket> histogramtotalpoints { get; init; } = Array.Empty<Bucket>();
 
+    /// <summary>Per‑student aggregated mistake counts.</summary>
+    public IEnumerable<StudentItemAgg> topitemsbystudent { get; init; } = Array.Empty<StudentItemAgg>();
 
+    /// <summary>Failure rate expressed as a fraction between 0 and 1.</summary>
+    public double failureRate { get; init; }
+
+    public InstructorCohortStatsDto(IEnumerable<Bucket> histogramtotalpoints, IEnumerable<StudentItemAgg> topitemsbystudent, double failurerate)
+    {
+        this.histogramtotalpoints = histogramtotalpoints ?? Array.Empty<Bucket>();
+        this.topitemsbystudent = topitemsbystudent ?? Array.Empty<StudentItemAgg>();
+        this.failureRate = failurerate;
+    }
+}
 /// <summary>
 /// DTO for instructor assigned file information
 /// </summary>
