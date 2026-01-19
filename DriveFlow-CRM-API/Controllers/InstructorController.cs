@@ -21,7 +21,7 @@ namespace DriveFlow_CRM_API.Controllers;
 /// </remarks>
 [ApiController]
 [Route("api/instructor")]
-[Authorize(Roles = "Instructor")]
+[Authorize(Roles = "Instructor,SchoolAdmin")]
 public class InstructorController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
@@ -74,6 +74,7 @@ public class InstructorController : ControllerBase
     /// <response code="401">User is not authenticated.</response>
     /// <response code="403">User is not authorized to access these files.</response>
     [HttpGet("{instructorId}/fetchInstructorAssignedFiles")]
+    [Authorize(Roles = "Instructor")]
     public async Task<ActionResult<IEnumerable<InstructorAssignedFileDto>>> FetchInstructorAssignedFiles(string instructorId)
     {
         // 1. Get authenticated user's ID
@@ -159,6 +160,8 @@ public class InstructorController : ControllerBase
     /// <response code="401">User is not authenticated.</response>
     /// <response code="404">File not found or not assigned to the authenticated instructor.</response>
     [HttpGet("fetchFileDetails/{fileId:int}")]
+    [Authorize(Roles = "Instructor")]
+
     public async Task<ActionResult<InstructorFileDetailsDto>> FetchFileDetails(int fileId)
     {
         // 1. Get authenticated user's ID
@@ -322,6 +325,8 @@ public class InstructorController : ControllerBase
     /// Retrieves a distribution chart of mistakes made by students in a specific cohort.
     /// </summary>
     /// <remarks>
+    /// Can also accept request parameters 'from' and 'to' to filter by appointment date range.
+    /// e.g., /api/instructor/{instructorId}/stats/cohort?from=2024-01-01&to=2024-12-31
     /// <para><strong>Sample response for</strong></para>
     ///
     /// ``` 
@@ -405,6 +410,8 @@ public class InstructorController : ControllerBase
     /// <response code="401">User is not authenticated.</response>
     /// <response code="403">User is not authorized to access these appointments.</response>
     [HttpGet("{instructorId}/stats/cohort")]
+    [Authorize(Roles = "Instructor,SchoolAdmin")]
+
     public async Task<ActionResult<InstructorCohortStatsDto>> GetInstructorCohortStats(string instructorId)
     {
 
@@ -415,10 +422,24 @@ public class InstructorController : ControllerBase
             return Unauthorized();
         }
 
-     
-        if (!User.IsInRole("Instructor"))
+        
+        if (User.IsInRole("Instructor") && userId != instructorId )
         {
-            return Forbid(); // Return 403 Forbidden if trying to access another instructor's data
+            return Forbid("You cannot see other cohorts than your own."); // Return 403 Forbidden if trying to access another instructor's data
+        }
+
+        if(User.IsInRole("SchoolAdmin"))
+        {
+            int? schoolId = _db.Users.Where(u => u.Id == userId)
+                .Select(u => u.AutoSchoolId)
+                .FirstOrDefault();
+            int? instructorSchoolId = _db.Users.Where(u => u.Id == instructorId)
+                .Select(u => u.AutoSchoolId)
+                .FirstOrDefault();
+            if(schoolId==null || instructorSchoolId==null || schoolId!=instructorSchoolId)
+                return Forbid("You can only see cohorts from your own auto school.");
+            
+
         }
 
         DateTime from,to;
