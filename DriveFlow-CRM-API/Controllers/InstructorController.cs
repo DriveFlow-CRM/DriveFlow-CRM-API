@@ -325,9 +325,7 @@ public class InstructorController : ControllerBase
     /// Retrieves a distribution chart of mistakes made by students in a specific cohort.
     /// </summary>
     /// <remarks>
-    /// Can also accept request parameters 'from' and 'to' to filter by appointment date range.
-    /// e.g., /api/instructor/{instructorId}/stats/cohort?from=2024-01-01&to=2024-12-31
-    /// <para><strong>Sample response for  419decbe-6af1-4d84-9b45-c1ef796f4607 </strong></para>
+    /// <para><strong>Sample response for 419decbe-6af1-4d84-9b45-c1ef796f4607</strong></para>
     ///
     /// ``` 
     ///    {
@@ -404,9 +402,7 @@ public class InstructorController : ControllerBase
     ///  "failureRate": 0.5
     ///}
     /// ```
-    /// 
     /// </remarks>
-    /// 
     /// <param name="instructorId">The ID of the instructor whose appointments to retrieve</param>
     /// <response code="200">Items stats retrieved successfully.</response>
     /// <response code="401">User is not authenticated.</response>
