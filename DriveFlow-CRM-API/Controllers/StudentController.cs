@@ -1,16 +1,17 @@
 using DriveFlow_CRM_API.Models;
+using DriveFlow_CRM_API.Models.DTOs;
+using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using File = DriveFlow_CRM_API.Models.File;
-using DriveFlow_CRM_API.Models.DTOs;
-using System.ComponentModel.DataAnnotations;
 
 namespace DriveFlow_CRM_API.Controllers;
 
@@ -23,7 +24,6 @@ namespace DriveFlow_CRM_API.Controllers;
 /// </remarks>
 [ApiController]
 [Route("api/student")]
-[Authorize(Roles = "Student")]
 public class StudentController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
@@ -70,6 +70,8 @@ public class StudentController : ControllerBase
     /// <response code="401">User is not authenticated.</response>
     /// <response code="403">User is not authorized to access these files.</response>
     [HttpGet("{studentId}/files")]
+    [Authorize(Roles = "Student")]
+
     public async Task<ActionResult<IEnumerable<StudentFileDto>>> GetStudentFiles(string studentId)
     {
         // 1. Get authenticated user's ID
@@ -176,6 +178,8 @@ public class StudentController : ControllerBase
     /// <response code="403">User is not authorized to access this file.</response>
     /// <response code="404">File with the specified ID was not found.</response>
     [HttpGet("file-details/{fileId}")]
+    [Authorize(Roles = "Student")]
+
     public async Task<ActionResult<FileDetailsDto>> GetStudentFileDetails(int fileId)
     {
         // 1. Get authenticated user's ID
@@ -319,6 +323,8 @@ public class StudentController : ControllerBase
     /// <response code="200">Future appointments retrieved successfully. Returns empty array if no appointments found.</response>
     /// <response code="401">User is not authenticated.</response>
     [HttpGet("future-appointments")]
+    [Authorize(Roles = "Student")]
+
     public async Task<ActionResult<IEnumerable<StudentAppointmentDto>>> GetFutureAppointments()
     {
         // 1. Get authenticated user's ID
@@ -394,6 +400,8 @@ public class StudentController : ControllerBase
     /// <response code="200">All appointments retrieved successfully. Returns empty array if no appointments found.</response>
     /// <response code="401">User is not authenticated.</response>
     [HttpGet("all-appointments")]
+    [Authorize(Roles = "Student")]
+
     public async Task<ActionResult<IEnumerable<StudentAppointmentFullDto>>> GetAllAppointments()
     {
         // 1. Get authenticated user's ID
@@ -477,6 +485,8 @@ public class StudentController : ControllerBase
     /// <response code="403">User is not authorized to access this file</response>
     /// <response code="404">File not found</response>
     [HttpGet("files/{fileId}/available-slots")]
+    [Authorize(Roles = "Student")]
+
     public async Task<ActionResult<AvailableSlotsDto>> GetAvailableSlots(int fileId, [FromQuery] DateTime date)
     {
         // 1. Get authenticated user's ID
@@ -616,34 +626,343 @@ public class StudentController : ControllerBase
         });
     }
 
-    #endregion
-
-    #region POST Methods
 
     /// <summary>
-    /// Creates a new appointment for the authenticated student's file
+    /// Retrieves aggregated mistake statistics for the specified student over an optional date range.
     /// </summary>
     /// <remarks>
-    /// Creates a new appointment after validating instructor and vehicle availability.
-    /// <para>
-    /// <strong>Sample request</strong>:
-    /// </para>
-    /// <code>
+    /// Authorization:
+    /// - Student: allowed only for their own id (otherwise 403).
+    /// - Instructor: allowed only for students assigned to the instructor (a File linking instructor and student must exist).
+    /// - SchoolAdmin: allowed only for students in the same AutoSchool as the admin.
+    ///
+    /// Query parameters:
+    /// - <c>from</c> (optional) — inclusive start date (ISO 8601 or any DateTime.Parseable value). If omitted, the earliest date is used.
+    /// - <c>to</c>   (optional) — inclusive end date (ISO 8601 or any DateTime.Parseable value). If omitted, DateTime.Now is used.
+    ///
+    /// <para><strong>Sample response format</strong>:</para>
+    /// ``` json
     /// {
-    ///   "date": "2025-05-15",
-    ///   "startHour": "09:00",
-    ///   "endHour": "10:30"
+    ///   "series": [
+    ///     {
+    ///       "date": "2025-11-21",
+    ///       "totalPoints": 42,
+    ///       "topItems": [
+    ///         {
+    ///           "id_item": 5,
+    ///           "count": 2
+    ///         }
+    ///       ]
+    ///     },
+    ///     {
+    ///       "date": "2025-12-21",
+    ///       "totalPoints": 73,
+    ///       "topItems": [
+    ///         {
+    ///           "id_item": 38,
+    ///           "count": 2
+    ///         }
+    ///       ]
+    ///     },
+    ///     {
+    ///       "date": "2026-01-18",
+    ///       "totalPoints": 17,
+    ///       "topItems": [
+    ///         {
+    ///           "id_item": 6,
+    ///           "count": 2
+    ///         }
+    ///       ]
+    ///     }
+    ///   ],
+    ///   "heatmap": {
+    ///     "items": [
+    ///       1,
+    ///       5,
+    ///       10,
+    ///       29,
+    ///       38,
+    ///       15,
+    ///       33,
+    ///       6
+    ///     ],
+    ///     "sessions": [
+    ///       3,
+    ///       4,
+    ///       5
+    ///     ],
+    ///     "counts": [
+    ///       [
+    ///         1,
+    ///         2,
+    ///         1,
+    ///         0,
+    ///         0,
+    ///         0,
+    ///         0,
+    ///         0
+    ///       ],
+    ///       [
+    ///         0,
+    ///         0,
+    ///         0,
+    ///         1,
+    ///         2,
+    ///         2,
+    ///         0,
+    ///         0
+    ///       ],
+    ///       [
+    ///         0,
+    ///         0,
+    ///         0,
+    ///         0,
+    ///         0,
+    ///         0,
+    ///         1,
+    ///         2
+    ///       ]
+    ///     ]
+    ///   },
+    ///   "movingAverage": [
+    ///     {
+    ///       "date": "2025-11-21",
+    ///       "avg": 42
+    ///     },
+    ///     {
+    ///       "date": "2025-12-21",
+    ///       "avg": 57.5
+    ///     },
+    ///     {
+    ///       "date": "2026-01-18",
+    ///       "avg": 24.83
+    ///     }
+    ///   ]
     /// }
-    /// </code>
+    /// ```
     /// </remarks>
-    /// <param name="fileId">ID of the student's file</param>
-    /// <param name="createDto">Appointment details</param>
-    /// <response code="201">Appointment created successfully</response>
-    /// <response code="400">Invalid data, scheduling conflict, or file has no instructor/teaching category assigned</response>
-    /// <response code="401">User is not authenticated</response>
-    /// <response code="403">User is not authorized to access this file</response>
-    /// <response code="404">File not found</response>
+    /// <param name="id_student">Student identifier for which statistics are computed.</param>
+    /// <response code="200">Statistics computed successfully.</response>
+    /// <response code="401">Requesting user is not authenticated.</response>
+    /// <response code="403">Requesting user is not authorized to view the requested student's statistics.</response>
+    [HttpGet("{id_student}/stats/mistakes")]
+    [Authorize(Roles = "Student, Instructor, SchoolAdmin")]
+    public async Task<ActionResult<StudentMistakeStatsDto>> GetStudentMistakeStats(string id_student)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        //return Ok(userId);
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        if (User.IsInRole("Student") && userId != id_student)
+        {
+            return Forbid();
+        }
+        // If the user is an instructor, then there must 
+        // exist a file with both their IDs
+
+        if (User.IsInRole("Instructor"))
+        {
+            bool exists = await _db.Files.AnyAsync(f => f.StudentId == id_student && f.InstructorId == userId);
+            if (!exists)
+            {
+                return Forbid();
+            }
+        }
+        if (User.IsInRole("SchoolAdmin"))
+        {
+            int? studentSchoolId = await _db.ApplicationUsers
+                .Where(u => u.Id == id_student)
+                .Select(u => u.AutoSchoolId)
+                .FirstOrDefaultAsync();
+            int? adminSchoolId = await _db.ApplicationUsers
+                        .Where(u => u.Id == userId)
+                    .Select(u => u.AutoSchoolId)
+                    .FirstOrDefaultAsync();
+            if (studentSchoolId == null || adminSchoolId == null || studentSchoolId != adminSchoolId)
+                return Forbid();
+        }
+        DateTime from, to;
+
+        if (Request.Query.ContainsKey("from"))
+        {
+            var fromStr = Request.Query["from"].ToString();
+            if (!DateTime.TryParse(fromStr, out from))
+            {
+                return BadRequest();
+            }
+        }
+        else
+        {
+            from = DateTime.MinValue;
+        }
+
+        if (Request.Query.ContainsKey("to"))
+        {
+            var toStr = Request.Query["to"].ToString();
+            if (!DateTime.TryParse(toStr, out to))
+            {
+                return BadRequest();
+            }
+        }
+        else
+        {
+            to = DateTime.Now;
+        }
+
+        var sessionForms = await _db.SessionForms
+                .Where(se =>
+                    se.Appointment.File.StudentId == id_student &&
+                    se.CreatedAt >= from &&
+                    se.CreatedAt <= to)
+                .Select(se => new
+                {
+                    se.SessionFormId,
+                    se.CreatedAt,
+                    se.TotalPoints,
+                    se.MistakesJson
+                })
+                .ToListAsync();
+
+
+        if (sessionForms.Count == 0)
+        {
+            return Ok(new StudentMistakeStatsDto()
+            {
+                series = new List<SeriesPoint>(),
+                heatmap = new HeatmapDto(null, null, null),
+                movingAverage = new List<MovingAvgPoint>()
+            });
+        }
+
+
+        List<SeriesPoint> seriesPoints = new List<SeriesPoint>();
+        List<MovingAvgPoint> movingAverage = new List<MovingAvgPoint>();
+        double average = 0;
+        int avgCoount = 1;
+
+
+
+        List<(int,MistakeEntry)> allMistakes = new List<(int,MistakeEntry)>();
+        Dictionary<int,int> dict = new Dictionary<int,int>();
+        int poz = 0;
+
+        foreach (var session in sessionForms)
+        {
+            List<MistakeEntry> mistakes = System.Text.Json.JsonSerializer
+                .Deserialize<List<MistakeEntry>>(session.MistakesJson) ?? new List<MistakeEntry>();
+
+            List<MistakeEntry> top = new List<MistakeEntry>();
+
+            if (mistakes != null && mistakes.Count > 0)
+            {
+                top = mistakes.OrderByDescending(m => m.count).Take(1).ToList();
+            }
+
+            seriesPoints.Add(new SeriesPoint
+            {
+                date = DateOnly.FromDateTime((DateTime)session.CreatedAt),
+                totalPoints = session.TotalPoints ?? 0,
+                topItems = top
+            });
+
+            average = double.Round((average + session.TotalPoints ?? 0) / avgCoount++,2);
+            DateOnly date = DateOnly.FromDateTime((DateTime)session.CreatedAt);
+            movingAverage.Add(new MovingAvgPoint(date, average));
+
+            foreach (var mistake in mistakes)
+            {
+                allMistakes.Add((session.SessionFormId,mistake));
+                if(!dict.ContainsKey(mistake.id_item))
+                {
+                    dict[mistake.id_item] = poz++;
+                }
+            }
+        }
+        var sessionIndexes = sessionForms.Select(s => s.SessionFormId).Distinct().ToArray<int>();
+
+
+
+        Dictionary<int, int> dIndexes = new Dictionary<int, int>();
+        var x = 0;
+        foreach(var _index in sessionIndexes)
+        {
+            dIndexes[_index] = x++;
+        }
+
+        //return Ok(dIndexes);
+
+
+
+
+
+        int[][] counts = new int[sessionIndexes.Length][];
+        for (int i = 0; i < sessionIndexes.Length; i++)
+        {
+            counts[i] = new int[poz];
+        }
+        int[] itemids = new int[poz];
+        int index = 0;
+
+        //return Ok(counts);
+
+
+        foreach (var entry in allMistakes)
+        {
+            counts[dIndexes[entry.Item1]][dict[entry.Item2.id_item]] = entry.Item2.count;
+        }
+
+        itemids = dict.OrderBy(kv => kv.Value).Select(kv => kv.Key).ToArray<int>();
+        HeatmapDto heatmapData = new HeatmapDto(itemids, sessionIndexes, counts);
+
+        return Ok(new StudentMistakeStatsDto(seriesPoints, heatmapData, movingAverage));
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+    #endregion
+
+#region POST Methods
+
+/// <summary>
+/// Creates a new appointment for the authenticated student's file
+/// </summary>
+/// <remarks>
+/// Creates a new appointment after validating instructor and vehicle availability.
+/// <para>
+/// <strong>Sample request</strong>:
+/// </para>
+/// <code>
+/// {
+///   "date": "2025-05-15",
+///   "startHour": "09:00",
+///   "endHour": "10:30"
+/// }
+/// </code>
+/// </remarks>
+/// <param name="fileId">ID of the student's file</param>
+/// <param name="createDto">Appointment details</param>
+/// <response code="201">Appointment created successfully</response>
+/// <response code="400">Invalid data, scheduling conflict, or file has no instructor/teaching category assigned</response>
+/// <response code="401">User is not authenticated</response>
+/// <response code="403">User is not authorized to access this file</response>
+/// <response code="404">File not found</response>
     [HttpPost("files/{fileId}/appointments")]
+    [Authorize(Roles = "Student")]
+
     public async Task<IActionResult> CreateAppointment(int fileId, [FromBody] CreateAppointmentDto createDto)
     {
         // 1. Get authenticated user's ID
@@ -807,6 +1126,8 @@ public class StudentController : ControllerBase
     /// <response code="403">User is not authorized to update this appointment</response>
     /// <response code="404">Appointment not found</response>
     [HttpPut("appointments/update/{appointmentId}")]
+    [Authorize(Roles = "Student")]
+
     public async Task<IActionResult> UpdateAppointment(int appointmentId, [FromBody] UpdateAppointmentDto updateDto)
     {
         // 1. Get authenticated user's ID
@@ -955,6 +1276,8 @@ public class StudentController : ControllerBase
     /// <response code="403">User is not authorized to delete this appointment</response>
     /// <response code="404">Appointment not found</response>
     [HttpDelete("appointments/delete/{appointmentId}")]
+    [Authorize(Roles = "Student")]
+
     public async Task<IActionResult> DeleteAppointment(int appointmentId)
     {
         // 1. Get authenticated user's ID
@@ -1204,4 +1527,105 @@ public class TimeSlotDto
     public string EndHour { get; init; } = string.Empty;
 }
 
-#endregion 
+/// <summary>
+/// Point in the time series: date, total points and top mistake items for that day.
+/// </summary>
+public sealed class SeriesPoint
+{
+    /// <summary>Date of the series point.</summary>
+    public DateOnly date { get; init; }
+
+    /// <summary>Total penalty points for the date.</summary>
+    public int totalPoints { get; init; }
+
+    /// <summary>
+    /// Top mistake items as a sequence of tuples where Item1 = id_item and Item2 = count.
+    /// </summary>
+    public IEnumerable<MistakeEntry> topItems { get; init; }
+
+    public SeriesPoint()
+    {
+
+    }
+
+
+
+    public SeriesPoint(DateOnly date, int totalPoints, IEnumerable<MistakeEntry> topItems)
+    {
+        this.date = date;
+        this.totalPoints = totalPoints;
+        this.topItems = topItems ;
+    }
+}
+
+/// <summary>
+/// Heatmap payload containing item and session axes and a matrix of counts.
+/// </summary>
+public sealed class HeatmapDto
+{
+    /// <summary>Item identifiers included on the heatmap X axis.</summary>
+    public int[] items { get; init; }
+
+    /// <summary>Session identifiers included on the heatmap Y axis.</summary>
+    public int[] sessions { get; init; }
+
+    /// <summary>Counts matrix: rows correspond to Sessions, columns to Items.</summary>
+    public int[][] counts { get; init; }
+
+
+    public HeatmapDto(int[] items, int[] sessions, int[][] counts)
+    {
+        this.items = items ?? new int[0];
+        this.sessions = sessions ?? new int[0] ;
+        this.counts = counts ?? new int[0][];
+    }
+}
+
+/// <summary>
+/// Single point for moving average series.
+/// </summary>
+public sealed class MovingAvgPoint
+{
+    /// <summary>Date of the moving-average point.</summary>
+    public DateOnly date { get; init; }
+
+    /// <summary>Average value for the date.</summary>
+    public double avg { get; init; }
+
+    public MovingAvgPoint(DateOnly date, double avg)
+    {
+        this.date = date;
+        this.avg = avg;
+    }
+}
+
+/// <summary>
+/// Top-level DTO that aggregates series, heatmap and moving average for student mistake statistics.
+/// </summary>
+public sealed class StudentMistakeStatsDto
+{
+    /// <summary>Time series points (ordered).</summary>
+    public IEnumerable<SeriesPoint> series { get; init; } = Array.Empty<SeriesPoint>();
+
+    /// <summary>Heatmap data for mistake distribution.</summary>
+    public HeatmapDto heatmap { get; init; } = new HeatmapDto(Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int[]>());
+
+    /// <summary>Moving average series points.</summary>
+    public IEnumerable<MovingAvgPoint> movingAverage { get; init; } = Array.Empty<MovingAvgPoint>();
+
+    public StudentMistakeStatsDto(IEnumerable<SeriesPoint>? series, HeatmapDto? heatmap, IEnumerable<MovingAvgPoint>? movingAverage)
+    {
+        this.series = series ?? Array.Empty<SeriesPoint>();
+        this.heatmap = heatmap ?? new HeatmapDto(Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int[]>());
+        this.movingAverage = movingAverage ?? Array.Empty<MovingAvgPoint>();
+    }
+
+    public StudentMistakeStatsDto()
+    {
+        this.series = Array.Empty<SeriesPoint>();
+        this.heatmap = new HeatmapDto(Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int[]>());
+        this.movingAverage = Array.Empty<MovingAvgPoint>();
+    }
+}
+
+#endregion

@@ -327,7 +327,7 @@ public class InstructorController : ControllerBase
     /// <remarks>
     /// Can also accept request parameters 'from' and 'to' to filter by appointment date range.
     /// e.g., /api/instructor/{instructorId}/stats/cohort?from=2024-01-01&to=2024-12-31
-    /// <para><strong>Sample response for</strong></para>
+    /// <para><strong>Sample response for  419decbe-6af1-4d84-9b45-c1ef796f4607 </strong></para>
     ///
     /// ``` 
     ///    {
@@ -404,7 +404,9 @@ public class InstructorController : ControllerBase
     ///  "failureRate": 0.5
     ///}
     /// ```
+    /// 
     /// </remarks>
+    /// 
     /// <param name="instructorId">The ID of the instructor whose appointments to retrieve</param>
     /// <response code="200">Items stats retrieved successfully.</response>
     /// <response code="401">User is not authenticated.</response>
@@ -425,7 +427,7 @@ public class InstructorController : ControllerBase
         
         if (User.IsInRole("Instructor") && userId != instructorId )
         {
-            return Forbid("You cannot see other cohorts than your own."); // Return 403 Forbidden if trying to access another instructor's data
+            return Forbid(); 
         }
 
         if(User.IsInRole("SchoolAdmin"))
@@ -437,7 +439,7 @@ public class InstructorController : ControllerBase
                 .Select(u => u.AutoSchoolId)
                 .FirstOrDefault();
             if(schoolId==null || instructorSchoolId==null || schoolId!=instructorSchoolId)
-                return Forbid("You can only see cohorts from your own auto school.");
+                return Forbid();
             
 
         }
@@ -448,7 +450,7 @@ public class InstructorController : ControllerBase
             var fromStr = Request.Query["from"].ToString();
             if(!DateTime.TryParse(fromStr, out from))
             {
-                return BadRequest("Invalid 'from' date format.");
+                return BadRequest();
             }
         }
         else
@@ -461,7 +463,7 @@ public class InstructorController : ControllerBase
             var toStr = Request.Query["to"].ToString();
             if (!DateTime.TryParse(toStr, out to))
             {
-                return BadRequest("Invalid 'to' date format.");
+                return BadRequest();
             }
         }
         else
@@ -554,7 +556,7 @@ public class InstructorController : ControllerBase
                 .ToList();
             foreach (string mistake in mistakesjson)
             {
-                List<StudentItem> items = System.Text.Json.JsonSerializer.Deserialize<List<StudentItem>>(mistake)!;
+                List<MistakeEntry> items = System.Text.Json.JsonSerializer.Deserialize<List<MistakeEntry>>(mistake)!;
                 if(items.Count==0)
                 {
                     continue;
@@ -576,14 +578,14 @@ public class InstructorController : ControllerBase
 
             var top = allMistakes
                 .OrderByDescending(kv => kv.Value)
-                .Take(3)
+                .Take(1)      //can be changed, depending how many we want
                 .Select(kv => (kv.Key, kv.Value))
                 .ToList();
 
-            List<StudentItem> topItems = new List<StudentItem>();   
+            List<MistakeEntry> topItems = new List<MistakeEntry>();   
             foreach (var t in top)
             {
-                topItems.Add( new StudentItem(t.Item1, t.Item2));
+                topItems.Add( new MistakeEntry(t.Item1, t.Item2));
             }
 
             studentMistakesAgg.Add(new StudentItemAgg(student.Item1, student.Item2, topItems ));
@@ -629,22 +631,6 @@ public sealed class Bucket
 
 
 
-public sealed class StudentItem
-{
-    /// <summary>Primary key / identifier of the student (Identity user id).</summary>
-    public int id_item { get; init; }
-
-    /// <summary>Display name for the student (suitable for UI).</summary>
-    public int count { get; init; }
-
-    public StudentItem(int id_item, int count)
-    {
-        this.id_item= id_item;
-        this.count = count;
-    }
-}
-
-
 public sealed class StudentItemAgg
 {
     /// <summary>Primary key / identifier of the student (Identity user id).</summary>
@@ -653,8 +639,8 @@ public sealed class StudentItemAgg
     /// <summary>Display name for the student (suitable for UI).</summary>
     public string studentname { get; init; }
 
-    public IEnumerable<StudentItem> items { get; init; } 
-    public StudentItemAgg(string studentid, string studentname, IEnumerable<StudentItem> items)
+    public IEnumerable<MistakeEntry> items { get; init; } 
+    public StudentItemAgg(string studentid, string studentname, IEnumerable<MistakeEntry> items)
     {
         this.studentid = studentid;
         this.studentname = studentname;
