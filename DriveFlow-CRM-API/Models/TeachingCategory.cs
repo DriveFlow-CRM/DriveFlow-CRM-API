@@ -65,6 +65,7 @@ public class TeachingCategory
     /// <summary>Files linked to this category (set-null on delete).</summary>
     public virtual ICollection<File> Files { get; set; } = new List<File>();
 
+
     /// <summary>
     /// Join entities that map students/instructors to this category
     /// (cascades on delete).

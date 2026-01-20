@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -316,8 +317,348 @@ public class InstructorController : ControllerBase
 
         return Ok(appointments);
     }
+
+    /// <summary>
+    /// Retrieves a distribution chart of mistakes made by students in a specific cohort.
+    /// </summary>
+    /// <remarks>
+    /// <para><strong>Sample response for</strong></para>
+    ///
+    /// ``` 
+    ///    {
+    ///  "histogramtotalpoints": [
+    ///    {
+    ///      "bucket": "0-10",
+    ///      "count": 0
+    ///    },
+    ///    {
+    ///      "bucket": "11-20",
+    ///      "count": 3
+    ///    },
+    ///    {
+    ///    "bucket": "21+",
+    ///      "count": 3
+    ///    }
+    ///  ],
+    ///  "topitemsbystudent": [
+    ///    {
+    ///      "studentid": "419decbe-6af1-4d84-9b45-c1ef796f4604",
+    ///      "studentname": "Mihail Constantin",
+    ///      "items": [
+    ///        {
+    ///          "id_item": 20,
+    ///          "count": 2
+    ///        },
+    ///        {
+    ///    "id_item": 11,
+    ///          "count": 1
+    ///        },
+    ///        {
+    ///    "id_item": 21,
+    ///          "count": 1
+    ///        }
+    ///      ]
+    ///    },
+    ///    {
+    ///    "studentid": "419decbe-6af1-4d84-9b45-c1ef796f4605",
+    ///      "studentname": "Ana Absinte",
+    ///      "items": [
+    ///        {
+    ///        "id_item": 5,
+    ///          "count": 2
+    ///        },
+    ///        {
+    ///        "id_item": 38,
+    ///          "count": 2
+    ///        },
+    ///        {
+    ///        "id_item": 15,
+    ///          "count": 2
+    ///        }
+    ///      ]
+    ///    },
+    ///    {
+    ///    "studentid": "419decbe-6af1-4d84-9b45-c1ef796f4606",
+    ///      "studentname": "Sandu Ilie",
+    ///      "items": [
+    ///        {
+    ///        "id_item": 73,
+    ///          "count": 3
+    ///        },
+    ///        {
+    ///        "id_item": 76,
+    ///          "count": 1
+    ///        },
+    ///        {
+    ///        "id_item": 78,
+    ///          "count": 1
+    ///        }
+    ///      ]
+    ///    }
+    ///  ],
+    ///  "failureRate": 0.5
+    ///}
+    /// ```
+    /// </remarks>
+    /// <param name="instructorId">The ID of the instructor whose appointments to retrieve</param>
+    /// <response code="200">Items stats retrieved successfully.</response>
+    /// <response code="401">User is not authenticated.</response>
+    /// <response code="403">User is not authorized to access these appointments.</response>
+    [HttpGet("{instructorId}/stats/cohort")]
+    public async Task<ActionResult<InstructorCohortStatsDto>> GetInstructorCohortStats(string instructorId)
+    {
+
+        // 1. Get authenticated user's ID
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+     
+        if (!User.IsInRole("Instructor"))
+        {
+            return Forbid(); // Return 403 Forbidden if trying to access another instructor's data
+        }
+
+        DateTime from,to;
+
+        if (Request.Query.ContainsKey("from")) {
+            var fromStr = Request.Query["from"].ToString();
+            if(!DateTime.TryParse(fromStr, out from))
+            {
+                return BadRequest("Invalid 'from' date format.");
+            }
+        }
+        else
+        {
+            from = DateTime.MinValue;
+        }
+
+        if (Request.Query.ContainsKey("to"))
+        {
+            var toStr = Request.Query["to"].ToString();
+            if (!DateTime.TryParse(toStr, out to))
+            {
+                return BadRequest("Invalid 'to' date format.");
+            }
+        }
+        else
+        {
+            to = DateTime.Now;
+        }
+
+
+        //var obj = _db.SessionForms
+        //        .Where(s => s.SessionFormId == 2)
+        //        .Select(s => s.MistakesJson).ToList().First().ToString();
+
+
+        //try
+        //{
+        //    List<(int id_item, int count)> items = System.Text.Json.JsonSerializer.Deserialize<List<(int id_item, int count)>>(obj)!;
+        //}catch(Exception ex)
+        //{
+        //    return BadRequest("Deserialization error: " + ex.Message);
+        //}
+
+
+
+
+        var sessionForms = await _db.SessionForms
+            .Where(f => f.Appointment.File.InstructorId == instructorId
+                        && f.Appointment.Date >= from
+                        && f.Appointment.Date <= to.AddYears(2))
+            .Select(f => new
+            {
+                f.TotalPoints,
+                f.MistakesJson,
+                f.Result,
+                f.Appointment.File.StudentId,
+                f.Appointment.File.Student.FirstName,
+                f.Appointment.File.Student.LastName,
+            })
+            .AsNoTracking()
+            .ToListAsync();
+
+
+        if (sessionForms.Count == 0)
+        {
+            return Ok(new InstructorCohortStatsDto(
+                new List<Bucket>()
+                {
+                    new Bucket("0-10", 0),
+                    new Bucket("11-20", 0),
+                    new Bucket("21+", 0)
+                },
+                new List<StudentItemAgg>(),
+                0));
+        }
+        ///0-10 | 11-20 | 21+ points buckets
+        int bucket1 = 0;
+        int bucket2 = 0;
+        int bucket3 = 0;
+
+        foreach(var se in sessionForms)
+        {
+            if(se.TotalPoints <=10)
+            {
+                bucket1++;
+            }
+            else if(se.TotalPoints <=20)
+            {
+                bucket2++;
+            }
+            else
+            {
+                bucket3++;
+            }
+        }
+        var studentMistakesAgg = new List<StudentItemAgg>();
+
+        List<(string, string)> students = sessionForms
+          .Select(s => (s.StudentId, s.FirstName + " " + s.LastName))
+          .Distinct()
+          .ToList();
+
+
+
+
+        foreach (var student in students)
+        {
+            Dictionary<int, int> allMistakes = new Dictionary<int, int>();
+            List<string> mistakesjson = sessionForms
+                .Where(se => se.StudentId == student.Item1)
+                .Select(se => se.MistakesJson)
+                .ToList();
+            foreach (string mistake in mistakesjson)
+            {
+                List<StudentItem> items = System.Text.Json.JsonSerializer.Deserialize<List<StudentItem>>(mistake)!;
+                if(items.Count==0)
+                {
+                    continue;
+                }
+
+                foreach (var pair in items)
+                {
+                    if (allMistakes.ContainsKey(pair.id_item))
+                    {
+                        allMistakes[pair.id_item] = allMistakes[pair.id_item] + pair.count;
+                    }
+                    else
+                    {
+                        allMistakes.Add(pair.id_item, pair.count);
+                    }
+                }
+            }
+
+
+            var top = allMistakes
+                .OrderByDescending(kv => kv.Value)
+                .Take(3)
+                .Select(kv => (kv.Key, kv.Value))
+                .ToList();
+
+            List<StudentItem> topItems = new List<StudentItem>();   
+            foreach (var t in top)
+            {
+                topItems.Add( new StudentItem(t.Item1, t.Item2));
+            }
+
+            studentMistakesAgg.Add(new StudentItemAgg(student.Item1, student.Item2, topItems ));
+        }
+
+
+
+
+        float failureRate = 0;
+        failureRate = float.Round((float)sessionForms.Where(s=>s.Result=="FAILED").Count() / sessionForms.Count() ,2);
+
+
+        //return Ok(studentMistakesAgg[);
+
+        return Ok(new InstructorCohortStatsDto(
+            new List<Bucket>()
+            {
+                new Bucket("0-10", bucket1),
+                new Bucket("11-20", bucket2),
+                new Bucket("21+", bucket3)
+            },
+            studentMistakesAgg,
+            failureRate));
+    }
+
+
 }
 
+public sealed class Bucket
+{
+    /// <summary>Bucket label (presentation string).</summary>
+    public string bucket { get; init; }
+
+    /// <summary>Number of items/sessions in the bucket.</summary>
+    public int count { get; init; }
+
+    public Bucket(string bucket, int count)
+    {
+        this.bucket = bucket;
+        this.count = count;
+    }
+}
+
+
+
+public sealed class StudentItem
+{
+    /// <summary>Primary key / identifier of the student (Identity user id).</summary>
+    public int id_item { get; init; }
+
+    /// <summary>Display name for the student (suitable for UI).</summary>
+    public int count { get; init; }
+
+    public StudentItem(int id_item, int count)
+    {
+        this.id_item= id_item;
+        this.count = count;
+    }
+}
+
+
+public sealed class StudentItemAgg
+{
+    /// <summary>Primary key / identifier of the student (Identity user id).</summary>
+    public string studentid { get; init; }
+
+    /// <summary>Display name for the student (suitable for UI).</summary>
+    public string studentname { get; init; }
+
+    public IEnumerable<StudentItem> items { get; init; } 
+    public StudentItemAgg(string studentid, string studentname, IEnumerable<StudentItem> items)
+    {
+        this.studentid = studentid;
+        this.studentname = studentname;
+        this.items = items;
+    }
+}
+
+public sealed class InstructorCohortStatsDto
+{
+    /// <summary>Score distribution as an ordered sequence of <see cref="Bucket"/>.</summary>
+    public IEnumerable<Bucket> histogramtotalpoints { get; init; } = Array.Empty<Bucket>();
+
+    /// <summary>Per‑student aggregated mistake counts.</summary>
+    public IEnumerable<StudentItemAgg> topitemsbystudent { get; init; } = Array.Empty<StudentItemAgg>();
+
+    /// <summary>Failure rate expressed as a fraction between 0 and 1.</summary>
+    public double failureRate { get; init; }
+
+    public InstructorCohortStatsDto(IEnumerable<Bucket> histogramtotalpoints, IEnumerable<StudentItemAgg> topitemsbystudent, double failurerate)
+    {
+        this.histogramtotalpoints = histogramtotalpoints ?? Array.Empty<Bucket>();
+        this.topitemsbystudent = topitemsbystudent ?? Array.Empty<StudentItemAgg>();
+        this.failureRate = failurerate;
+    }
+}
 /// <summary>
 /// DTO for instructor assigned file information
 /// </summary>
