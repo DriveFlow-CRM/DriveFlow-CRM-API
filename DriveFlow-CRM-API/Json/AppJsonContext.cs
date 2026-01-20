@@ -59,6 +59,8 @@ namespace DriveFlow_CRM_API.Json
     [JsonSerializable(typeof(CreateAutoSchoolDto))]
     [JsonSerializable(typeof(NewAutoSchoolDto))]
     [JsonSerializable(typeof(NewSchoolAdminDto))]
+    [JsonSerializable(typeof(MoneyDto))]
+    [JsonSerializable(typeof(SchoolKpisDto))]
 
     // ───────────────────────── VEHICLE CONTROLLER ─────────────────────────
     [JsonSerializable(typeof(VehicleDto))]

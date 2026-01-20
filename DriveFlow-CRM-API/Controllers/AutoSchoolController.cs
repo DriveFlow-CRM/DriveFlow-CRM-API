@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DriveFlow_CRM_API.Models;
+using Humanizer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
-using DriveFlow_CRM_API.Models;
 using System.Data;
+using System.Security.Claims;
 
 
 namespace DriveFlow_CRM_API.Controllers;
@@ -145,6 +146,160 @@ public class AutoSchoolController : ControllerBase
 
         return Ok(schools);
     }
+
+
+
+
+    /// <summary>
+    /// Returns KPI metrics for the specified driving school.
+    /// </summary>
+    /// <remarks>
+    /// Accessible to authenticated users with the <c>SchoolAdmin</c> role. The caller must belong to the requested school; otherwise the call returns <c>403 Forbidden</c>.
+    ///
+    /// Optional query parameters (use as query string):
+    /// - <c>from</c> (DateTime): start of the period to include. If omitted defaults to <c>DateTime.MinValue</c>.
+    /// - <c>to</c> (DateTime): end of the period to include. If omitted defaults to the current server time.
+    ///
+    /// <para><strong>Sample response (schoolId = 1)</strong></para>
+    ///
+    /// ```json
+    /// {
+    ///   "lessons": 180,
+    ///   "hours": 270,
+    ///   "cancellationRate": 0.2,
+    ///   "failureRate": 0.2,
+    ///   "revenue": {
+    ///     "currency": "RON",
+    ///     "amount": 32830
+    ///   }
+    /// }
+    /// ```
+    /// </remarks>
+    /// <param name="schoolId">Identifier of the school (from the route).</param>
+    /// <response code="200">KPI metrics returned successfully.</response>
+    /// <response code="400">Invalid query parameter (malformed <c>from</c> or <c>to</c> date).</response>
+    /// <response code="401">No valid JWT supplied.</response>
+    /// <response code="403">Authenticated user is not authorized to access this school's KPIs.</response>
+    [HttpGet("{schoolId}/stats/kpis")]
+    [Authorize(Roles = "SchoolAdmin")]
+
+    public async Task<ActionResult<SchoolKpisDto>> GetSchoolKpis(int schoolId)
+    {
+        // 1. Get authenticated user's ID
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        // 2. Check if caller is Instructor role and verify access rights if so
+        bool isSchoolAdmin = User.IsInRole("SchoolAdmin");
+        if (!isSchoolAdmin || schoolId != _db.Users.Find(userId)!.AutoSchoolId)
+        {
+            return Forbid(); // Return 403 Forbidden if instructor trying to access another instructor's data
+        }
+
+        DateTime from, to;
+
+        if (Request.Query.ContainsKey("from"))
+        {
+            var fromStr = Request.Query["from"].ToString();
+            if (!DateTime.TryParse(fromStr, out from))
+            {
+                return BadRequest();
+            }
+        }
+        else
+        {
+            from = DateTime.MinValue;
+        }
+
+        if (Request.Query.ContainsKey("to"))
+        {
+            var toStr = Request.Query["to"].ToString();
+            if (!DateTime.TryParse(toStr, out to))
+            {
+                return BadRequest();
+            }
+        }
+        else
+        {
+            to = DateTime.Now;
+        }
+        /*
+         * 
+         * public enum FileStatus
+{
+    APPROVED, =0
+    ARCHIVED, =1 
+    EXPIRED, =2 
+    FINALISED =3
+}
+
+         * */
+
+
+        var fullPayments = await _db.Payments
+            .Include(f => f.File)
+                .ThenInclude(f=>f.TeachingCategory)
+            .Select(f=>new {
+                f.ScholarshipBasePayment,
+                f.SessionsPayed,
+                //f.FileId,
+                f.File.Status,
+                f.File.TeachingCategory!.ScholarshipPrice,
+                f.File.TeachingCategory.SessionCost,
+                f.File.TeachingCategory.SessionDuration,
+            })
+            .ToListAsync();
+        int lessons = 0;
+        int minutes = 0;
+        decimal revenue = 0;
+        double cancellationRate = 0;
+        double failureRate = 0;
+
+        foreach(var payment in fullPayments)
+        {
+            lessons += payment.SessionsPayed;
+            minutes += payment.SessionsPayed * payment.SessionDuration;
+            revenue += (payment.ScholarshipBasePayment ? payment.ScholarshipPrice : 0 )+ (payment.SessionsPayed * payment.SessionCost);
+            switch (payment.Status)
+            {
+                case FileStatus.ARCHIVED:
+                    cancellationRate += 1;
+                    break;
+                case FileStatus.EXPIRED:
+                    failureRate += 1;
+                    break;
+            }
+        }
+        cancellationRate = fullPayments.Count > 0 ? (cancellationRate / fullPayments.Count)  : 0;
+        failureRate = fullPayments.Count > 0 ? (failureRate / fullPayments.Count): 0;
+        cancellationRate = Double.Round(cancellationRate , 2);
+        failureRate = Double.Round(failureRate , 2);
+        revenue = Decimal.Round(revenue, 2);
+
+        int hours = minutes / 60;
+        return Ok(new SchoolKpisDto(
+            lessons,
+            hours,
+            cancellationRate,
+            failureRate,
+            new MoneyDto("RON", revenue))
+        );
+
+    }
+
+
+
+
+
+
+
+
+
+
+
     // ────────────────────────────── POST AUTO-SCHOOL ──────────────────────────────
     /// <summary>
     /// Creates a new driving-school together with its <c>SchoolAdmin</c> account
@@ -648,7 +803,39 @@ public sealed class NewSchoolAdminDto
 {
     public string FirstName { get; init; } = default!;
     public string LastName { get; init; } = default!;
-    public string Email { get; init; } = default!;
+    public string Email { get; init; } = default!; 
     public string Phone { get; init; } = default!;
     public string Password { get; init; } = default!;
 }
+
+
+public sealed class MoneyDto
+{
+    public string currency { get; init; } = default!;
+    public decimal amount { get; init; }
+
+    public MoneyDto(string currency, decimal amount)
+    {
+        this.currency = currency;
+        this.amount = amount;
+    }
+}
+
+public sealed class SchoolKpisDto
+{
+    public int lessons { get; init; }
+    public int hours { get; init; }
+    public double cancellationRate { get; init; }
+    public double failureRate { get; init; }
+    public MoneyDto revenue { get; init; } = default!;
+
+    public SchoolKpisDto(int lessons, int hours, double cancellationRate, double failureRate, MoneyDto revenue)
+    {
+        this.lessons = lessons;
+        this.hours = hours;
+        this.cancellationRate = cancellationRate;
+        this.failureRate = failureRate;
+        this.revenue = revenue ;
+    }
+}
+
