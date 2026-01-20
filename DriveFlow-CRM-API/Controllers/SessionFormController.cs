@@ -383,7 +383,7 @@ public class SessionFormController : ControllerBase
             if (req.delta > 0)
             {
                 newCount = req.delta;
-                mistakes.Add(new MistakeEntry { id_item = req.id_item, count = newCount });
+                mistakes.Add(new MistakeEntry(req.id_item,newCount ));
             }
             else
             {
@@ -691,8 +691,15 @@ public class SessionFormController : ControllerBase
 }
 
 /// <summary>Internal class for JSON serialization of mistake entries.</summary>
-internal class MistakeEntry
+public sealed class MistakeEntry
 {
     public int id_item { get; set; }
     public int count { get; set; }
+
+    public MistakeEntry(int id_item, int count)
+    {
+        this.id_item = id_item;
+        this.count = count;
+    }
+
 }

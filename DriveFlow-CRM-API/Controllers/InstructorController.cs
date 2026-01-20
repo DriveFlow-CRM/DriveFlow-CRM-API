@@ -21,7 +21,7 @@ namespace DriveFlow_CRM_API.Controllers;
 /// </remarks>
 [ApiController]
 [Route("api/instructor")]
-[Authorize(Roles = "Instructor")]
+[Authorize(Roles = "Instructor,SchoolAdmin")]
 public class InstructorController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
@@ -74,6 +74,7 @@ public class InstructorController : ControllerBase
     /// <response code="401">User is not authenticated.</response>
     /// <response code="403">User is not authorized to access these files.</response>
     [HttpGet("{instructorId}/fetchInstructorAssignedFiles")]
+    [Authorize(Roles = "Instructor")]
     public async Task<ActionResult<IEnumerable<InstructorAssignedFileDto>>> FetchInstructorAssignedFiles(string instructorId)
     {
         // 1. Get authenticated user's ID
@@ -159,6 +160,8 @@ public class InstructorController : ControllerBase
     /// <response code="401">User is not authenticated.</response>
     /// <response code="404">File not found or not assigned to the authenticated instructor.</response>
     [HttpGet("fetchFileDetails/{fileId:int}")]
+    [Authorize(Roles = "Instructor")]
+
     public async Task<ActionResult<InstructorFileDetailsDto>> FetchFileDetails(int fileId)
     {
         // 1. Get authenticated user's ID
@@ -322,7 +325,7 @@ public class InstructorController : ControllerBase
     /// Retrieves a distribution chart of mistakes made by students in a specific cohort.
     /// </summary>
     /// <remarks>
-    /// <para><strong>Sample response for</strong></para>
+    /// <para><strong>Sample response for 419decbe-6af1-4d84-9b45-c1ef796f4607</strong></para>
     ///
     /// ``` 
     ///    {
@@ -405,6 +408,8 @@ public class InstructorController : ControllerBase
     /// <response code="401">User is not authenticated.</response>
     /// <response code="403">User is not authorized to access these appointments.</response>
     [HttpGet("{instructorId}/stats/cohort")]
+    [Authorize(Roles = "Instructor,SchoolAdmin")]
+
     public async Task<ActionResult<InstructorCohortStatsDto>> GetInstructorCohortStats(string instructorId)
     {
 
@@ -415,10 +420,24 @@ public class InstructorController : ControllerBase
             return Unauthorized();
         }
 
-     
-        if (!User.IsInRole("Instructor"))
+        
+        if (User.IsInRole("Instructor") && userId != instructorId )
         {
-            return Forbid(); // Return 403 Forbidden if trying to access another instructor's data
+            return Forbid(); 
+        }
+
+        if(User.IsInRole("SchoolAdmin"))
+        {
+            int? schoolId = _db.Users.Where(u => u.Id == userId)
+                .Select(u => u.AutoSchoolId)
+                .FirstOrDefault();
+            int? instructorSchoolId = _db.Users.Where(u => u.Id == instructorId)
+                .Select(u => u.AutoSchoolId)
+                .FirstOrDefault();
+            if(schoolId==null || instructorSchoolId==null || schoolId!=instructorSchoolId)
+                return Forbid();
+            
+
         }
 
         DateTime from,to;
@@ -427,7 +446,7 @@ public class InstructorController : ControllerBase
             var fromStr = Request.Query["from"].ToString();
             if(!DateTime.TryParse(fromStr, out from))
             {
-                return BadRequest("Invalid 'from' date format.");
+                return BadRequest();
             }
         }
         else
@@ -440,7 +459,7 @@ public class InstructorController : ControllerBase
             var toStr = Request.Query["to"].ToString();
             if (!DateTime.TryParse(toStr, out to))
             {
-                return BadRequest("Invalid 'to' date format.");
+                return BadRequest();
             }
         }
         else
@@ -533,7 +552,7 @@ public class InstructorController : ControllerBase
                 .ToList();
             foreach (string mistake in mistakesjson)
             {
-                List<StudentItem> items = System.Text.Json.JsonSerializer.Deserialize<List<StudentItem>>(mistake)!;
+                List<MistakeEntry> items = System.Text.Json.JsonSerializer.Deserialize<List<MistakeEntry>>(mistake)!;
                 if(items.Count==0)
                 {
                     continue;
@@ -555,14 +574,14 @@ public class InstructorController : ControllerBase
 
             var top = allMistakes
                 .OrderByDescending(kv => kv.Value)
-                .Take(3)
+                .Take(1)      //can be changed, depending how many we want
                 .Select(kv => (kv.Key, kv.Value))
                 .ToList();
 
-            List<StudentItem> topItems = new List<StudentItem>();   
+            List<MistakeEntry> topItems = new List<MistakeEntry>();   
             foreach (var t in top)
             {
-                topItems.Add( new StudentItem(t.Item1, t.Item2));
+                topItems.Add( new MistakeEntry(t.Item1, t.Item2));
             }
 
             studentMistakesAgg.Add(new StudentItemAgg(student.Item1, student.Item2, topItems ));
@@ -608,22 +627,6 @@ public sealed class Bucket
 
 
 
-public sealed class StudentItem
-{
-    /// <summary>Primary key / identifier of the student (Identity user id).</summary>
-    public int id_item { get; init; }
-
-    /// <summary>Display name for the student (suitable for UI).</summary>
-    public int count { get; init; }
-
-    public StudentItem(int id_item, int count)
-    {
-        this.id_item= id_item;
-        this.count = count;
-    }
-}
-
-
 public sealed class StudentItemAgg
 {
     /// <summary>Primary key / identifier of the student (Identity user id).</summary>
@@ -632,8 +635,8 @@ public sealed class StudentItemAgg
     /// <summary>Display name for the student (suitable for UI).</summary>
     public string studentname { get; init; }
 
-    public IEnumerable<StudentItem> items { get; init; } 
-    public StudentItemAgg(string studentid, string studentname, IEnumerable<StudentItem> items)
+    public IEnumerable<MistakeEntry> items { get; init; } 
+    public StudentItemAgg(string studentid, string studentname, IEnumerable<MistakeEntry> items)
     {
         this.studentid = studentid;
         this.studentname = studentname;
