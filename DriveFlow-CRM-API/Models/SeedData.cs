@@ -289,13 +289,43 @@ namespace DriveFlow_CRM_API.Models;
             // ──────────────── Payment ────────────────
             if (!context.Payments.Any())
             {
-                context.Payments.Add(new Payment
+                context.Payments.AddRange(
+                   new Payment
                 {
                     PaymentId = 1,
                     ScholarshipBasePayment = true,
                     SessionsPayed = 30,
                     FileId = 1
-                });
+                },
+                new Payment
+                {
+                    PaymentId = 2,
+                    ScholarshipBasePayment = false,
+                    SessionsPayed = 40,
+                    FileId = 2
+                },
+                new Payment
+                {
+                    PaymentId = 3,
+                    ScholarshipBasePayment = true,
+                    SessionsPayed = 70,
+                    FileId = 3
+                },
+                new Payment
+                {
+                    PaymentId = 4,
+                    ScholarshipBasePayment = true,
+                    SessionsPayed = 39,
+                    FileId = 4
+                },
+                new Payment
+                {
+                    PaymentId = 5,
+                    ScholarshipBasePayment = false,
+                    SessionsPayed = 1,
+                    FileId = 5
+                }
+                );
                 context.SaveChanges();
             }
 
