@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DriveFlow_CRM_API.Models;
+using Humanizer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
-using DriveFlow_CRM_API.Models;
 using System.Data;
+using System.Security.Claims;
 
 
 namespace DriveFlow_CRM_API.Controllers;
@@ -145,6 +146,43 @@ public class AutoSchoolController : ControllerBase
 
         return Ok(schools);
     }
+
+
+
+
+
+    [HttpGet("{schoolId}/stats/kpis")]
+    [Authorize(Roles = "SchoolAdmin")]
+
+    public async Task<ActionResult<SchoolKpisDto>> GetSchoolKpis(int schoolId)
+    {
+        // 1. Get authenticated user's ID
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        // 2. Check if caller is Instructor role and verify access rights if so
+        bool isSchoolAdmin = User.IsInRole("SchoolAdmin");
+        if (isSchoolAdmin && userId != instructorId)
+        {
+            return Forbid(); // Return 403 Forbidden if instructor trying to access another instructor's data
+        }
+        return Ok();
+
+    }
+
+
+
+
+
+
+
+
+
+
+
     // ────────────────────────────── POST AUTO-SCHOOL ──────────────────────────────
     /// <summary>
     /// Creates a new driving-school together with its <c>SchoolAdmin</c> account
@@ -648,7 +686,39 @@ public sealed class NewSchoolAdminDto
 {
     public string FirstName { get; init; } = default!;
     public string LastName { get; init; } = default!;
-    public string Email { get; init; } = default!;
+    public string Email { get; init; } = default!; 
     public string Phone { get; init; } = default!;
     public string Password { get; init; } = default!;
 }
+
+
+public sealed class MoneyDto
+{
+    public string Currency { get; init; } = default!;
+    public decimal Amount { get; init; }
+
+    public MoneyDto(string currency, decimal amount)
+    {
+        Currency = currency;
+        Amount = amount;
+    }
+}
+
+public sealed class SchoolKpisDto
+{
+    public int Lessons { get; init; }
+    public int Hours { get; init; }
+    public double CancellationRate { get; init; }
+    public double FailureRate { get; init; }
+    public MoneyDto Revenue { get; init; } = default!;
+
+    public SchoolKpisDto(int lessons, int hours, double cancellationRate, double failureRate, MoneyDto revenue)
+    {
+        Lessons = lessons;
+        Hours = hours;
+        CancellationRate = cancellationRate;
+        FailureRate = failureRate;
+        Revenue = revenue ;
+    }
+}
+
