@@ -1,8 +1,8 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0.407 AS build
 WORKDIR /source
 
-# Copy only the API project
-COPY DriveFlow-CRM-API/ ./
+# Copy only the API project into its folder
+COPY DriveFlow-CRM-API/ ./DriveFlow-CRM-API/
 
 # Move into the actual project directory (contains the csproj)
 WORKDIR /source/DriveFlow-CRM-API

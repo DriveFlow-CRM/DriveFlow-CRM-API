@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace DriveFlow_CRM_API.Models;
@@ -15,20 +15,58 @@ namespace DriveFlow_CRM_API.Models;
     /// </summary>
     public static void Initialize(IServiceProvider serviceProvider)
     {
+        void LogDebug(string hypothesisId, string location, string message, object data)
+        {
+            try
+            {
+                var logPath = Environment.GetEnvironmentVariable("DEBUG_LOG_PATH") ?? "/debug/debug.log";
+                var payload = new
+                {
+                    sessionId = "debug-session",
+                    runId = "pre-fix",
+                    hypothesisId,
+                    location,
+                    message,
+                    data,
+                    timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                };
+                var line = System.Text.Json.JsonSerializer.Serialize(payload);
+                System.IO.File.AppendAllText(logPath, line + Environment.NewLine);
+            }
+            catch
+            {
+                // avoid breaking startup on log failure
+            }
+        }
+
         // Resolve ApplicationDbContext with the DI‑configured options.
         using var context = new ApplicationDbContext(
             serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
 
+        // #region agent log
+        LogDebug("H3", "SeedData.cs:32", "seed start", new { });
+        // #endregion
+
         // ──────────────── Roles ────────────────
-        if (!context.Roles.Any())
+        try
         {
-            context.Roles.AddRange(
-                new IdentityRole { Id = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc0", Name = "SuperAdmin", NormalizedName = "SUPERADMIN" },
-                new IdentityRole { Id = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc1", Name = "SchoolAdmin", NormalizedName = "SCHOOLADMIN" },
-                new IdentityRole { Id = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc2", Name = "Student", NormalizedName = "STUDENT" },
-                new IdentityRole { Id = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc3", Name = "Instructor", NormalizedName = "INSTRUCTOR" }
-            );
-            context.SaveChanges();
+            if (!context.Roles.Any())
+            {
+                context.Roles.AddRange(
+                    new IdentityRole { Id = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc0", Name = "SuperAdmin", NormalizedName = "SUPERADMIN" },
+                    new IdentityRole { Id = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc1", Name = "SchoolAdmin", NormalizedName = "SCHOOLADMIN" },
+                    new IdentityRole { Id = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc2", Name = "Student", NormalizedName = "STUDENT" },
+                    new IdentityRole { Id = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc3", Name = "Instructor", NormalizedName = "INSTRUCTOR" }
+                );
+                context.SaveChanges();
+            }
+        }
+        catch (Exception ex)
+        {
+            // #region agent log
+            LogDebug("H4", "SeedData.cs:46", "roles seed failed", new { error = ex.GetType().Name, message = ex.Message });
+            // #endregion
+            throw;
         }
 
         if(false){
@@ -251,6 +289,64 @@ namespace DriveFlow_CRM_API.Models;
         // ──────────────── Users ────────────────
         if (!context.Users.Any())
             {
+                // #region agent log
+                LogDebug("H5", "SeedData.cs:251", "ensure autoschool before users", new { });
+                // #endregion
+                if (!context.Counties.Any())
+                {
+                    context.Counties.Add(new County
+                    {
+                        CountyId = 1,
+                        Name = "Cluj",
+                        Abbreviation = "CJ"
+                    });
+                    context.SaveChanges();
+                }
+
+                if (!context.Cities.Any())
+                {
+                    context.Cities.Add(new City
+                    {
+                        CityId = 1,
+                        Name = "Cluj-Napoca",
+                        CountyId = 1
+                    });
+                    context.SaveChanges();
+                }
+
+                if (!context.Addresses.Any())
+                {
+                    context.Addresses.Add(new Address
+                    {
+                        AddressId = 1,
+                        StreetName = "Strada Aviatorilor",
+                        AddressNumber = "10",
+                        Postcode = "400000",
+                        CityId = 1
+                    });
+                    context.SaveChanges();
+                }
+
+                if (!context.AutoSchools.Any())
+                {
+                    context.AutoSchools.Add(new AutoSchool
+                    {
+                        AutoSchoolId = 1,
+                        Name = "DriveFlow Test School",
+                        Description = "Test driving school for SessionForm testing",
+                        PhoneNumber = "0740123456",
+                        Email = "school@driveflow.test",
+                        WebSite = "https://driveflow.test",
+                        Status = AutoSchoolStatus.Active,
+                        AddressId = 1
+                    });
+                    context.SaveChanges();
+                }
+
+                // #region agent log
+                LogDebug("H5", "SeedData.cs:308", "autoschool ready", new { autoSchools = context.AutoSchools.Count() });
+                // #endregion
+
                 var hasher = new PasswordHasher<ApplicationUser>();
 
                 context.Users.AddRange(

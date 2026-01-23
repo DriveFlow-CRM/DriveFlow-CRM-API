@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using System.Data.Common;
+using System.Text.Json;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -26,6 +28,31 @@ public partial class Program
         DotNetEnv.Env.Load();
 
         var builder = WebApplication.CreateBuilder(args);
+        // #region agent log
+        void LogDebug(string hypothesisId, string location, string message, object data)
+        {
+            try
+            {
+                var logPath = Environment.GetEnvironmentVariable("DEBUG_LOG_PATH") ?? "/debug/debug.log";
+                var payload = new
+                {
+                    sessionId = "debug-session",
+                    runId = "pre-fix",
+                    hypothesisId,
+                    location,
+                    message,
+                    data,
+                    timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                };
+                var line = JsonSerializer.Serialize(payload);
+                System.IO.File.AppendAllText(logPath, line + Environment.NewLine);
+            }
+            catch
+            {
+                // avoid breaking startup on log failure
+            }
+        }
+        // #endregion
 
         // Enable detailed startup errors (useful while debugging 500 responses)
         builder.WebHost.CaptureStartupErrors(true)
@@ -117,6 +144,28 @@ public partial class Program
             throw new InvalidOperationException(
                 "No database connection configured. Set JAWSDB_URL or ConnectionStrings__DefaultConnection.");
         }
+
+        // #region agent log
+        try
+        {
+            var csb = new DbConnectionStringBuilder { ConnectionString = connectionString };
+            LogDebug(
+                "H1",
+                "Program.cs:122",
+                "resolved connection string",
+                new
+                {
+                    source = string.IsNullOrWhiteSpace(jawsDbUrl) ? "DefaultConnection" : "JAWSDB_URL",
+                    server = csb.ContainsKey("Server") ? csb["Server"]?.ToString() : null,
+                    database = csb.ContainsKey("Database") ? csb["Database"]?.ToString() : null,
+                    port = csb.ContainsKey("Port") ? csb["Port"]?.ToString() : null
+                });
+        }
+        catch (Exception ex)
+        {
+            LogDebug("H1", "Program.cs:135", "connection string parse failed", new { error = ex.GetType().Name });
+        }
+        // #endregion
 
         // 5. Register the application's DbContext (Pomelo MySQL provider).
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -256,6 +305,35 @@ public partial class Program
         // Run once at startup to ensure roles, admin user and initial data exist.
         using (var scope = app.Services.CreateScope())
         {
+            // #region agent log
+            try
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                // Apply migrations before seeding to ensure tables exist.
+                try
+                {
+                    db.Database.Migrate();
+                    LogDebug("H2", "Program.cs:170", "db migrate applied", new { });
+                }
+                catch (Exception ex)
+                {
+                    LogDebug("H2", "Program.cs:174", "db migrate failed", new { error = ex.GetType().Name, message = ex.Message });
+                    throw;
+                }
+                var canConnect = db.Database.CanConnect();
+                var pending = db.Database.GetPendingMigrations().ToList();
+                LogDebug(
+                    "H2",
+                    "Program.cs:167",
+                    "db connectivity and migrations",
+                    new { canConnect, pendingCount = pending.Count });
+            }
+            catch (Exception ex)
+            {
+                LogDebug("H2", "Program.cs:175", "db connectivity check failed", new { error = ex.GetType().Name });
+            }
+            // #endregion
+
             SeedData.Initialize(scope.ServiceProvider);
         }
 
