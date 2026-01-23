@@ -12,14 +12,14 @@ namespace DriveFlow_CRM_API;
 /// <remarks>
 /// <para>
 /// • Resolves the connection string from the standard "DefaultConnection" key (env/appsettings).
-/// • Falls back to converting a JawsDB URI from <c>JAWSDB_URL</c> when needed.
+/// • Falls back to converting a DB connection URI from <c>DB_CONNECTION_URI</c> when needed.
 /// </para>
 /// </remarks>
 
 public sealed class ApplicationDbContextFactory
     : IDesignTimeDbContextFactory<ApplicationDbContext>
 {
-    private const string JawsVar = "JAWSDB_URL";
+    private const string ConnectionUriVar = "DB_CONNECTION_URI";
 
     public ApplicationDbContext CreateDbContext(string[] args)
     {
@@ -33,10 +33,10 @@ public sealed class ApplicationDbContextFactory
 
         string? cs = null;
 
-        var jawsDbUrl = configuration[JawsVar];
-        if (!string.IsNullOrWhiteSpace(jawsDbUrl))
+        var connectionUri = configuration[ConnectionUriVar];
+        if (!string.IsNullOrWhiteSpace(connectionUri))
         {
-            var uri = new Uri(jawsDbUrl);
+            var uri = new Uri(connectionUri);
             var userPass = uri.UserInfo.Split(':', 2);
 
             cs = $"Server={uri.Host};Port={uri.Port};" +
@@ -51,7 +51,7 @@ public sealed class ApplicationDbContextFactory
 
         if (string.IsNullOrWhiteSpace(cs))
             throw new InvalidOperationException(
-                "No database connection configured. Set JAWSDB_URL or ConnectionStrings__DefaultConnection.");
+                "No database connection configured. Set DB_CONNECTION_URI or ConnectionStrings__DefaultConnection.");
 
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseMySql(cs, ServerVersion.AutoDetect(cs))

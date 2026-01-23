@@ -81,7 +81,7 @@ For production and deployment, use environment variables to store sensitive conf
 ```bash
 # Production environment variables
 export ASPNETCORE_ENVIRONMENT=Production
-export JAWSDB_URL=mysql://<username>:<password>@<host>:<port>/<database>
+export DB_CONNECTION_URI=mysql://<username>:<password>@<host>:<port>/<database>
 export JWT_KEY=your_super_secret_key_at_least_32_chars_long
 export INVOICE_SERVICE_URL=<your-secure-invoice-service-url>
 ```

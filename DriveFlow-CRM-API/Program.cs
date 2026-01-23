@@ -121,13 +121,13 @@ public partial class Program
         });
 
         // ───────────────────────────── Database & Identity ────────────────────────────────
-        // 3. Resolve the base connection string: prefer JAWSDB_URL, fallback to DefaultConnection.
+        // 3. Resolve the base connection string: prefer DB_CONNECTION_URI, fallback to DefaultConnection.
         string? connectionString = null;
 
-        var jawsDbUrl = Environment.GetEnvironmentVariable("JAWSDB_URL");
-        if (!string.IsNullOrWhiteSpace(jawsDbUrl))
+        var dbConnectionUri = Environment.GetEnvironmentVariable("DB_CONNECTION_URI");
+        if (!string.IsNullOrWhiteSpace(dbConnectionUri))
         {
-            var uri = new Uri(jawsDbUrl);
+            var uri = new Uri(dbConnectionUri);
             connectionString =
                 $"Server={uri.Host};Database={uri.AbsolutePath.Trim('/')};" +
                 $"User ID={uri.UserInfo.Split(':')[0]};" +
@@ -142,7 +142,7 @@ public partial class Program
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             throw new InvalidOperationException(
-                "No database connection configured. Set JAWSDB_URL or ConnectionStrings__DefaultConnection.");
+                "No database connection configured. Set DB_CONNECTION_URI or ConnectionStrings__DefaultConnection.");
         }
 
         // #region agent log
@@ -155,7 +155,7 @@ public partial class Program
                 "resolved connection string",
                 new
                 {
-                    source = string.IsNullOrWhiteSpace(jawsDbUrl) ? "DefaultConnection" : "JAWSDB_URL",
+                    source = string.IsNullOrWhiteSpace(dbConnectionUri) ? "DefaultConnection" : "DB_CONNECTION_URI",
                     server = csb.ContainsKey("Server") ? csb["Server"]?.ToString() : null,
                     database = csb.ContainsKey("Database") ? csb["Database"]?.ToString() : null,
                     port = csb.ContainsKey("Port") ? csb["Port"]?.ToString() : null
