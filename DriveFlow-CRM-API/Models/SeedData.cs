@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,9 +44,71 @@ namespace DriveFlow_CRM_API.Models;
         using var context = new ApplicationDbContext(
             serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
 
+        // Seed configuration/constants (keep IDs stable for relationships).
+        var schoolIds = new[] { 1, 2, 3, 4 };
+        var licenseTypes = new[]
+        {
+            "AM", "A1", "A2", "A", "B1", "B", "BE",
+            "C1", "C1E", "C", "CE",
+            "D1", "D1E", "D", "DE"
+        };
+
+        const string roleSuperAdminId = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc0";
+        const string roleSchoolAdminId = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc1";
+        const string roleStudentId = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc2";
+        const string roleInstructorId = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc3";
+
+        const string superAdminPassword = "admin123";
+        const string schoolAdminPassword = "admin123";
+        const string studentPassword = "student123";
+        const string instructorPassword = "instructor123";
+
+        var teachingCategoryIdsBySchool = new Dictionary<int, List<int>>();
+        var instructorIdsBySchool = new Dictionary<int, List<string>>();
+        var studentIdsBySchool = new Dictionary<int, List<string>>();
+        var schoolAdminIdsBySchool = new Dictionary<int, string>();
+        var vehicleIdsBySchool = new Dictionary<int, List<int>>();
+        var licenseIdByType = new Dictionary<string, int>();
+
         // #region agent log
         LogDebug("H3", "SeedData.cs:32", "seed start", new { });
         // #endregion
+
+        bool ColumnExists(string tableName, string columnName)
+        {
+            var connection = context.Database.GetDbConnection();
+            var shouldClose = connection.State != ConnectionState.Open;
+            if (shouldClose)
+            {
+                connection.Open();
+            }
+
+            using var command = connection.CreateCommand();
+            command.CommandText = @"
+                SELECT COUNT(*)
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = @table
+                  AND COLUMN_NAME = @column";
+
+            var tableParam = command.CreateParameter();
+            tableParam.ParameterName = "@table";
+            tableParam.Value = tableName;
+            command.Parameters.Add(tableParam);
+
+            var columnParam = command.CreateParameter();
+            columnParam.ParameterName = "@column";
+            columnParam.Value = columnName;
+            command.Parameters.Add(columnParam);
+
+            var result = command.ExecuteScalar();
+            if (shouldClose)
+            {
+                connection.Close();
+            }
+
+            return result != null && Convert.ToInt32(result) > 0;
+        }
 
         // ──────────────── Roles ────────────────
         try
@@ -286,358 +349,355 @@ namespace DriveFlow_CRM_API.Models;
 
 
 
-        // ──────────────── Users ────────────────
-        if (!context.Users.Any())
-            {
-                // #region agent log
-                LogDebug("H5", "SeedData.cs:251", "ensure autoschool before users", new { });
-                // #endregion
-                if (!context.Counties.Any())
-                {
-                    context.Counties.Add(new County
-                    {
-                        CountyId = 1,
-                        Name = "Cluj",
-                        Abbreviation = "CJ"
-                    });
-                    context.SaveChanges();
-                }
+        // ──────────────── Geography (County, City, Address) ────────────────
+        if (!context.Counties.Any())
+        {
+            context.Counties.AddRange(
+                new County { CountyId = 1, Name = "Cluj", Abbreviation = "CJ" },
+                new County { CountyId = 2, Name = "Bucuresti", Abbreviation = "B" },
+                new County { CountyId = 3, Name = "Timis", Abbreviation = "TM" },
+                new County { CountyId = 4, Name = "Iasi", Abbreviation = "IS" },
+                new County { CountyId = 5, Name = "Constanta", Abbreviation = "CT" },
+                new County { CountyId = 6, Name = "Brasov", Abbreviation = "BV" },
+                new County { CountyId = 7, Name = "Sibiu", Abbreviation = "SB" },
+                new County { CountyId = 8, Name = "Bihor", Abbreviation = "BH" },
+                new County { CountyId = 9, Name = "Dolj", Abbreviation = "DJ" },
+                new County { CountyId = 10, Name = "Galati", Abbreviation = "GL" }
+            );
+            context.SaveChanges();
+        }
 
-                if (!context.Cities.Any())
-                {
-                    context.Cities.Add(new City
-                    {
-                        CityId = 1,
-                        Name = "Cluj-Napoca",
-                        CountyId = 1
-                    });
-                    context.SaveChanges();
-                }
+        if (!context.Cities.Any())
+        {
+            context.Cities.AddRange(
+                new City { CityId = 1, Name = "Cluj-Napoca", CountyId = 1 },
+                new City { CityId = 2, Name = "Bucuresti", CountyId = 2 },
+                new City { CityId = 3, Name = "Timisoara", CountyId = 3 },
+                new City { CityId = 4, Name = "Iasi", CountyId = 4 },
+                new City { CityId = 5, Name = "Constanta", CountyId = 5 },
+                new City { CityId = 6, Name = "Brasov", CountyId = 6 },
+                new City { CityId = 7, Name = "Sibiu", CountyId = 7 },
+                new City { CityId = 8, Name = "Oradea", CountyId = 8 },
+                new City { CityId = 9, Name = "Craiova", CountyId = 9 },
+                new City { CityId = 10, Name = "Galati", CountyId = 10 }
+            );
+            context.SaveChanges();
+        }
 
-                if (!context.Addresses.Any())
-                {
-                    context.Addresses.Add(new Address
-                    {
-                        AddressId = 1,
-                        StreetName = "Strada Aviatorilor",
-                        AddressNumber = "10",
-                        Postcode = "400000",
-                        CityId = 1
-                    });
-                    context.SaveChanges();
-                }
+        if (!context.Addresses.Any())
+        {
+            context.Addresses.AddRange(
+                new Address { AddressId = 1, StreetName = "Strada Aviatorilor", AddressNumber = "10", Postcode = "400001", CityId = 1 },
+                new Address { AddressId = 2, StreetName = "Bulevardul Unirii", AddressNumber = "12", Postcode = "010001", CityId = 2 },
+                new Address { AddressId = 3, StreetName = "Strada Take Ionescu", AddressNumber = "5", Postcode = "300001", CityId = 3 },
+                new Address { AddressId = 4, StreetName = "Strada Palat", AddressNumber = "18", Postcode = "700001", CityId = 4 },
+                new Address { AddressId = 5, StreetName = "Bulevardul Tomis", AddressNumber = "77", Postcode = "900001", CityId = 5 },
+                new Address { AddressId = 6, StreetName = "Strada Republicii", AddressNumber = "22", Postcode = "500001", CityId = 6 },
+                new Address { AddressId = 7, StreetName = "Strada Nicolae Balcescu", AddressNumber = "9", Postcode = "550001", CityId = 7 },
+                new Address { AddressId = 8, StreetName = "Strada Independentei", AddressNumber = "31", Postcode = "410001", CityId = 8 },
+                new Address { AddressId = 9, StreetName = "Calea Bucuresti", AddressNumber = "50", Postcode = "200001", CityId = 9 },
+                new Address { AddressId = 10, StreetName = "Strada Brailei", AddressNumber = "14", Postcode = "800001", CityId = 10 },
+                new Address { AddressId = 11, StreetName = "Strada Memorandumului", AddressNumber = "7", Postcode = "400002", CityId = 1 },
+                new Address { AddressId = 12, StreetName = "Strada Eminescu", AddressNumber = "3", Postcode = "300002", CityId = 3 }
+            );
+            context.SaveChanges();
+        }
 
-                if (!context.AutoSchools.Any())
-                {
-                    context.AutoSchools.Add(new AutoSchool
-                    {
-                        AutoSchoolId = 1,
-                        Name = "DriveFlow Test School",
-                        Description = "Test driving school for SessionForm testing",
-                        PhoneNumber = "0740123456",
-                        Email = "school@driveflow.test",
-                        WebSite = "https://driveflow.test",
-                        Status = AutoSchoolStatus.Active,
-                        AddressId = 1
-                    });
-                    context.SaveChanges();
-                }
-
-                // #region agent log
-                LogDebug("H5", "SeedData.cs:308", "autoschool ready", new { autoSchools = context.AutoSchools.Count() });
-                // #endregion
-
-                var hasher = new PasswordHasher<ApplicationUser>();
-
-                context.Users.AddRange(
-                    new ApplicationUser
-                    {
-                        Id = "419decbe-6af1-4d84-9b45-c1ef796f4600",
-                        UserName = "superadmin@test.com",
-                        NormalizedUserName = "SUPERADMIN@TEST.COM",
-                        Email = "superadmin@test.com",
-                        NormalizedEmail = "SUPERADMIN@TEST.COM",
-                        EmailConfirmed = true,
-                        PasswordHash = hasher.HashPassword(new ApplicationUser(), "SuperAdmin231!"),
-                        FirstName = "Super",
-                        LastName = "Admin"
-                    },
-                    new ApplicationUser
-                    {
-                        Id = "419decbe-6af1-4d84-9b45-c1ef796f4601",
-                        UserName = "schooladmin@test.com",
-                        NormalizedUserName = "SCHOOLADMIN@TEST.COM",
-                        Email = "schooladmin@test.com",
-                        NormalizedEmail = "SCHOOLADMIN@TEST.COM",
-                        EmailConfirmed = true,
-                        PasswordHash = hasher.HashPassword(new ApplicationUser(), "SchoolAdmin231!"),
-                        FirstName = "School",
-                        LastName = "Admin",
-                        AutoSchoolId = 1
-                    },
-                    new ApplicationUser
-                    {
-                        Id = "419decbe-6af1-4d84-9b45-c1ef796f4602",
-                        UserName = "student@test.com",
-                        NormalizedUserName = "STUDENT@TEST.COM",
-                        Email = "student@test.com",
-                        NormalizedEmail = "STUDENT@TEST.COM",
-                        EmailConfirmed = true,
-                        PasswordHash = hasher.HashPassword(new ApplicationUser(), "Student231!"),
-                        FirstName = "Test",
-                        LastName = "Student",
-                        Cnp = "1234567890123",
-                        AutoSchoolId = 1
-                    },
-                    new ApplicationUser
-                    {
-                        Id = "419decbe-6af1-4d84-9b45-c1ef796f4603",
-                        UserName = "instructor@test.com",
-                        NormalizedUserName = "INSTRUCTOR@TEST.COM",
-                        Email = "instructor@test.com",
-                        NormalizedEmail = "INSTRUCTOR@TEST.COM",
-                        EmailConfirmed = true,
-                        PasswordHash = hasher.HashPassword(new ApplicationUser(), "Instructor231!"),
-                        FirstName = "Test",
-                        LastName = "Instructor",
-                        AutoSchoolId = 1
-                    },
-
-                    new ApplicationUser
-                    {
-                        Id = "419decbe-6af1-4d84-9b45-c1ef796f4604",
-                        UserName = "mihailconstantin@gmail.com",
-                        NormalizedUserName = "MIHAILCONSTANTIN@GMAIL.COM",
-                        Email = "mihailconstantin@gmail.com",
-                        NormalizedEmail = "MIHAILCONSTANTIN@GMAIL.COM",
-                        EmailConfirmed = true,
-                        PasswordHash = hasher.HashPassword(new ApplicationUser(), "mihail123*"),
-                        FirstName = "Mihail",
-                        LastName = "Constantin",
-                        AutoSchoolId = 1
-                    },
-
-
-                    new ApplicationUser
-                    {
-                        Id = "419decbe-6af1-4d84-9b45-c1ef796f4605",
-                        UserName = "anaabsinte@gmail.com",
-                        NormalizedUserName = "ANAABSINTE@GMAIL.COM",
-                        Email = "anaabsinte@gmail.com",
-                        NormalizedEmail = "ANAABSINTE@GMAIL.COM",
-                        EmailConfirmed = true,
-                        PasswordHash = hasher.HashPassword(new ApplicationUser(), "longlivabsinth969*"),
-                        FirstName = "Ana",
-                        LastName = "Absinte",
-                        AutoSchoolId = 1
-                    },
-
-                    new ApplicationUser
-                    {
-                        Id = "419decbe-6af1-4d84-9b45-c1ef796f4606",
-                        UserName = "sanduilie@gmail.com",
-                        NormalizedUserName = "SANDUILIE@GMAIL.COM",
-                        Email = "sanduilie@gmail.com",
-                        NormalizedEmail = "SANDUILIE@GMAIL.COM",
-                        EmailConfirmed = true,
-                        PasswordHash = hasher.HashPassword(new ApplicationUser(), "gloryto^ROMANIA^*"),
-                        FirstName = "Sandu",
-                        LastName = "Ilie",
-                        AutoSchoolId = 1
-                    },
-
-                    //
-                    new ApplicationUser
-                    {
-                        Id = "419decbe-6af1-4d84-9b45-c1ef796f4607",
-                        UserName = "andreipostavaru@test.com",
-                        NormalizedUserName = "ANDREIPOSTAVARU@GMAIL.COM",
-                        Email = "andreipostavaru@test.com",
-                        NormalizedEmail = "ANDREIPOSTAVARU@GMAIL.COM",
-                        EmailConfirmed = true,
-                        PasswordHash = hasher.HashPassword(new ApplicationUser(), "VandGolf_6_!"),
-                        FirstName = "Andrei",
-                        LastName = "Postavaru",
-                        AutoSchoolId = 1
-                    }
-                );
-
-                // ──────────────── User ↔ Role mappings ────────────────
-                context.UserRoles.AddRange(
-                    new IdentityUserRole<string> { UserId = "419decbe-6af1-4d84-9b45-c1ef796f4600", RoleId = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc0" },
-                    new IdentityUserRole<string> { UserId = "419decbe-6af1-4d84-9b45-c1ef796f4601", RoleId = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc1" },
-                    new IdentityUserRole<string> { UserId = "419decbe-6af1-4d84-9b45-c1ef796f4602", RoleId = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc2" },
-                    new IdentityUserRole<string> { UserId = "419decbe-6af1-4d84-9b45-c1ef796f4603", RoleId = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc3" },
-                    ///
-                    new IdentityUserRole<string> { UserId = "419decbe-6af1-4d84-9b45-c1ef796f4604", RoleId = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc2" },
-                    new IdentityUserRole<string> { UserId = "419decbe-6af1-4d84-9b45-c1ef796f4605", RoleId = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc2" },
-                    new IdentityUserRole<string> { UserId = "419decbe-6af1-4d84-9b45-c1ef796f4606", RoleId = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc2" },
-                    //
-                    new IdentityUserRole<string> { UserId = "419decbe-6af1-4d84-9b45-c1ef796f4607", RoleId = "c391f8d7-3e74-4017-ac10-59fe7c4e5dc3" }
-                );
-
-                
-
-                context.SaveChanges();
-            }
-
-            // ──────────────── Geography (County, City, Address) ────────────────
-            if (!context.Counties.Any())
-            {
-                context.Counties.Add(new County
-                {
-                    CountyId = 1,
-                    Name = "Cluj",
-                    Abbreviation = "CJ"
-                });
-                context.SaveChanges();
-            }
-
-            if (!context.Cities.Any())
-            {
-                context.Cities.Add(new City
-                {
-                    CityId = 1,
-                    Name = "Cluj-Napoca",
-                    CountyId = 1
-                });
-                context.SaveChanges();
-            }
-
-            if (!context.Addresses.Any())
-            {
-                context.Addresses.Add(new Address
-                {
-                    AddressId = 1,
-                    StreetName = "Strada Aviatorilor",
-                    AddressNumber = "10",
-                    Postcode = "400000",
-                    CityId = 1
-                });
-                context.SaveChanges();
-            }
-
-            // ──────────────── AutoSchool ────────────────
-            if (!context.AutoSchools.Any())
-            {
-                context.AutoSchools.Add(new AutoSchool
+        // ──────────────── AutoSchool ────────────────
+        if (!context.AutoSchools.Any())
+        {
+            context.AutoSchools.AddRange(
+                new AutoSchool
                 {
                     AutoSchoolId = 1,
-                    Name = "DriveFlow Test School",
-                    Description = "Test driving school for SessionForm testing",
-                    PhoneNumber = "0740123456",
-                    Email = "school@driveflow.test",
-                    WebSite = "https://driveflow.test",
+                    Name = "DriveFlow Academy Cluj",
+                    Description = "Full-service driving school in Cluj.",
+                    PhoneNumber = "0740000001",
+                    Email = "cluj@driveflow.test",
+                    WebSite = "https://cluj.driveflow.test",
                     Status = AutoSchoolStatus.Active,
                     AddressId = 1
+                },
+                new AutoSchool
+                {
+                    AutoSchoolId = 2,
+                    Name = "DriveFlow Academy Bucuresti",
+                    Description = "Central Bucharest training center.",
+                    PhoneNumber = "0740000002",
+                    Email = "bucuresti@driveflow.test",
+                    WebSite = "https://bucuresti.driveflow.test",
+                    Status = AutoSchoolStatus.Active,
+                    AddressId = 2
+                },
+                new AutoSchool
+                {
+                    AutoSchoolId = 3,
+                    Name = "DriveFlow Academy Timisoara",
+                    Description = "Timisoara branch for professional drivers.",
+                    PhoneNumber = "0740000003",
+                    Email = "timisoara@driveflow.test",
+                    WebSite = "https://timisoara.driveflow.test",
+                    Status = AutoSchoolStatus.Active,
+                    AddressId = 3
+                },
+                new AutoSchool
+                {
+                    AutoSchoolId = 4,
+                    Name = "DriveFlow Academy Iasi",
+                    Description = "Iasi branch with modern training fleet.",
+                    PhoneNumber = "0740000004",
+                    Email = "iasi@driveflow.test",
+                    WebSite = "https://iasi.driveflow.test",
+                    Status = AutoSchoolStatus.Active,
+                    AddressId = 4
+                }
+            );
+            context.SaveChanges();
+        }
+
+        // ──────────────── License ────────────────
+        if (!context.Licenses.Any())
+        {
+            var licenses = new List<License>();
+            for (var i = 0; i < licenseTypes.Length; i++)
+            {
+                licenses.Add(new License
+                {
+                    LicenseId = i + 1,
+                    Type = licenseTypes[i]
                 });
-                context.SaveChanges();
             }
+            context.Licenses.AddRange(licenses);
+            context.SaveChanges();
+        }
 
-            // ──────────────── License ────────────────
-            if (!context.Licenses.Any())
+        licenseIdByType = context.Licenses
+            .AsNoTracking()
+            .ToDictionary(l => l.Type, l => l.LicenseId);
+
+        // ──────────────── TeachingCategory ────────────────
+        if (!context.TeachingCategories.Any())
+        {
+            var teachingCategories = new List<TeachingCategory>();
+            var teachingCategoryId = 1;
+
+            foreach (var schoolId in schoolIds)
             {
-                context.Licenses.AddRange(new License
+                var codes = schoolId == 1
+                    ? new[] { "B", "A", "C", "CE", "D" }
+                    : new[] { "B", "BE", "C", "CE", "D" };
+
+                foreach (var code in codes)
                 {
-                    LicenseId = 1,
-                    Type = "B"
-                },
-                new License
-                {
-                    LicenseId = 2,
-                    Type = "A"
-                },
-                new License
-                {
-                    LicenseId = 3,
-                    Type = "C/D"
+                    if (!licenseIdByType.TryGetValue(code, out var licenseId))
+                    {
+                        continue;
+                    }
+
+                    teachingCategories.Add(new TeachingCategory
+                    {
+                        TeachingCategoryId = teachingCategoryId,
+                        Code = code,
+                        SessionCost = 150 + (teachingCategoryId % 3) * 20,
+                        SessionDuration = 90,
+                        ScholarshipPrice = 2500 + (teachingCategoryId % 4) * 250,
+                        MinDrivingLessonsReq = 30,
+                        LicenseId = licenseId,
+                        AutoSchoolId = schoolId
+                    });
+                    teachingCategoryId++;
                 }
-                );
-                context.SaveChanges();
             }
 
-            // ──────────────── TeachingCategory ────────────────
-            if (!context.TeachingCategories.Any())
-            {
-                context.TeachingCategories.AddRange(new TeachingCategory
-                {
-                    TeachingCategoryId = 1,
-                    Code = "B",
-                    SessionCost = 150,
-                    SessionDuration = 90,
-                    ScholarshipPrice = 2500,
-                    MinDrivingLessonsReq = 30,
-                    LicenseId = 1,
-                    AutoSchoolId = 1
-                },
-                new TeachingCategory
-                {
-                    TeachingCategoryId = 2,
-                    Code = "A",
-                    SessionCost = 120,
-                    SessionDuration = 90,
-                    ScholarshipPrice = 2000,
-                    MinDrivingLessonsReq = 30,
-                    LicenseId = 2,
-                    AutoSchoolId = 1
-                }
-                ,
-                new TeachingCategory
-                {
-                    TeachingCategoryId = 3,
-                    Code = "C/D",
-                    SessionCost = 180,
-                    SessionDuration = 90,
-                    ScholarshipPrice = 3000,
-                    MinDrivingLessonsReq = 40,
-                    LicenseId = 3,
-                    AutoSchoolId = 1
-                }
-                );
-                context.SaveChanges();
-            }
+            context.TeachingCategories.AddRange(teachingCategories);
+            context.SaveChanges();
+        }
 
-            // ──────────────── ApplicationUserTeachingCategory ────────────────
-            if (!context.ApplicationUserTeachingCategories.Any())
-            {
-                context.ApplicationUserTeachingCategories.Add(new ApplicationUserTeachingCategory
-                {
-                    ApplicationUserTeachingCategoryId = 1,
-                    UserId = "419decbe-6af1-4d84-9b45-c1ef796f4603",
-                    TeachingCategoryId = 1
-                });
-                context.SaveChanges();
-            }
+        teachingCategoryIdsBySchool = context.TeachingCategories
+            .AsNoTracking()
+            .GroupBy(tc => tc.AutoSchoolId)
+            .ToDictionary(g => g.Key, g => g.Select(tc => tc.TeachingCategoryId).OrderBy(id => id).ToList());
 
-            // ──────────────── ExamForm ────────────────
-            if (!context.ExamForms.Any())
-            {
-                context.ExamForms.AddRange(new ExamForm //categ A
+        // ──────────────── ExamForm ────────────────
+        if (!context.ExamForms.Any())
+        {
+            context.ExamForms.AddRange(
+                new ExamForm
                 {
                     FormId = 1,
                     TeachingCategoryId = 1,
                     MaxPoints = 21
                 },
-                //new ExamForm //Categoria A poligon
-                //{
-                //    FormId = 2,
-                //    TeachingCategoryId = 2,
-                //    MaxPoints = 16
-                //},
                 new ExamForm
                 {
-                    FormId = 3,//Categoria A traseu
+                    FormId = 3,
                     TeachingCategoryId = 2,
                     MaxPoints = 21
                 },
-                new ExamForm //Categoria C/D
+                new ExamForm
                 {
                     FormId = 4,
                     TeachingCategoryId = 3,
                     MaxPoints = 21
+                }
+            );
+            context.SaveChanges();
+        }
+
+        // ──────────────── Users ────────────────
+        if (!context.Users.Any())
+        {
+            var hasher = new PasswordHasher<ApplicationUser>();
+            var users = new List<ApplicationUser>();
+            var userRoles = new List<IdentityUserRole<string>>();
+
+            var superAdminId = "superadmin-0001";
+            var superAdminEmail = "superadmin@driveflow.test";
+            users.Add(new ApplicationUser
+            {
+                Id = superAdminId,
+                UserName = superAdminEmail,
+                NormalizedUserName = superAdminEmail.ToUpperInvariant(),
+                Email = superAdminEmail,
+                NormalizedEmail = superAdminEmail.ToUpperInvariant(),
+                EmailConfirmed = true,
+                PasswordHash = hasher.HashPassword(new ApplicationUser(), superAdminPassword),
+                FirstName = "Super",
+                LastName = "Admin"
+            });
+            userRoles.Add(new IdentityUserRole<string> { UserId = superAdminId, RoleId = roleSuperAdminId });
+
+            long cnpBase = 1000000000000L;
+            var cnpOffset = 1;
+
+            foreach (var schoolId in schoolIds)
+            {
+                var schoolAdminId = $"schooladmin-{schoolId:00}";
+                schoolAdminIdsBySchool[schoolId] = schoolAdminId;
+                var schoolAdminEmail = $"schooladmin{schoolId}@driveflow.test";
+                users.Add(new ApplicationUser
+                {
+                    Id = schoolAdminId,
+                    UserName = schoolAdminEmail,
+                    NormalizedUserName = schoolAdminEmail.ToUpperInvariant(),
+                    Email = schoolAdminEmail,
+                    NormalizedEmail = schoolAdminEmail.ToUpperInvariant(),
+                    EmailConfirmed = true,
+                    PasswordHash = hasher.HashPassword(new ApplicationUser(), schoolAdminPassword),
+                    FirstName = "School",
+                    LastName = $"Admin {schoolId}",
+                    AutoSchoolId = schoolId
                 });
-                context.SaveChanges();
+                userRoles.Add(new IdentityUserRole<string> { UserId = schoolAdminId, RoleId = roleSchoolAdminId });
+
+                var instructorIds = new List<string>();
+                for (var i = 1; i <= 3; i++)
+                {
+                    var instructorId = $"instructor-{schoolId:00}-{i:00}";
+                    instructorIds.Add(instructorId);
+                    var instructorEmail = $"instructor{schoolId}{i}@driveflow.test";
+                    users.Add(new ApplicationUser
+                    {
+                        Id = instructorId,
+                        UserName = instructorEmail,
+                        NormalizedUserName = instructorEmail.ToUpperInvariant(),
+                        Email = instructorEmail,
+                        NormalizedEmail = instructorEmail.ToUpperInvariant(),
+                        EmailConfirmed = true,
+                        PasswordHash = hasher.HashPassword(new ApplicationUser(), instructorPassword),
+                        FirstName = "Instructor",
+                        LastName = $"S{schoolId} {i}",
+                        AutoSchoolId = schoolId
+                    });
+                    userRoles.Add(new IdentityUserRole<string> { UserId = instructorId, RoleId = roleInstructorId });
+                }
+                instructorIdsBySchool[schoolId] = instructorIds;
+
+                var studentIds = new List<string>();
+                for (var i = 1; i <= 10; i++)
+                {
+                    var studentId = $"student-{schoolId:00}-{i:00}";
+                    studentIds.Add(studentId);
+                    var studentEmail = $"student{schoolId}{i}@driveflow.test";
+                    var cnp = (cnpBase + cnpOffset).ToString();
+                    cnpOffset++;
+                    users.Add(new ApplicationUser
+                    {
+                        Id = studentId,
+                        UserName = studentEmail,
+                        NormalizedUserName = studentEmail.ToUpperInvariant(),
+                        Email = studentEmail,
+                        NormalizedEmail = studentEmail.ToUpperInvariant(),
+                        EmailConfirmed = true,
+                        PasswordHash = hasher.HashPassword(new ApplicationUser(), studentPassword),
+                        FirstName = "Student",
+                        LastName = $"S{schoolId} {i}",
+                        Cnp = cnp,
+                        AutoSchoolId = schoolId
+                    });
+                    userRoles.Add(new IdentityUserRole<string> { UserId = studentId, RoleId = roleStudentId });
+                }
+                studentIdsBySchool[schoolId] = studentIds;
             }
+
+            context.Users.AddRange(users);
+            context.SaveChanges();
+            context.UserRoles.AddRange(userRoles);
+            context.SaveChanges();
+        }
+
+        // ──────────────── ApplicationUserTeachingCategory ────────────────
+        if (!context.ApplicationUserTeachingCategories.Any())
+        {
+            var assignments = new List<ApplicationUserTeachingCategory>();
+            var assignmentId = 1;
+
+            foreach (var schoolId in schoolIds)
+            {
+                if (!teachingCategoryIdsBySchool.TryGetValue(schoolId, out var categoryIds) || categoryIds.Count == 0)
+                {
+                    continue;
+                }
+
+                var primaryCategoryId = categoryIds[0];
+                var secondaryCategoryId = categoryIds.Count > 1 ? categoryIds[1] : categoryIds[0];
+
+                if (instructorIdsBySchool.TryGetValue(schoolId, out var instructorIds))
+                {
+                    foreach (var instructorId in instructorIds)
+                    {
+                        assignments.Add(new ApplicationUserTeachingCategory
+                        {
+                            ApplicationUserTeachingCategoryId = assignmentId++,
+                            UserId = instructorId,
+                            TeachingCategoryId = primaryCategoryId
+                        });
+                        assignments.Add(new ApplicationUserTeachingCategory
+                        {
+                            ApplicationUserTeachingCategoryId = assignmentId++,
+                            UserId = instructorId,
+                            TeachingCategoryId = secondaryCategoryId
+                        });
+                    }
+                }
+
+                if (studentIdsBySchool.TryGetValue(schoolId, out var studentIds))
+                {
+                    foreach (var studentId in studentIds)
+                    {
+                        assignments.Add(new ApplicationUserTeachingCategory
+                        {
+                            ApplicationUserTeachingCategoryId = assignmentId++,
+                            UserId = studentId,
+                            TeachingCategoryId = primaryCategoryId
+                        });
+                    }
+                }
+            }
+
+            context.ApplicationUserTeachingCategories.AddRange(assignments);
+            context.SaveChanges();
+        }
 
         // ──────────────── ExamItems ────────────────
         if (!context.ExamItems.Any())
@@ -1672,355 +1732,366 @@ namespace DriveFlow_CRM_API.Models;
         }
         // ──────────────── Vehicle ────────────────
         if (!context.Vehicles.Any())
-            {
-                context.Vehicles.AddRange(new Vehicle
-                {
-                    VehicleId = 1,
-                    LicensePlateNumber = "CJ-01-TEST",
-                    TransmissionType = TransmissionType.MANUAL,
-                    Color = "White",
-                    Brand = "Dacia",
-                    Model = "Logan",
-                    YearOfProduction = 2020,
-                    FuelType = TipCombustibil.BENZINA,
-                    EngineSizeLiters = 1.2m,
-                    PowertrainType = TipPropulsie.COMBUSTIBIL,
-                    LicenseId = 1,
-                    AutoSchoolId = 1
-                },
-                new Vehicle
-                {
-                    VehicleId = 2,
-                    LicensePlateNumber = "B-66-ROM",
-                    TransmissionType = TransmissionType.MANUAL,
-                    Color = "Black",
-                    Brand = "Suzuki",
-                    Model = "Hayabusa",
-                    YearOfProduction = 2021,
-                    FuelType = TipCombustibil.MOTORINA,
-                    EngineSizeLiters = 8.7m,
-                    PowertrainType = TipPropulsie.COMBUSTIBIL,
-                    LicenseId = 2,
-                    AutoSchoolId = 1
-                },
-                new Vehicle
-                {
-                    VehicleId = 3,
-                    LicensePlateNumber = "B-252-AFR",
-                    TransmissionType = TransmissionType.MANUAL,
-                    Color = "White",
-                    Brand = "Opel",
-                    Model = "Astra",
-                    YearOfProduction = 2018,
-                    FuelType = TipCombustibil.BENZINA,
-                    EngineSizeLiters = 40.0m,
-                    PowertrainType = TipPropulsie.COMBUSTIBIL,
-                    LicenseId = 1,
-                    AutoSchoolId = 1
-                },
-                new Vehicle
-                {
-                    VehicleId = 4,
-                    LicensePlateNumber = "B-989-KZE",
-                    TransmissionType = TransmissionType.MANUAL,
-                    Color = "Red",
-                    Brand = "Ford",
-                    Model = "Focus",
-                    YearOfProduction = 2002,
-                    FuelType = TipCombustibil.MOTORINA,
-                    EngineSizeLiters = 35.0m,
-                    PowertrainType = TipPropulsie.COMBUSTIBIL,
-                    LicenseId = 1,
-                    AutoSchoolId = 1
-                }
+        {
+            var vehicles = new List<Vehicle>();
+            var vehicleId = 1;
 
-                );
-                context.SaveChanges();
-            }
-
-            // ──────────────── File (Student enrollment) ────────────────
-            if (!context.Files.Any())
+            foreach (var schoolId in schoolIds)
             {
-                context.Files.AddRange(new File
+                var licenseSequence = schoolId == 1
+                    ? new[] { "B", "A", "C", "CE", "D" }
+                    : new[] { "B", "BE", "C", "CE", "D" };
+
+                var schoolVehicleIds = new List<int>();
+                for (var i = 0; i < 5; i++)
                 {
-                    FileId = 1,
-                    ScholarshipStartDate = DateTime.Today,
-                    CriminalRecordExpiryDate = DateTime.Today.AddMonths(12),
-                    MedicalRecordExpiryDate = DateTime.Today.AddMonths(6),
-                    Status = FileStatus.APPROVED,
-                    StudentId = "419decbe-6af1-4d84-9b45-c1ef796f4602",
-                    InstructorId = "419decbe-6af1-4d84-9b45-c1ef796f4603",
-                    TeachingCategoryId = 1,
-                    VehicleId = 1
-                },
-                    new File
+                    var licenseCode = licenseSequence[i % licenseSequence.Length];
+                    if (!licenseIdByType.TryGetValue(licenseCode, out var licenseId))
                     {
-                        FileId = 2,
-                        ScholarshipStartDate = DateTime.Today,
-                        CriminalRecordExpiryDate = DateTime.Today.AddMonths(12),
-                        MedicalRecordExpiryDate = DateTime.Today.AddMonths(6),
-                        Status = FileStatus.APPROVED,
-                        StudentId = "419decbe-6af1-4d84-9b45-c1ef796f4604",
-                        InstructorId = "419decbe-6af1-4d84-9b45-c1ef796f4607",
-                        TeachingCategoryId = 1,
-                        VehicleId = 1
-                    },
-                    new File
-                    {
-                        FileId = 3,
-                        ScholarshipStartDate = DateTime.Today.AddMonths(-5),
-                        CriminalRecordExpiryDate = DateTime.Today.AddMonths(12),
-                        MedicalRecordExpiryDate = DateTime.Today.AddMonths(6),
-                        Status = FileStatus.APPROVED,
-                        StudentId = "419decbe-6af1-4d84-9b45-c1ef796f4605",
-                        InstructorId = "419decbe-6af1-4d84-9b45-c1ef796f4607",
-                        TeachingCategoryId = 1,
-                        VehicleId = 3
-                    },
-                    new File
-                    {
-                        FileId = 4,
-                        ScholarshipStartDate = DateTime.Today,
-                        CriminalRecordExpiryDate = DateTime.Today.AddMonths(12),
-                        MedicalRecordExpiryDate = DateTime.Today.AddMonths(6),
-                        Status = FileStatus.APPROVED,
-                        StudentId = "419decbe-6af1-4d84-9b45-c1ef796f4606",
-                        InstructorId = "419decbe-6af1-4d84-9b45-c1ef796f4607",
-                        TeachingCategoryId = 2,
-                        VehicleId = 2
-                    },
-                    new File
-                    {
-                        FileId = 5,
-                        ScholarshipStartDate = DateTime.Today,
-                        CriminalRecordExpiryDate = DateTime.Today.AddMonths(12),
-                        MedicalRecordExpiryDate = DateTime.Today.AddMonths(6),
-                        Status = FileStatus.APPROVED,
-                        StudentId = "419decbe-6af1-4d84-9b45-c1ef796f4602",
-                        InstructorId = "419decbe-6af1-4d84-9b45-c1ef796f4607",
-                        TeachingCategoryId = 1,
-                        VehicleId = 1
+                        licenseId = licenseIdByType["B"];
                     }
 
-                );
-                context.SaveChanges();
-            }
-
-            // ──────────────── Payment ────────────────
-            if (!context.Payments.Any())
-            {
-                context.Payments.AddRange(
-                   new Payment
-                {
-                    PaymentId = 1,
-                    ScholarshipBasePayment = true,
-                    SessionsPayed = 30,
-                    FileId = 1
-                },
-                new Payment
-                {
-                    PaymentId = 2,
-                    ScholarshipBasePayment = false,
-                    SessionsPayed = 40,
-                    FileId = 2
-                },
-                new Payment
-                {
-                    PaymentId = 3,
-                    ScholarshipBasePayment = true,
-                    SessionsPayed = 70,
-                    FileId = 3
-                },
-                new Payment
-                {
-                    PaymentId = 4,
-                    ScholarshipBasePayment = true,
-                    SessionsPayed = 39,
-                    FileId = 4
-                },
-                new Payment
-                {
-                    PaymentId = 5,
-                    ScholarshipBasePayment = false,
-                    SessionsPayed = 1,
-                    FileId = 5
-                }
-                );
-                context.SaveChanges();
-            }
-
-            // ──────────────── InstructorAvailability ────────────────
-            if (!context.InstructorAvailabilities.Any())
-            {
-                var today = DateTime.Today;
-                for (int i = 0; i < 7; i++)
-                {
-                    var date = today.AddDays(i);
-                    context.InstructorAvailabilities.Add(new InstructorAvailability
+                    var plate = $"DF{schoolId}{i + 1:00}-RO";
+                    vehicles.Add(new Vehicle
                     {
-                        IntervalId = i + 1,
-                        Date = date,
-                        StartHour = new TimeSpan(9, 0, 0),
-                        EndHour = new TimeSpan(17, 0, 0),
-                        InstructorId = "419decbe-6af1-4d84-9b45-c1ef796f4603"
+                        VehicleId = vehicleId,
+                        LicensePlateNumber = plate,
+                        TransmissionType = i % 2 == 0 ? TransmissionType.MANUAL : TransmissionType.AUTOMATIC,
+                        Color = i % 2 == 0 ? "White" : "Blue",
+                        Brand = i % 2 == 0 ? "Dacia" : "Ford",
+                        Model = i % 2 == 0 ? "Logan" : "Focus",
+                        YearOfProduction = 2018 + (i % 5),
+                        FuelType = i % 3 == 0 ? TipCombustibil.BENZINA : TipCombustibil.MOTORINA,
+                        EngineSizeLiters = 1.2m + (i % 3) * 0.4m,
+                        PowertrainType = TipPropulsie.COMBUSTIBIL,
+                        ItpExpiryDate = DateTime.Today.AddMonths(6 + i),
+                        InsuranceExpiryDate = DateTime.Today.AddMonths(8 + i),
+                        RcaExpiryDate = DateTime.Today.AddMonths(10 + i),
+                        LicenseId = licenseId,
+                        AutoSchoolId = schoolId
                     });
+
+                    schoolVehicleIds.Add(vehicleId);
+                    vehicleId++;
                 }
-                context.SaveChanges();
+
+                vehicleIdsBySchool[schoolId] = schoolVehicleIds;
             }
 
-            // ──────────────── Appointment (ready for SessionForm) ────────────────
-            if (!context.Appointments.Any())
-            {
-                context.Appointments.AddRange(new Appointment
-                {
-                    AppointmentId = 1,
-                    Date = DateTime.Today.AddDays(1),
-                    StartHour = new TimeSpan(10, 0, 0),
-                    EndHour = new TimeSpan(11, 30, 0),
-                    FileId = 1
-                },
+            context.Vehicles.AddRange(vehicles);
+            context.SaveChanges();
+        }
 
-                   new Appointment
-                   {
-                       AppointmentId = 2,
-                       Date = DateTime.Today.AddDays(1),
-                       StartHour = new TimeSpan(11, 0, 0),
-                       EndHour = new TimeSpan(12, 30, 0),
-                       FileId = 2
-                   },
-                    new Appointment
+        if (vehicleIdsBySchool.Count == 0)
+        {
+            vehicleIdsBySchool = context.Vehicles
+                .AsNoTracking()
+                .Where(v => v.AutoSchoolId.HasValue)
+                .GroupBy(v => v.AutoSchoolId!.Value)
+                .ToDictionary(g => g.Key, g => g.Select(v => v.VehicleId).OrderBy(id => id).ToList());
+        }
+
+        // ──────────────── File (Student enrollment) ────────────────
+        if (!context.Files.Any())
+        {
+            var files = new List<File>();
+            var fileId = 1;
+
+            foreach (var schoolId in schoolIds)
+            {
+                if (!studentIdsBySchool.TryGetValue(schoolId, out var studentIds) ||
+                    !instructorIdsBySchool.TryGetValue(schoolId, out var instructorIds) ||
+                    !teachingCategoryIdsBySchool.TryGetValue(schoolId, out var categoryIds) ||
+                    !vehicleIdsBySchool.TryGetValue(schoolId, out var vehicleIds))
+                {
+                    continue;
+                }
+
+                for (var studentIndex = 0; studentIndex < studentIds.Count; studentIndex++)
+                {
+                    var studentId = studentIds[studentIndex];
+                    var fileCount = studentIndex % 3 == 0 ? 3 : (studentIndex % 3 == 1 ? 2 : 1);
+
+                    for (var f = 0; f < fileCount; f++)
                     {
-                        AppointmentId = 3,
-                        Date = DateTime.Today.AddDays(2-2*30),
-                        StartHour = new TimeSpan(9, 0, 0),
-                        EndHour = new TimeSpan(10, 30, 0),
-                        FileId = 3
-                    },
-                    new Appointment
-                    {
-                        AppointmentId = 4,
-                        Date = DateTime.Today.AddDays(2-30),
-                        StartHour = new TimeSpan(11, 0, 0),
-                        EndHour = new TimeSpan(12, 30, 0),
-                        FileId = 3
-                    },
-                    new Appointment
-                    {
-                        AppointmentId = 5,
-                        Date = DateTime.Today.AddDays(3),
-                        StartHour = new TimeSpan(14, 0, 0),
-                        EndHour = new TimeSpan(15, 30, 0),
-                        FileId = 3
-                    },
-                    new Appointment
-                    {
-                        AppointmentId = 6,
-                        Date = DateTime.Today.AddDays(4),
-                        StartHour = new TimeSpan(16, 0, 0),
-                        EndHour = new TimeSpan(17, 30, 0),
-                        FileId = 4
-                    },
-                    new Appointment
-                    {
-                        AppointmentId = 7,
-                        Date = DateTime.Today.AddDays(4),
-                        StartHour = new TimeSpan(16, 0, 0),
-                        EndHour = new TimeSpan(17, 30, 0),
-                        FileId = 4
+                        files.Add(new File
+                        {
+                            FileId = fileId,
+                            ScholarshipStartDate = DateTime.Today.AddMonths(-3).AddDays(f * 7),
+                            CriminalRecordExpiryDate = DateTime.Today.AddMonths(12),
+                            MedicalRecordExpiryDate = DateTime.Today.AddMonths(6),
+                            Status = f == 0 ? FileStatus.APPROVED : FileStatus.ARCHIVED,
+                            StudentId = studentId,
+                            InstructorId = instructorIds[(studentIndex + f) % instructorIds.Count],
+                            TeachingCategoryId = categoryIds[(studentIndex + f) % categoryIds.Count],
+                            VehicleId = vehicleIds[(studentIndex + f) % vehicleIds.Count]
+                        });
+                        fileId++;
                     }
-            
-                );
-                context.SaveChanges();
+                }
+            }
+
+            context.Files.AddRange(files);
+            context.SaveChanges();
+        }
+
+        // ──────────────── Payment ────────────────
+        if (!context.Payments.Any())
+        {
+            var payments = new List<Payment>();
+            var paymentId = 1;
+            foreach (var file in context.Files.AsNoTracking().OrderBy(f => f.FileId))
+            {
+                payments.Add(new Payment
+                {
+                    PaymentId = paymentId++,
+                    ScholarshipBasePayment = paymentId % 2 == 0,
+                    SessionsPayed = 10 + (file.FileId % 20),
+                    FileId = file.FileId
+                });
+            }
+            context.Payments.AddRange(payments);
+            context.SaveChanges();
+        }
+
+        // ──────────────── Request ────────────────
+        if (!context.Requests.Any())
+        {
+            var requestId = 1;
+            var requestNames = new[]
+            {
+                new { First = "Alex", Last = "Popescu" },
+                new { First = "Maria", Last = "Ionescu" },
+                new { First = "Radu", Last = "Marinescu" },
+                new { First = "Ana", Last = "Toma" },
+                new { First = "Ioana", Last = "Vlad" },
+                new { First = "Paul", Last = "Enache" }
             };
+
+            var hasStatusColumn = ColumnExists("Requests", "Status");
+
+            if (hasStatusColumn)
+            {
+                var requests = new List<Request>();
+                foreach (var schoolId in schoolIds)
+                {
+                    for (var i = 0; i < 5; i++)
+                    {
+                        var name = requestNames[(requestId - 1) % requestNames.Length];
+                        requests.Add(new Request
+                        {
+                            RequestId = requestId++,
+                            FirstName = name.First,
+                            LastName = name.Last,
+                            PhoneNumber = $"07{schoolId}{i}00000",
+                            DrivingCategory = i % 2 == 0 ? "B" : "C",
+                            Status = i % 3 == 0 ? "Approved" : "Pending",
+                            RequestDate = DateTime.UtcNow.AddDays(-i),
+                            AutoSchoolId = schoolId
+                        });
+                    }
+                }
+
+                context.Requests.AddRange(requests);
+                context.SaveChanges();
+            }
+            else
+            {
+                using var connection = context.Database.GetDbConnection();
+                if (connection.State != ConnectionState.Open)
+                {
+                    connection.Open();
+                }
+
+                foreach (var schoolId in schoolIds)
+                {
+                    for (var i = 0; i < 5; i++)
+                    {
+                        var name = requestNames[(requestId - 1) % requestNames.Length];
+                        using var command = connection.CreateCommand();
+                        command.CommandText = @"
+                            INSERT INTO `Requests`
+                                (`RequestId`, `FirstName`, `LastName`, `PhoneNumber`, `DrivingCategory`, `RequestDate`, `AutoSchoolId`)
+                            VALUES
+                                (@id, @first, @last, @phone, @category, @date, @schoolId)";
+
+                        var idParam = command.CreateParameter();
+                        idParam.ParameterName = "@id";
+                        idParam.Value = requestId++;
+                        command.Parameters.Add(idParam);
+
+                        var firstParam = command.CreateParameter();
+                        firstParam.ParameterName = "@first";
+                        firstParam.Value = name.First;
+                        command.Parameters.Add(firstParam);
+
+                        var lastParam = command.CreateParameter();
+                        lastParam.ParameterName = "@last";
+                        lastParam.Value = name.Last;
+                        command.Parameters.Add(lastParam);
+
+                        var phoneParam = command.CreateParameter();
+                        phoneParam.ParameterName = "@phone";
+                        phoneParam.Value = $"07{schoolId}{i}00000";
+                        command.Parameters.Add(phoneParam);
+
+                        var categoryParam = command.CreateParameter();
+                        categoryParam.ParameterName = "@category";
+                        categoryParam.Value = i % 2 == 0 ? "B" : "C";
+                        command.Parameters.Add(categoryParam);
+
+                        var dateParam = command.CreateParameter();
+                        dateParam.ParameterName = "@date";
+                        dateParam.Value = DateTime.UtcNow.AddDays(-i);
+                        command.Parameters.Add(dateParam);
+
+                        var schoolParam = command.CreateParameter();
+                        schoolParam.ParameterName = "@schoolId";
+                        schoolParam.Value = schoolId;
+                        command.Parameters.Add(schoolParam);
+
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
+        // ──────────────── InstructorAvailability ────────────────
+        if (!context.InstructorAvailabilities.Any())
+        {
+            var intervals = new List<InstructorAvailability>();
+            var intervalId = 1;
+
+            foreach (var schoolId in schoolIds)
+            {
+                if (!instructorIdsBySchool.TryGetValue(schoolId, out var instructorIds))
+                {
+                    continue;
+                }
+
+                foreach (var instructorId in instructorIds)
+                {
+                    for (var day = 0; day < 5; day++)
+                    {
+                        intervals.Add(new InstructorAvailability
+                        {
+                            IntervalId = intervalId++,
+                            Date = DateTime.Today.AddDays(day),
+                            StartHour = new TimeSpan(9, 0, 0),
+                            EndHour = new TimeSpan(12, 0, 0),
+                            InstructorId = instructorId
+                        });
+                    }
+                }
+            }
+
+            context.InstructorAvailabilities.AddRange(intervals);
+            context.SaveChanges();
+        }
+
+        // ──────────────── Appointment (ready for SessionForm) ────────────────
+        if (!context.Appointments.Any())
+        {
+            var appointments = new List<Appointment>();
+            var appointmentId = 1;
+            foreach (var file in context.Files.AsNoTracking().OrderBy(f => f.FileId))
+            {
+                var dayOffset = file.FileId % 7;
+                var startHour = 9 + (file.FileId % 6);
+                appointments.Add(new Appointment
+                {
+                    AppointmentId = appointmentId++,
+                    Date = DateTime.Today.AddDays(dayOffset),
+                    StartHour = new TimeSpan(startHour, 0, 0),
+                    EndHour = new TimeSpan(startHour + 1, 30, 0),
+                    FileId = file.FileId
+                });
+            }
+            context.Appointments.AddRange(appointments);
+            context.SaveChanges();
+        }
 
         if (!context.SessionForms.Any())
         {
-            context.SessionForms.AddRange(
-                new SessionForm
+            var sessionForms = new List<SessionForm>();
+            var sessionFormId = 1;
+            var fileTeachingCategories = context.Files
+                .AsNoTracking()
+                .ToDictionary(f => f.FileId, f => f.TeachingCategoryId);
+
+            var examItemsByForm = context.ExamItems
+                .AsNoTracking()
+                .GroupBy(e => e.FormId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(e => new { e.ItemId, e.PenaltyPoints })
+                          .OrderBy(e => e.ItemId)
+                          .ToList());
+
+            (string json, int totalPoints) BuildMistakesJson(int formId, int seed)
+            {
+                if (!examItemsByForm.TryGetValue(formId, out var items) || items.Count == 0)
                 {
-                    SessionFormId = 1,
-                    AppointmentId = 1,
-                    FormId = 1,
-                    MistakesJson = "[{\"id_item\":6,\"count\":3}]",
-                    IsLocked = false,
-                    CreatedAt = DateTime.Now,
-                    FinalizedAt = DateTime.Now.AddMinutes(30),
-                    TotalPoints = 15,
-                    Result = "PASSED"
-                },
-                new SessionForm
-                {
-                    SessionFormId = 2,
-                    AppointmentId = 2,
-                    FormId = 1,
-                    MistakesJson = "[{\"id_item\":11,\"count\":1},{\"id_item\":20,\"count\":2},{\"id_item\":21,\"count\":1}]",
-                    IsLocked = false,
-                    CreatedAt = DateTime.Now,
-                    FinalizedAt = DateTime.Now.AddMinutes(30),
-                    TotalPoints = 17,
-                    Result = "PASSED"
-                },
-                new SessionForm
-                {
-                    SessionFormId = 3,
-                    AppointmentId = 3,
-                    FormId = 1,
-                    MistakesJson = "[{\"id_item\":1,\"count\":1},{\"id_item\":5,\"count\":2},{\"id_item\":10,\"count\":1}]",
-                    IsLocked = false,
-                    CreatedAt = DateTime.Today.AddDays(2 - 2*30),
-                    FinalizedAt = DateTime.Now.AddDays(2 - 2*30).AddMinutes(30),
-                    TotalPoints = 42,
-                    Result = "FAILED"
-                },
-                new SessionForm
-                {
-                    SessionFormId = 4,
-                    AppointmentId = 4,
-                    FormId = 1,
-                    MistakesJson = "[{\"id_item\":29,\"count\":1},{\"id_item\":38,\"count\":2},{\"id_item\":15,\"count\":2}]",
-                    IsLocked = false,
-                    CreatedAt = DateTime.Today.AddDays(2 - 30),
-                    FinalizedAt = DateTime.Now.AddDays(2 - 30).AddMinutes(30),
-                    TotalPoints = 73,
-                    Result = "FAILED"
-                },
-                new SessionForm
-                {
-                    SessionFormId = 5,
-                    AppointmentId = 5,
-                    FormId = 1,
-                    MistakesJson = "[{\"id_item\":33,\"count\":1},{\"id_item\":6,\"count\":2}]",
-                    IsLocked = false,
-                    CreatedAt = DateTime.Now,
-                    FinalizedAt = DateTime.Now.AddMinutes(30),
-                    TotalPoints = 17,
-                    Result = "PASSED"
-                },
-                new SessionForm
-                {
-                    SessionFormId = 6,
-                    AppointmentId = 6,
-                    FormId = 3,
-                    MistakesJson = "[{\"id_item\":76,\"count\":1},{\"id_item\":73,\"count\":1},{\"id_item\":78,\"count\":1}]", //73, 78
-                    IsLocked = false,
-                    CreatedAt = DateTime.Now,
-                    FinalizedAt = DateTime.Now.AddMinutes(30),
-                    TotalPoints = 21,
-                    Result = "FAILED"
-                },
-                new SessionForm
-                {
-                    SessionFormId = 7,
-                    AppointmentId = 7,
-                    FormId = 3,
-                    MistakesJson = "[{\"id_item\":60,\"count\":1},{\"id_item\":73,\"count\":2}]",
-                    IsLocked = false,
-                    CreatedAt = DateTime.Now,
-                    FinalizedAt = DateTime.Now.AddMinutes(30),
-                    TotalPoints = 17,
-                    Result = "PASSED"
+                    return ("[{\"id_item\":1,\"count\":1}]", 1);
                 }
-            );
+
+                var firstIndex = seed % items.Count;
+                var secondIndex = (seed + 3) % items.Count;
+                var thirdIndex = (seed + 5) % items.Count;
+
+                var first = items[firstIndex];
+                var second = items[secondIndex];
+                var third = items[thirdIndex];
+
+                var total = first.PenaltyPoints * 1
+                            + second.PenaltyPoints * 2
+                            + third.PenaltyPoints * 1;
+
+                var json = $"[{{\"id_item\":{first.ItemId},\"count\":1}}," +
+                           $"{{\"id_item\":{second.ItemId},\"count\":2}}," +
+                           $"{{\"id_item\":{third.ItemId},\"count\":1}}]";
+
+                return (json, total);
+            }
+
+            var appointments = context.Appointments
+                .AsNoTracking()
+                .OrderBy(a => a.AppointmentId)
+                .Take(24)
+                .ToList();
+
+            foreach (var appointment in appointments)
+            {
+                int? teachingCategoryId = null;
+                if (appointment.FileId.HasValue &&
+                    fileTeachingCategories.TryGetValue(appointment.FileId.Value, out var categoryId))
+                {
+                    teachingCategoryId = categoryId;
+                }
+
+                var formId = teachingCategoryId == 2 ? 3
+                    : teachingCategoryId == 3 ? 4
+                    : 1;
+
+                var createdAt = appointment.Date.Date.AddHours(appointment.StartHour.Hours);
+                var (mistakesJson, totalPoints) = BuildMistakesJson(formId, appointment.AppointmentId);
+                var result = totalPoints >= 21 ? "FAILED" : "PASSED";
+
+                sessionForms.Add(new SessionForm
+                {
+                    SessionFormId = sessionFormId++,
+                    AppointmentId = appointment.AppointmentId,
+                    FormId = formId,
+                    MistakesJson = mistakesJson,
+                    IsLocked = true,
+                    CreatedAt = createdAt,
+                    FinalizedAt = createdAt.AddMinutes(45),
+                    TotalPoints = totalPoints,
+                    Result = result
+                });
+            }
+
+            context.SessionForms.AddRange(sessionForms);
             context.SaveChanges();
         }
     }
