@@ -129,7 +129,6 @@ public sealed class SessionFormHistoryTest
             AppointmentId = appointmentId,
             FormId = 1,
             MistakesJson = "[]",
-            IsLocked = totalPoints.HasValue,
             CreatedAt = DateTime.UtcNow,
             TotalPoints = totalPoints,
             Result = result,

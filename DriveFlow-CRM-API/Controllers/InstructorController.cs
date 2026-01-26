@@ -44,6 +44,7 @@ public class InstructorController : ControllerBase
     /// [
     ///   {
     ///     "fileId": 1,
+    ///     "studentId": "user-guid-1234",
     ///     "firstName": "Maria",
     ///     "lastName": "Ionescu",
     ///     "phoneNumber": "+40 712 345 678",
@@ -57,6 +58,7 @@ public class InstructorController : ControllerBase
     ///   },
     ///   {
     ///     "fileId": 2,
+    ///     "studentId": "user-guid-5678",
     ///     "firstName": "Andrei",
     ///     "lastName": "Pop",
     ///     "phoneNumber": "+40 745 987 654",
@@ -114,6 +116,7 @@ public class InstructorController : ControllerBase
             return new InstructorAssignedFileDto
             {
                 FileId = f.FileId,
+                StudentId = f.StudentId,
                 FirstName = student?.FirstName,
                 LastName = student?.LastName,
                 PhoneNumber = student?.PhoneNumber,
@@ -672,6 +675,9 @@ public sealed class InstructorAssignedFileDto
 {
     /// <summary>File identifier</summary>
     public int FileId { get; init; }
+    
+    /// <summary>Student identifier</summary>
+    public string? StudentId { get; init; }
     
     /// <summary>Student's first name</summary>
     public string? FirstName { get; init; }

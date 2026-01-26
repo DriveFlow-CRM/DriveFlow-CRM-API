@@ -7,12 +7,12 @@ namespace DriveFlow_CRM_API.Models;
 /// Represents a session form filled during a driving lesson to record mistakes.
 /// </summary>
 /// <remarks>
-/// • One-to-one with <see cref="Appointment"/> (one form per appointment).<br/>
-/// • FK <see cref="AppointmentId"/> is unique (ensures single active form per lesson).<br/>
-/// • FK <see cref="FormId"/> references the official <see cref="ExamForm"/>.<br/>
-/// • <see cref="MistakesJson"/> stores mistakes as JSON array: [{ "id_item": 1, "count": 3 }, ...].<br/>
-/// • <see cref="IsLocked"/> indicates if form is finalized (immutable after lock).<br/>
-/// • Deleting the appointment cascades and deletes this form.
+/// ? One-to-one with <see cref="Appointment"/> (one form per appointment).<br/>
+/// ? FK <see cref="AppointmentId"/> is unique (ensures single active form per lesson).<br/>
+/// ? FK <see cref="FormId"/> references the official <see cref="ExamForm"/>.<br/>
+/// ? <see cref="MistakesJson"/> stores mistakes as JSON array: [{ "id_item": 1, "count": 3 }, ...].<br/>
+///  Forms are submitted in finalized state (no need for lock flag).<br/>
+/// ? Deleting the appointment cascades and deletes this form.
 /// </remarks>
 public class SessionForm
 {
@@ -32,10 +32,7 @@ public class SessionForm
     [Required]
     public string MistakesJson { get; set; } = "[]";
 
-    /// <summary>Indicates if the form is locked (finalized, immutable).</summary>
-    public bool IsLocked { get; set; }
-
-    /// <summary>Timestamp when the form was created.</summary>
+    /// <summary>Timestamp when the form was created/submitted.</summary>
     public DateTime CreatedAt { get; set; }
 
     /// <summary>Timestamp when the form was finalized (locked).</summary>
