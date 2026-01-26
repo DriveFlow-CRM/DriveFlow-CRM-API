@@ -2079,7 +2079,6 @@ namespace DriveFlow_CRM_API.Models;
                     AppointmentId = appointment.AppointmentId,
                     FormId = formId,
                     MistakesJson = mistakesJson,
-                    IsLocked = true,
                     CreatedAt = createdAt,
                     FinalizedAt = createdAt.AddMinutes(45),
                     TotalPoints = totalPoints,
