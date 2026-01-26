@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -128,18 +128,14 @@ public class ExamFormController : ControllerBase
     /// <response code="201">Form created successfully.</response>
     /// <response code="400">Invalid data or category not found.</response>
     /// <response code="401">No valid JWT supplied.</response>
-    /// <response code="403">User is not a SchoolAdmin of the correct school.</response>
+    /// <response code="403">User is not a SuperAdmin.</response>
     /// <response code="404">Teaching category not found.</response>
     [HttpPost("seed/{teachingCategoryId:int}")]
-    [Authorize(Roles = "SchoolAdmin")]
+    [Authorize(Roles = "SuperAdmin")]
     public async Task<IActionResult> SeedForm(int teachingCategoryId, [FromBody] CreateExamFormDto dto)
     {
         if (teachingCategoryId <= 0)
             return BadRequest(new { message = "Teaching category ID must be positive." });
-
-        var caller = await _users.GetUserAsync(User);
-        if (caller == null)
-            return Unauthorized("User not found.");
 
         var category = await _db.TeachingCategories
             .AsNoTracking()
@@ -147,10 +143,6 @@ public class ExamFormController : ControllerBase
 
         if (category == null)
             return NotFound(new { message = "Teaching category not found." });
-
-        // Ensure the SchoolAdmin belongs to the same school
-        if (caller.AutoSchoolId != category.AutoSchoolId)
-            return Forbid();
 
         // Check if form already exists
         var existingForm = await _db.ExamForms
