@@ -43,6 +43,7 @@ public class InstructorController : ControllerBase
     /// ```json
     /// [
     ///   {
+    ///     "fileId": 1,
     ///     "firstName": "Maria",
     ///     "lastName": "Ionescu",
     ///     "phoneNumber": "+40 712 345 678",
@@ -55,6 +56,7 @@ public class InstructorController : ControllerBase
     ///     "color": "red"
     ///   },
     ///   {
+    ///     "fileId": 2,
     ///     "firstName": "Andrei",
     ///     "lastName": "Pop",
     ///     "phoneNumber": "+40 745 987 654",
@@ -111,6 +113,7 @@ public class InstructorController : ControllerBase
             
             return new InstructorAssignedFileDto
             {
+                FileId = f.FileId,
                 FirstName = student?.FirstName,
                 LastName = student?.LastName,
                 PhoneNumber = student?.PhoneNumber,
@@ -667,6 +670,9 @@ public sealed class InstructorCohortStatsDto
 /// </summary>
 public sealed class InstructorAssignedFileDto
 {
+    /// <summary>File identifier</summary>
+    public int FileId { get; init; }
+    
     /// <summary>Student's first name</summary>
     public string? FirstName { get; init; }
     
