@@ -410,7 +410,7 @@ public class SessionFormController : ControllerBase
     /// <remarks>
     /// <para>Only the instructor who owns the appointment can finalize the form.</para>
     /// <para>After finalization, any PATCH requests will return 423 Locked.</para>
-    /// <para>Result calculation: totalPoints = ?(count × penaltyPoints)</para>
+    /// <para>Result calculation: totalPoints = ?(count ? penaltyPoints)</para>
     /// <para>Pass/Fail logic: FAILED if totalPoints > maxPoints, OK otherwise</para>
     /// <para><strong>Sample responses:</strong></para>
     ///
@@ -483,7 +483,7 @@ public class SessionFormController : ControllerBase
             mistakes = new List<MistakeEntry>();
         }
 
-        // 6. Calculate total points: ?(count × penaltyPoints)
+        // 6. Calculate total points: ?(count ? penaltyPoints)
         int totalPoints = 0;
         foreach (var mistake in mistakes)
         {
@@ -533,9 +533,10 @@ public class SessionFormController : ControllerBase
     /// <item>to: End date filter (optional, format: YYYY-MM-DD)</item>
     /// <item>page: Page number (default: 1)</item>
     /// <item>pageSize: Items per page (default: 20, max: 100)</item>
+    /// <item>fileId: If provided, returns only session forms for that specific FileId (simple list, no pagination)</item>
     /// </list>
     ///
-    /// <para><strong>Sample response (200 OK):</strong></para>
+    /// <para><strong>Sample response (200 OK) - without fileId (paginated):</strong></para>
     /// ```json
     /// {
     ///   "page": 1,
@@ -559,12 +560,21 @@ public class SessionFormController : ControllerBase
     ///   ]
     /// }
     /// ```
+    ///
+    /// <para><strong>Sample response (200 OK) - with fileId (filtered, simple list):</strong></para>
+    /// ```json
+    /// [
+    ///   { "id": 502, "date": "2025-10-19", "totalPoints": 24, "maxPoints": 21, "result": "FAILED" },
+    ///   { "id": 501, "date": "2025-10-12", "totalPoints": 18, "maxPoints": 21, "result": "OK" }
+    /// ]
+    /// ```
     /// </remarks>
     /// <param name="id_student">The student user ID</param>
     /// <param name="from">Start date filter (optional)</param>
     /// <param name="to">End date filter (optional)</param>
     /// <param name="page">Page number (default: 1)</param>
     /// <param name="pageSize">Items per page (default: 20, max: 100)</param>
+    /// <param name="fileId">If provided, returns only session forms for that specific FileId (simple list, no pagination)</param>
     /// <response code="200">Session forms retrieved successfully.</response>
     /// <response code="400">Invalid query parameters.</response>
     /// <response code="401">No valid JWT supplied.</response>
@@ -576,12 +586,13 @@ public class SessionFormController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<PagedResult<SessionFormListItemDto>>> ListStudentForms(
+    public async Task<IActionResult> ListStudentForms(
         string id_student,
         [FromQuery] string? from = null,
         [FromQuery] string? to = null,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
+        [FromQuery] int pageSize = 20,
+        [FromQuery] int? fileId = null)
     {
         // 1. Validate pagination parameters
         if (page < 1)
@@ -645,7 +656,50 @@ public class SessionFormController : ControllerBase
             toDate = parsedTo.Date.AddDays(1).AddSeconds(-1); // End of day
         }
 
-        // 6. Build query with filters
+        // 6. If fileId is provided, return only session forms for that specific file
+        if (fileId.HasValue)
+        {
+            // Verify the file belongs to the student
+            var fileExists = await _db.Files.AnyAsync(f => f.FileId == fileId.Value && f.StudentId == id_student);
+            if (!fileExists)
+                return NotFound(new { message = $"File with ID {fileId.Value} not found for this student." });
+
+            // Get appointment IDs for this specific file
+            var appointmentIds = await _db.Appointments
+                .Where(a => a.FileId == fileId.Value)
+                .Select(a => a.AppointmentId)
+                .ToListAsync();
+
+            // Build query for this file's session forms
+            var fileQuery = _db.SessionForms
+                .Include(sf => sf.Appointment)
+                .Include(sf => sf.ExamForm)
+                .Where(sf => appointmentIds.Contains(sf.AppointmentId));
+
+            // Apply date filters
+            if (fromDate.HasValue)
+                fileQuery = fileQuery.Where(sf => sf.Appointment.Date >= fromDate.Value);
+
+            if (toDate.HasValue)
+                fileQuery = fileQuery.Where(sf => sf.Appointment.Date <= toDate.Value);
+
+            var fileSessionForms = await fileQuery
+                .OrderByDescending(sf => sf.Appointment.Date)
+                .ThenByDescending(sf => sf.SessionFormId)
+                .ToListAsync();
+
+            var fileItems = fileSessionForms.Select(sf => new SessionFormListItemDto(
+                sf.SessionFormId,
+                DateOnly.FromDateTime(sf.Appointment.Date),
+                sf.TotalPoints,
+                sf.ExamForm.MaxPoints,
+                sf.Result
+            )).ToList();
+
+            return Ok(fileItems);
+        }
+
+        // 7. Default behavior: Build query with filters (flat list, paginated)
         var query = _db.SessionForms
             .Include(sf => sf.Appointment)
             .Include(sf => sf.ExamForm)
@@ -658,10 +712,10 @@ public class SessionFormController : ControllerBase
         if (toDate.HasValue)
             query = query.Where(sf => sf.Appointment.Date <= toDate.Value);
 
-        // 7. Get total count
+        // 8. Get total count
         var total = await query.CountAsync();
 
-        // 8. Apply sorting (descending by date) and pagination
+        // 9. Apply sorting (descending by date) and pagination
         var sessionForms = await query
             .OrderByDescending(sf => sf.Appointment.Date)
             .ThenByDescending(sf => sf.SessionFormId)
@@ -678,7 +732,7 @@ public class SessionFormController : ControllerBase
             sf.Result
         )).ToList();
 
-        // 9. Build paged result
+        // 10. Build paged result
         var result = new PagedResult<SessionFormListItemDto>(
             page,
             pageSize,

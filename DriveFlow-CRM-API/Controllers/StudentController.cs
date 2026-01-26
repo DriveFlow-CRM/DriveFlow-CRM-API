@@ -639,8 +639,9 @@ public class StudentController : ControllerBase
     /// Query parameters:
     /// - <c>from</c> (optional) — inclusive start date (ISO 8601 or any DateTime.Parseable value). If omitted, the earliest date is used.
     /// - <c>to</c>   (optional) — inclusive end date (ISO 8601 or any DateTime.Parseable value). If omitted, DateTime.Now is used.
+    /// - <c>fileId</c> (optional) — if provided, returns statistics only for that specific File. If omitted, returns a list of statistics grouped by each File of the student.
     ///
-    /// <para><strong>Sample response format</strong>:</para>
+    /// <para><strong>Sample response format (with fileId - single file stats)</strong>:</para>
     /// ``` json
     /// {
     ///   "series": [
@@ -740,14 +741,37 @@ public class StudentController : ControllerBase
     ///   ]
     /// }
     /// ```
+    /// <para><strong>Sample response format (without fileId - default, grouped by file)</strong>:</para>
+    /// ``` json
+    /// [
+    ///   {
+    ///     "fileId": 1,
+    ///     "stats": {
+    ///       "series": [...],
+    ///       "heatmap": {...},
+    ///       "movingAverage": [...]
+    ///     }
+    ///   },
+    ///   {
+    ///     "fileId": 2,
+    ///     "stats": {
+    ///       "series": [...],
+    ///       "heatmap": {...},
+    ///       "movingAverage": [...]
+    ///     }
+    ///   }
+    /// ]
+    /// ```
     /// </remarks>
     /// <param name="id_student">Student identifier for which statistics are computed.</param>
+    /// <param name="fileId">Optional file identifier. If provided, returns statistics only for that specific File. If omitted, returns a list grouped by each File of the student.</param>
     /// <response code="200">Statistics computed successfully.</response>
     /// <response code="401">Requesting user is not authenticated.</response>
     /// <response code="403">Requesting user is not authorized to view the requested student's statistics.</response>
+    /// <response code="404">File not found (when fileId is provided but doesn't exist).</response>
     [HttpGet("{id_student}/stats/mistakes")]
     [Authorize(Roles = "Student, Instructor, SchoolAdmin")]
-    public async Task<ActionResult<StudentMistakeStatsDto>> GetStudentMistakeStats(string id_student)
+    public async Task<IActionResult> GetStudentMistakeStats(string id_student, [FromQuery] int? fileId = null)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -811,12 +835,28 @@ public class StudentController : ControllerBase
         }
         else
         {
-            to = DateTime.Now;
+            to = DateTime.MaxValue;
         }
 
-        var sessionForms = await _db.SessionForms
+        // If fileId is provided, return statistics only for that specific File
+        if (fileId.HasValue)
+        {
+            // Verify the file belongs to the student
+            var fileExists = await _db.Files.AnyAsync(f => f.FileId == fileId.Value && f.StudentId == id_student);
+            if (!fileExists)
+            {
+                return NotFound($"File with ID {fileId.Value} not found for this student.");
+            }
+
+            // Get all appointment IDs for this specific file
+            var appointmentIds = await _db.Appointments
+                .Where(a => a.FileId == fileId.Value)
+                .Select(a => a.AppointmentId)
+                .ToListAsync();
+
+            var sessionForms = await _db.SessionForms
                 .Where(se =>
-                    se.Appointment.File.StudentId == id_student &&
+                    appointmentIds.Contains(se.AppointmentId) &&
                     se.CreatedAt >= from &&
                     se.CreatedAt <= to)
                 .Select(se => new
@@ -828,30 +868,96 @@ public class StudentController : ControllerBase
                 })
                 .ToListAsync();
 
+            if (sessionForms.Count == 0)
+            {
+                return Ok(new StudentMistakeStatsDto()
+                {
+                    series = new List<SeriesPoint>(),
+                    heatmap = new HeatmapDto(null, null, null),
+                    movingAverage = new List<MovingAvgPoint>()
+                });
+            }
 
-        if (sessionForms.Count == 0)
+            return Ok(ComputeMistakeStats(sessionForms));
+        }
+
+        // Default behavior: return grouped statistics for each File of the student (list of lists)
+        var studentFiles = await _db.Files
+            .Where(f => f.StudentId == id_student)
+            .Select(f => f.FileId)
+            .ToListAsync();
+
+        var result = new List<FileMistakeStatsDto>();
+
+        foreach (var currentFileId in studentFiles)
         {
-            return Ok(new StudentMistakeStatsDto()
+            // Get all appointment IDs for this file
+            var appointmentIds = await _db.Appointments
+                .Where(a => a.FileId == currentFileId)
+                .Select(a => a.AppointmentId)
+                .ToListAsync();
+
+            // Get all session forms for these appointments
+            var fileSessionForms = await _db.SessionForms
+                .Where(se =>
+                    appointmentIds.Contains(se.AppointmentId) &&
+                    se.CreatedAt >= from &&
+                    se.CreatedAt <= to)
+                .Select(se => new
+                {
+                    se.SessionFormId,
+                    se.CreatedAt,
+                    se.TotalPoints,
+                    se.MistakesJson
+                })
+                .ToListAsync();
+
+            var stats = ComputeMistakeStats(fileSessionForms);
+            result.Add(new FileMistakeStatsDto
+            {
+                FileId = currentFileId,
+                Stats = stats
+            });
+        }
+
+        return Ok(result);
+
+    }
+
+    /// <summary>
+    /// Helper method to compute mistake statistics from a list of session forms.
+    /// </summary>
+    private StudentMistakeStatsDto ComputeMistakeStats<T>(List<T> sessionForms) where T : class
+    {
+        // Use reflection or dynamic to access properties, or cast to anonymous type
+        var sessions = sessionForms.Select(s => new
+        {
+            SessionFormId = (int)s.GetType().GetProperty("SessionFormId")!.GetValue(s)!,
+            CreatedAt = (DateTime?)s.GetType().GetProperty("CreatedAt")!.GetValue(s),
+            TotalPoints = (int?)s.GetType().GetProperty("TotalPoints")!.GetValue(s),
+            MistakesJson = (string)s.GetType().GetProperty("MistakesJson")!.GetValue(s)!
+        }).ToList();
+
+        if (sessions.Count == 0)
+        {
+            return new StudentMistakeStatsDto()
             {
                 series = new List<SeriesPoint>(),
                 heatmap = new HeatmapDto(null, null, null),
                 movingAverage = new List<MovingAvgPoint>()
-            });
+            };
         }
-
 
         List<SeriesPoint> seriesPoints = new List<SeriesPoint>();
         List<MovingAvgPoint> movingAverage = new List<MovingAvgPoint>();
         double average = 0;
         int avgCoount = 1;
 
-
-
-        List<(int,MistakeEntry)> allMistakes = new List<(int,MistakeEntry)>();
-        Dictionary<int,int> dict = new Dictionary<int,int>();
+        List<(int, MistakeEntry)> allMistakes = new List<(int, MistakeEntry)>();
+        Dictionary<int, int> dict = new Dictionary<int, int>();
         int poz = 0;
 
-        foreach (var session in sessionForms)
+        foreach (var session in sessions)
         {
             List<MistakeEntry> mistakes = System.Text.Json.JsonSerializer
                 .Deserialize<List<MistakeEntry>>(session.MistakesJson) ?? new List<MistakeEntry>();
@@ -865,62 +971,48 @@ public class StudentController : ControllerBase
 
             seriesPoints.Add(new SeriesPoint
             {
-                date = DateOnly.FromDateTime((DateTime)session.CreatedAt),
+                date = DateOnly.FromDateTime((DateTime)session.CreatedAt!),
                 totalPoints = session.TotalPoints ?? 0,
                 topItems = top
             });
 
-            average = double.Round((average + session.TotalPoints ?? 0) / avgCoount++,2);
-            DateOnly date = DateOnly.FromDateTime((DateTime)session.CreatedAt);
+            average = double.Round((average + session.TotalPoints ?? 0) / avgCoount++, 2);
+            DateOnly date = DateOnly.FromDateTime((DateTime)session.CreatedAt!);
             movingAverage.Add(new MovingAvgPoint(date, average));
 
             foreach (var mistake in mistakes)
             {
-                allMistakes.Add((session.SessionFormId,mistake));
-                if(!dict.ContainsKey(mistake.id_item))
+                allMistakes.Add((session.SessionFormId, mistake));
+                if (!dict.ContainsKey(mistake.id_item))
                 {
                     dict[mistake.id_item] = poz++;
                 }
             }
         }
-        var sessionIndexes = sessionForms.Select(s => s.SessionFormId).Distinct().ToArray<int>();
-
-
+        var sessionIndexes = sessions.Select(s => s.SessionFormId).Distinct().ToArray<int>();
 
         Dictionary<int, int> dIndexes = new Dictionary<int, int>();
         var x = 0;
-        foreach(var _index in sessionIndexes)
+        foreach (var _index in sessionIndexes)
         {
             dIndexes[_index] = x++;
         }
-
-        //return Ok(dIndexes);
-
-
-
-
 
         int[][] counts = new int[sessionIndexes.Length][];
         for (int i = 0; i < sessionIndexes.Length; i++)
         {
             counts[i] = new int[poz];
         }
-        int[] itemids = new int[poz];
-        int index = 0;
-
-        //return Ok(counts);
-
 
         foreach (var entry in allMistakes)
         {
             counts[dIndexes[entry.Item1]][dict[entry.Item2.id_item]] = entry.Item2.count;
         }
 
-        itemids = dict.OrderBy(kv => kv.Value).Select(kv => kv.Key).ToArray<int>();
+        var itemids = dict.OrderBy(kv => kv.Value).Select(kv => kv.Key).ToArray<int>();
         HeatmapDto heatmapData = new HeatmapDto(itemids, sessionIndexes, counts);
 
-        return Ok(new StudentMistakeStatsDto(seriesPoints, heatmapData, movingAverage));
-
+        return new StudentMistakeStatsDto(seriesPoints, heatmapData, movingAverage);
     }
 
 
@@ -1626,6 +1718,18 @@ public sealed class StudentMistakeStatsDto
         this.heatmap = new HeatmapDto(Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int[]>());
         this.movingAverage = Array.Empty<MovingAvgPoint>();
     }
+}
+
+/// <summary>
+/// DTO that wraps mistake statistics for a specific File, including its FileId and associated stats.
+/// </summary>
+public sealed class FileMistakeStatsDto
+{
+    /// <summary>The File identifier.</summary>
+    public int FileId { get; set; }
+
+    /// <summary>The mistake statistics for this File's session forms.</summary>
+    public StudentMistakeStatsDto Stats { get; set; } = new StudentMistakeStatsDto();
 }
 
 #endregion

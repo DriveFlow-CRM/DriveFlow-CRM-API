@@ -77,8 +77,7 @@ namespace DriveFlow_CRM_API.Models;
         bool ColumnExists(string tableName, string columnName)
         {
             var connection = context.Database.GetDbConnection();
-            var shouldClose = connection.State != ConnectionState.Open;
-            if (shouldClose)
+            if (connection.State != ConnectionState.Open)
             {
                 connection.Open();
             }
@@ -102,10 +101,7 @@ namespace DriveFlow_CRM_API.Models;
             command.Parameters.Add(columnParam);
 
             var result = command.ExecuteScalar();
-            if (shouldClose)
-            {
-                connection.Close();
-            }
+            // DO NOT close connection - let EF Core manage it
 
             return result != null && Convert.ToInt32(result) > 0;
         }
