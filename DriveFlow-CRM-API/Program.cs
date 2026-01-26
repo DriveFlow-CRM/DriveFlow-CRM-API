@@ -25,13 +25,6 @@ public partial class Program
     // Load variables from .env FIRST, so they are visible to the configuration builder.
     public static void Main(string[] args)
     {
-        // TEMPORARY: Reset database if "reset" argument is passed
-        if (args.Length > 0 && args[0].ToLower() == "reset")
-        {
-            ResetDb.Run().GetAwaiter().GetResult();
-            return;
-        }
-
         DotNetEnv.Env.Load();
 
         var builder = WebApplication.CreateBuilder(args);
