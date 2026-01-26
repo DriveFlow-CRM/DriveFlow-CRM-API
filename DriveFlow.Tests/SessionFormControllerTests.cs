@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -60,8 +61,10 @@ public class SessionFormControllerTests
             null);
     }
 
+    // ────────────────────────────── SUBMIT SESSION FORM TESTS ──────────────────────────────
+
     [Fact]
-    public async Task StartSessionForm_ShouldReturn201_WhenValid()
+    public async Task SubmitSessionForm_ShouldReturn201_WhenValid_WithOKResult()
     {
         // Arrange
         var db = InMemDb();
@@ -107,6 +110,22 @@ public class SessionFormControllerTests
         };
         db.ExamForms.Add(examForm);
 
+        var examItem1 = new ExamItem
+        {
+            ItemId = 1,
+            FormId = 1,
+            Description = "Semnalizare",
+            PenaltyPoints = 3
+        };
+        var examItem2 = new ExamItem
+        {
+            ItemId = 2,
+            FormId = 1,
+            Description = "Depasire",
+            PenaltyPoints = 5
+        };
+        db.ExamItems.AddRange(examItem1, examItem2);
+
         var file = new DriveFlow_CRM_API.Models.File
         {
             FileId = 1,
@@ -121,7 +140,7 @@ public class SessionFormControllerTests
         {
             AppointmentId = 100,
             FileId = 1,
-            Date = DateTime.Today.AddDays(1),
+            Date = DateTime.Today,
             StartHour = new TimeSpan(10, 0, 0),
             EndHour = new TimeSpan(11, 0, 0)
         };
@@ -132,29 +151,36 @@ public class SessionFormControllerTests
         var controller = new SessionFormController(db, userManager);
         AttachIdentity(controller, "Instructor", "instructor1");
 
+        var request = new SubmitSessionFormRequest(
+            Mistakes: new List<MistakeItemDto>
+            {
+                new MistakeItemDto(IdItem: 1, Count: 2),  // 2 * 3 = 6 points
+                new MistakeItemDto(IdItem: 2, Count: 1)   // 1 * 5 = 5 points
+            },
+            MaxPoints: 21
+        );
+
         // Act
-        var result = await controller.StartSessionForm(100);
+        var result = await controller.SubmitSessionForm(100, request);
 
         // Assert
-        result.Result.Should().BeOfType<CreatedResult>();
-        var createdResult = result.Result as CreatedResult;
-        var dto = createdResult.Value as SessionFormDto;
+        var createdResult = result.Result.Should().BeOfType<CreatedResult>().Subject;
+        var response = createdResult.Value.Should().BeOfType<SubmitSessionFormResponse>().Subject;
 
-        dto.Should().NotBeNull();
-        dto.id_app.Should().Be(100);
-        dto.id_formular.Should().Be(1);
-        dto.isLocked.Should().BeFalse();
-        dto.mistakesJson.Should().Be("[]");
-        dto.finalizedAt.Should().BeNull();
-        dto.totalPoints.Should().BeNull();
-        dto.result.Should().BeNull();
+        response.TotalPoints.Should().Be(11);  // 6 + 5 = 11
+        response.MaxPoints.Should().Be(21);
+        response.Result.Should().Be("OK");  // 11 <= 21, so OK
 
-        var sessionForm = await db.SessionForms.FirstOrDefaultAsync(sf => sf.AppointmentId == 100);
-        sessionForm.Should().NotBeNull();
+        // Verify in database
+        var savedForm = await db.SessionForms.FirstOrDefaultAsync();
+        savedForm.Should().NotBeNull();
+        savedForm!.TotalPoints.Should().Be(11);
+        savedForm.Result.Should().Be("OK");
+        savedForm.FinalizedAt.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task StartSessionForm_ShouldReturn409_WhenFormAlreadyExists()
+    public async Task SubmitSessionForm_ShouldReturn201_WhenValid_WithFAILEDResult()
     {
         // Arrange
         var db = InMemDb();
@@ -169,14 +195,218 @@ public class SessionFormControllerTests
         };
         await userManager.CreateAsync(instructor, "Password123!");
 
-        var student = new ApplicationUser
+        var category = new TeachingCategory
         {
-            Id = "student1",
-            UserName = "student@test.com",
-            Email = "student@test.com",
-            AutoSchoolId = 1
+            TeachingCategoryId = 1,
+            Code = "B",
+            AutoSchoolId = 1,
+            SessionCost = 100,
+            SessionDuration = 60,
+            ScholarshipPrice = 1000,
+            MinDrivingLessonsReq = 20
         };
-        await userManager.CreateAsync(student, "Password123!");
+        db.TeachingCategories.Add(category);
+
+        var examForm = new ExamForm
+        {
+            FormId = 1,
+            TeachingCategoryId = 1,
+            MaxPoints = 21
+        };
+        db.ExamForms.Add(examForm);
+
+        var examItem = new ExamItem
+        {
+            ItemId = 1,
+            FormId = 1,
+            Description = "Semnalizare",
+            PenaltyPoints = 5
+        };
+        db.ExamItems.Add(examItem);
+
+        var file = new DriveFlow_CRM_API.Models.File
+        {
+            FileId = 1,
+            StudentId = "student1",
+            InstructorId = "instructor1",
+            TeachingCategoryId = 1,
+            Status = FileStatus.APPROVED
+        };
+        db.Files.Add(file);
+
+        var appointment = new Appointment
+        {
+            AppointmentId = 100,
+            FileId = 1,
+            Date = DateTime.Today,
+            StartHour = new TimeSpan(10, 0, 0),
+            EndHour = new TimeSpan(11, 0, 0)
+        };
+        db.Appointments.Add(appointment);
+
+        await db.SaveChangesAsync();
+
+        var controller = new SessionFormController(db, userManager);
+        AttachIdentity(controller, "Instructor", "instructor1");
+
+        var request = new SubmitSessionFormRequest(
+            Mistakes: new List<MistakeItemDto>
+            {
+                new MistakeItemDto(IdItem: 1, Count: 5)  // 5 * 5 = 25 points
+            },
+            MaxPoints: 21
+        );
+
+        // Act
+        var result = await controller.SubmitSessionForm(100, request);
+
+        // Assert
+        var createdResult = result.Result.Should().BeOfType<CreatedResult>().Subject;
+        var response = createdResult.Value.Should().BeOfType<SubmitSessionFormResponse>().Subject;
+
+        response.TotalPoints.Should().Be(25);
+        response.MaxPoints.Should().Be(21);
+        response.Result.Should().Be("FAILED");  // 25 > 21, so FAILED
+    }
+
+    [Fact]
+    public async Task SubmitSessionForm_ShouldReturn400_WhenAppointmentIdInvalid()
+    {
+        // Arrange
+        var db = InMemDb();
+        var userManager = GetMockedUserManager(db);
+
+        var instructor = new ApplicationUser
+        {
+            Id = "instructor1",
+            UserName = "instructor@test.com",
+            Email = "instructor@test.com"
+        };
+        await userManager.CreateAsync(instructor, "Password123!");
+
+        var controller = new SessionFormController(db, userManager);
+        AttachIdentity(controller, "Instructor", "instructor1");
+
+        var request = new SubmitSessionFormRequest(
+            Mistakes: new List<MistakeItemDto>(),
+            MaxPoints: 21
+        );
+
+        // Act
+        var result = await controller.SubmitSessionForm(0, request);
+
+        // Assert
+        result.Result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Fact]
+    public async Task SubmitSessionForm_ShouldReturn404_WhenAppointmentNotFound()
+    {
+        // Arrange
+        var db = InMemDb();
+        var userManager = GetMockedUserManager(db);
+
+        var instructor = new ApplicationUser
+        {
+            Id = "instructor1",
+            UserName = "instructor@test.com",
+            Email = "instructor@test.com"
+        };
+        await userManager.CreateAsync(instructor, "Password123!");
+
+        var controller = new SessionFormController(db, userManager);
+        AttachIdentity(controller, "Instructor", "instructor1");
+
+        var request = new SubmitSessionFormRequest(
+            Mistakes: new List<MistakeItemDto>(),
+            MaxPoints: 21
+        );
+
+        // Act
+        var result = await controller.SubmitSessionForm(999, request);
+
+        // Assert
+        result.Result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    [Fact]
+    public async Task SubmitSessionForm_ShouldReturn403_WhenInstructorNotOwner()
+    {
+        // Arrange
+        var db = InMemDb();
+        var userManager = GetMockedUserManager(db);
+
+        var instructor = new ApplicationUser
+        {
+            Id = "instructor1",
+            UserName = "instructor@test.com",
+            Email = "instructor@test.com"
+        };
+        await userManager.CreateAsync(instructor, "Password123!");
+
+        var category = new TeachingCategory
+        {
+            TeachingCategoryId = 1,
+            Code = "B",
+            AutoSchoolId = 1,
+            SessionCost = 100,
+            SessionDuration = 60,
+            ScholarshipPrice = 1000,
+            MinDrivingLessonsReq = 20
+        };
+        db.TeachingCategories.Add(category);
+
+        var file = new DriveFlow_CRM_API.Models.File
+        {
+            FileId = 1,
+            StudentId = "student1",
+            InstructorId = "other_instructor",  // Different instructor
+            TeachingCategoryId = 1,
+            Status = FileStatus.APPROVED
+        };
+        db.Files.Add(file);
+
+        var appointment = new Appointment
+        {
+            AppointmentId = 100,
+            FileId = 1,
+            Date = DateTime.Today,
+            StartHour = new TimeSpan(10, 0, 0),
+            EndHour = new TimeSpan(11, 0, 0)
+        };
+        db.Appointments.Add(appointment);
+
+        await db.SaveChangesAsync();
+
+        var controller = new SessionFormController(db, userManager);
+        AttachIdentity(controller, "Instructor", "instructor1");
+
+        var request = new SubmitSessionFormRequest(
+            Mistakes: new List<MistakeItemDto>(),
+            MaxPoints: 21
+        );
+
+        // Act
+        var result = await controller.SubmitSessionForm(100, request);
+
+        // Assert
+        result.Result.Should().BeOfType<ForbidResult>();
+    }
+
+    [Fact]
+    public async Task SubmitSessionForm_ShouldReturn409_WhenFormAlreadyExists()
+    {
+        // Arrange
+        var db = InMemDb();
+        var userManager = GetMockedUserManager(db);
+
+        var instructor = new ApplicationUser
+        {
+            Id = "instructor1",
+            UserName = "instructor@test.com",
+            Email = "instructor@test.com"
+        };
+        await userManager.CreateAsync(instructor, "Password123!");
 
         var category = new TeachingCategory
         {
@@ -212,20 +442,19 @@ public class SessionFormControllerTests
         {
             AppointmentId = 100,
             FileId = 1,
-            Date = DateTime.Today.AddDays(1),
+            Date = DateTime.Today,
             StartHour = new TimeSpan(10, 0, 0),
             EndHour = new TimeSpan(11, 0, 0)
         };
         db.Appointments.Add(appointment);
 
-        // Pre-existing session form
+        // Existing session form
         var existingForm = new SessionForm
         {
             SessionFormId = 1,
             AppointmentId = 100,
             FormId = 1,
             MistakesJson = "[]",
-            IsLocked = false,
             CreatedAt = DateTime.UtcNow
         };
         db.SessionForms.Add(existingForm);
@@ -235,15 +464,20 @@ public class SessionFormControllerTests
         var controller = new SessionFormController(db, userManager);
         AttachIdentity(controller, "Instructor", "instructor1");
 
+        var request = new SubmitSessionFormRequest(
+            Mistakes: new List<MistakeItemDto>(),
+            MaxPoints: 21
+        );
+
         // Act
-        var result = await controller.StartSessionForm(100);
+        var result = await controller.SubmitSessionForm(100, request);
 
         // Assert
         result.Result.Should().BeOfType<ConflictObjectResult>();
     }
 
     [Fact]
-    public async Task StartSessionForm_ShouldReturn404_WhenAppointmentNotFound()
+    public async Task SubmitSessionForm_ShouldReturn400_WhenItemNotInExamForm()
     {
         // Arrange
         var db = InMemDb();
@@ -257,18 +491,148 @@ public class SessionFormControllerTests
         };
         await userManager.CreateAsync(instructor, "Password123!");
 
+        var category = new TeachingCategory
+        {
+            TeachingCategoryId = 1,
+            Code = "B",
+            AutoSchoolId = 1,
+            SessionCost = 100,
+            SessionDuration = 60,
+            ScholarshipPrice = 1000,
+            MinDrivingLessonsReq = 20
+        };
+        db.TeachingCategories.Add(category);
+
+        var examForm = new ExamForm
+        {
+            FormId = 1,
+            TeachingCategoryId = 1,
+            MaxPoints = 21
+        };
+        db.ExamForms.Add(examForm);
+
+        // No exam items added!
+
+        var file = new DriveFlow_CRM_API.Models.File
+        {
+            FileId = 1,
+            StudentId = "student1",
+            InstructorId = "instructor1",
+            TeachingCategoryId = 1,
+            Status = FileStatus.APPROVED
+        };
+        db.Files.Add(file);
+
+        var appointment = new Appointment
+        {
+            AppointmentId = 100,
+            FileId = 1,
+            Date = DateTime.Today,
+            StartHour = new TimeSpan(10, 0, 0),
+            EndHour = new TimeSpan(11, 0, 0)
+        };
+        db.Appointments.Add(appointment);
+
+        await db.SaveChangesAsync();
+
         var controller = new SessionFormController(db, userManager);
         AttachIdentity(controller, "Instructor", "instructor1");
 
+        var request = new SubmitSessionFormRequest(
+            Mistakes: new List<MistakeItemDto>
+            {
+                new MistakeItemDto(IdItem: 999, Count: 1)  // Non-existent item
+            },
+            MaxPoints: 21
+        );
+
         // Act
-        var result = await controller.StartSessionForm(999);
+        var result = await controller.SubmitSessionForm(100, request);
 
         // Assert
-        result.Result.Should().BeOfType<NotFoundObjectResult>();
+        result.Result.Should().BeOfType<BadRequestObjectResult>();
     }
 
     [Fact]
-    public async Task StartSessionForm_ShouldReturn403_WhenInstructorNotOwner()
+    public async Task SubmitSessionForm_ShouldReturn201_WithEmptyMistakes()
+    {
+        // Arrange
+        var db = InMemDb();
+        var userManager = GetMockedUserManager(db);
+
+        var instructor = new ApplicationUser
+        {
+            Id = "instructor1",
+            UserName = "instructor@test.com",
+            Email = "instructor@test.com"
+        };
+        await userManager.CreateAsync(instructor, "Password123!");
+
+        var category = new TeachingCategory
+        {
+            TeachingCategoryId = 1,
+            Code = "B",
+            AutoSchoolId = 1,
+            SessionCost = 100,
+            SessionDuration = 60,
+            ScholarshipPrice = 1000,
+            MinDrivingLessonsReq = 20
+        };
+        db.TeachingCategories.Add(category);
+
+        var examForm = new ExamForm
+        {
+            FormId = 1,
+            TeachingCategoryId = 1,
+            MaxPoints = 21
+        };
+        db.ExamForms.Add(examForm);
+
+        var file = new DriveFlow_CRM_API.Models.File
+        {
+            FileId = 1,
+            StudentId = "student1",
+            InstructorId = "instructor1",
+            TeachingCategoryId = 1,
+            Status = FileStatus.APPROVED
+        };
+        db.Files.Add(file);
+
+        var appointment = new Appointment
+        {
+            AppointmentId = 100,
+            FileId = 1,
+            Date = DateTime.Today,
+            StartHour = new TimeSpan(10, 0, 0),
+            EndHour = new TimeSpan(11, 0, 0)
+        };
+        db.Appointments.Add(appointment);
+
+        await db.SaveChangesAsync();
+
+        var controller = new SessionFormController(db, userManager);
+        AttachIdentity(controller, "Instructor", "instructor1");
+
+        var request = new SubmitSessionFormRequest(
+            Mistakes: new List<MistakeItemDto>(),  // No mistakes
+            MaxPoints: 21
+        );
+
+        // Act
+        var result = await controller.SubmitSessionForm(100, request);
+
+        // Assert
+        var createdResult = result.Result.Should().BeOfType<CreatedResult>().Subject;
+        var response = createdResult.Value.Should().BeOfType<SubmitSessionFormResponse>().Subject;
+
+        response.TotalPoints.Should().Be(0);
+        response.Result.Should().Be("OK");  // 0 <= 21, so OK
+    }
+
+    // ────────────────────────────── GET SESSION FORM TESTS ──────────────────────────────
+
+    [Fact]
+    public async Task Get_ShouldReturn200_WithCorrectData_ForInstructor()
     {
         // Arrange
         var db = InMemDb();
@@ -279,6 +643,8 @@ public class SessionFormControllerTests
             Id = "instructor1",
             UserName = "instructor@test.com",
             Email = "instructor@test.com",
+            FirstName = "John",
+            LastName = "Doe",
             AutoSchoolId = 1
         };
         await userManager.CreateAsync(instructor, "Password123!");
@@ -288,79 +654,21 @@ public class SessionFormControllerTests
             Id = "student1",
             UserName = "student@test.com",
             Email = "student@test.com",
+            FirstName = "Jane",
+            LastName = "Smith",
             AutoSchoolId = 1
         };
         await userManager.CreateAsync(student, "Password123!");
 
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "student1",
-            InstructorId = "other_instructor",
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = DateTime.Today.AddDays(1),
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Instructor", "instructor1");
-
-        // Act
-        var result = await controller.StartSessionForm(100);
-
-        // Assert
-        result.Result.Should().BeOfType<ForbidResult>();
-    }
-
-    [Fact]
-    public async Task StartSessionForm_ShouldReturn400_WhenInvalidAppointmentId()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Instructor", "instructor1");
-
-        // Act
-        var result = await controller.StartSessionForm(0);
-
-        // Assert
-        result.Result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    [Fact]
-    public async Task UpdateItem_ShouldReturn200_WhenIncrementingMistake()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var instructor = new ApplicationUser
-        {
-            Id = "instructor1",
-            UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(instructor, "Password123!");
-
         var category = new TeachingCategory
         {
             TeachingCategoryId = 1,
             Code = "B",
-            AutoSchoolId = 1
+            AutoSchoolId = 1,
+            SessionCost = 100,
+            SessionDuration = 60,
+            ScholarshipPrice = 1000,
+            MinDrivingLessonsReq = 20
         };
         db.TeachingCategories.Add(category);
 
@@ -376,961 +684,10 @@ public class SessionFormControllerTests
         {
             ItemId = 1,
             FormId = 1,
-            Description = "Test Item",
-            PenaltyPoints = 3,
-            OrderIndex = 1
+            Description = "Semnalizare",
+            PenaltyPoints = 3
         };
         db.ExamItems.Add(examItem);
-
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "student1",
-            InstructorId = "instructor1",
-            TeachingCategoryId = 1,
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = DateTime.Today,
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        var sessionForm = new SessionForm
-        {
-            SessionFormId = 1,
-            AppointmentId = 100,
-            FormId = 1,
-            MistakesJson = "[]",
-            IsLocked = false,
-            CreatedAt = DateTime.UtcNow
-        };
-        db.SessionForms.Add(sessionForm);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Instructor", "instructor1");
-
-        var request = new UpdateMistakeRequest(id_item: 1, delta: 1);
-
-        // Act
-        var result = await controller.UpdateItem(1, request);
-
-        // Assert
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var response = okResult.Value.Should().BeOfType<UpdateMistakeResponse>().Subject;
-        response.id_item.Should().Be(1);
-        response.count.Should().Be(1);
-
-        // Verify in database
-        var updated = await db.SessionForms.FindAsync(1);
-        updated.MistakesJson.Should().Contain("\"id_item\":1");
-        updated.MistakesJson.Should().Contain("\"count\":1");
-    }
-
-    [Fact]
-    public async Task UpdateItem_ShouldReturn200_WhenDecrementingMistake()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var instructor = new ApplicationUser
-        {
-            Id = "instructor1",
-            UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(instructor, "Password123!");
-
-        var category = new TeachingCategory
-        {
-            TeachingCategoryId = 1,
-            Code = "B",
-            AutoSchoolId = 1
-        };
-        db.TeachingCategories.Add(category);
-
-        var examForm = new ExamForm
-        {
-            FormId = 1,
-            TeachingCategoryId = 1,
-            MaxPoints = 21
-        };
-        db.ExamForms.Add(examForm);
-
-        var examItem = new ExamItem
-        {
-            ItemId = 1,
-            FormId = 1,
-            Description = "Test Item",
-            PenaltyPoints = 3,
-            OrderIndex = 1
-        };
-        db.ExamItems.Add(examItem);
-
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "student1",
-            InstructorId = "instructor1",
-            TeachingCategoryId = 1,
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = DateTime.Today,
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        var sessionForm = new SessionForm
-        {
-            SessionFormId = 1,
-            AppointmentId = 100,
-            FormId = 1,
-            MistakesJson = "[{\"id_item\":1,\"count\":3}]",
-            IsLocked = false,
-            CreatedAt = DateTime.UtcNow
-        };
-        db.SessionForms.Add(sessionForm);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Instructor", "instructor1");
-
-        var request = new UpdateMistakeRequest(id_item: 1, delta: -1);
-
-        // Act
-        var result = await controller.UpdateItem(1, request);
-
-        // Assert
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var response = okResult.Value.Should().BeOfType<UpdateMistakeResponse>().Subject;
-        response.id_item.Should().Be(1);
-        response.count.Should().Be(2);
-    }
-
-    [Fact]
-    public async Task UpdateItem_ShouldReturn200_WithCountZero_WhenDecrementingFromZero()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var instructor = new ApplicationUser
-        {
-            Id = "instructor1",
-            UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(instructor, "Password123!");
-
-        var category = new TeachingCategory
-        {
-            TeachingCategoryId = 1,
-            Code = "B",
-            AutoSchoolId = 1
-        };
-        db.TeachingCategories.Add(category);
-
-        var examForm = new ExamForm
-        {
-            FormId = 1,
-            TeachingCategoryId = 1,
-            MaxPoints = 21
-        };
-        db.ExamForms.Add(examForm);
-
-        var examItem = new ExamItem
-        {
-            ItemId = 1,
-            FormId = 1,
-            Description = "Test Item",
-            PenaltyPoints = 3,
-            OrderIndex = 1
-        };
-        db.ExamItems.Add(examItem);
-
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "student1",
-            InstructorId = "instructor1",
-            TeachingCategoryId = 1,
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = DateTime.Today,
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        var sessionForm = new SessionForm
-        {
-            SessionFormId = 1,
-            AppointmentId = 100,
-            FormId = 1,
-            MistakesJson = "[]",
-            IsLocked = false,
-            CreatedAt = DateTime.UtcNow
-        };
-        db.SessionForms.Add(sessionForm);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Instructor", "instructor1");
-
-        var request = new UpdateMistakeRequest(id_item: 1, delta: -1);
-
-        // Act
-        var result = await controller.UpdateItem(1, request);
-
-        // Assert
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var response = okResult.Value.Should().BeOfType<UpdateMistakeResponse>().Subject;
-        response.id_item.Should().Be(1);
-        response.count.Should().Be(0);
-    }
-
-    [Fact]
-    public async Task UpdateItem_ShouldReturn423_WhenFormIsLocked()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var instructor = new ApplicationUser
-        {
-            Id = "instructor1",
-            UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(instructor, "Password123!");
-
-        var category = new TeachingCategory
-        {
-            TeachingCategoryId = 1,
-            Code = "B",
-            AutoSchoolId = 1
-        };
-        db.TeachingCategories.Add(category);
-
-        var examForm = new ExamForm
-        {
-            FormId = 1,
-            TeachingCategoryId = 1,
-            MaxPoints = 21
-        };
-        db.ExamForms.Add(examForm);
-
-        var examItem = new ExamItem
-        {
-            ItemId = 1,
-            FormId = 1,
-            Description = "Test Item",
-            PenaltyPoints = 3,
-            OrderIndex = 1
-        };
-        db.ExamItems.Add(examItem);
-
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "student1",
-            InstructorId = "instructor1",
-            TeachingCategoryId = 1,
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = DateTime.Today,
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        var sessionForm = new SessionForm
-        {
-            SessionFormId = 1,
-            AppointmentId = 100,
-            FormId = 1,
-            MistakesJson = "[]",
-            IsLocked = true,  // Form is locked
-            CreatedAt = DateTime.UtcNow
-        };
-        db.SessionForms.Add(sessionForm);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Instructor", "instructor1");
-
-        var request = new UpdateMistakeRequest(id_item: 1, delta: 1);
-
-        // Act
-        var result = await controller.UpdateItem(1, request);
-
-        // Assert
-        var statusResult = result.Result.Should().BeOfType<ObjectResult>().Subject;
-        statusResult.StatusCode.Should().Be(423);
-    }
-
-    [Fact]
-    public async Task UpdateItem_ShouldReturn403_WhenInstructorNotOwner()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var instructor = new ApplicationUser
-        {
-            Id = "instructor1",
-            UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(instructor, "Password123!");
-
-        var category = new TeachingCategory
-        {
-            TeachingCategoryId = 1,
-            Code = "B",
-            AutoSchoolId = 1
-        };
-        db.TeachingCategories.Add(category);
-
-        var examForm = new ExamForm
-        {
-            FormId = 1,
-            TeachingCategoryId = 1,
-            MaxPoints = 21
-        };
-        db.ExamForms.Add(examForm);
-
-        var examItem = new ExamItem
-        {
-            ItemId = 1,
-            FormId = 1,
-            Description = "Test Item",
-            PenaltyPoints = 3,
-            OrderIndex = 1
-        };
-        db.ExamItems.Add(examItem);
-
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "student1",
-            InstructorId = "other_instructor",  // Different instructor
-            TeachingCategoryId = 1,
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = DateTime.Today,
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        var sessionForm = new SessionForm
-        {
-            SessionFormId = 1,
-            AppointmentId = 100,
-            FormId = 1,
-            MistakesJson = "[]",
-            IsLocked = false,
-            CreatedAt = DateTime.UtcNow
-        };
-        db.SessionForms.Add(sessionForm);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Instructor", "instructor1");
-
-        var request = new UpdateMistakeRequest(id_item: 1, delta: 1);
-
-        // Act
-        var result = await controller.UpdateItem(1, request);
-
-        // Assert
-        result.Result.Should().BeOfType<ForbidResult>();
-    }
-
-    [Fact]
-    public async Task UpdateItem_ShouldReturn400_WhenItemNotInExamForm()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var instructor = new ApplicationUser
-        {
-            Id = "instructor1",
-            UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(instructor, "Password123!");
-
-        var category = new TeachingCategory
-        {
-            TeachingCategoryId = 1,
-            Code = "B",
-            AutoSchoolId = 1
-        };
-        db.TeachingCategories.Add(category);
-
-        var examForm = new ExamForm
-        {
-            FormId = 1,
-            TeachingCategoryId = 1,
-            MaxPoints = 21
-        };
-        db.ExamForms.Add(examForm);
-
-        var examItem = new ExamItem
-        {
-            ItemId = 1,
-            FormId = 1,
-            Description = "Test Item",
-            PenaltyPoints = 3,
-            OrderIndex = 1
-        };
-        db.ExamItems.Add(examItem);
-
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "student1",
-            InstructorId = "instructor1",
-            TeachingCategoryId = 1,
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = DateTime.Today,
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        var sessionForm = new SessionForm
-        {
-            SessionFormId = 1,
-            AppointmentId = 100,
-            FormId = 1,
-            MistakesJson = "[]",
-            IsLocked = false,
-            CreatedAt = DateTime.UtcNow
-        };
-        db.SessionForms.Add(sessionForm);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Instructor", "instructor1");
-
-        var request = new UpdateMistakeRequest(id_item: 999, delta: 1);  // Non-existent item
-
-        // Act
-        var result = await controller.UpdateItem(1, request);
-
-        // Assert
-        result.Result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    [Fact]
-    public async Task Finalize_ShouldReturn200_WithOKResult_When21Points()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var instructor = new ApplicationUser
-        {
-            Id = "instructor1",
-            UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(instructor, "Password123!");
-
-        var category = new TeachingCategory
-        {
-            TeachingCategoryId = 1,
-            Code = "B",
-            AutoSchoolId = 1
-        };
-        db.TeachingCategories.Add(category);
-
-        var examForm = new ExamForm
-        {
-            FormId = 1,
-            TeachingCategoryId = 1,
-            MaxPoints = 21
-        };
-        db.ExamForms.Add(examForm);
-
-        db.ExamItems.AddRange(
-            new ExamItem { ItemId = 1, FormId = 1, Description = "Item 1", PenaltyPoints = 3, OrderIndex = 1 },
-            new ExamItem { ItemId = 2, FormId = 1, Description = "Item 2", PenaltyPoints = 5, OrderIndex = 2 }
-        );
-
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "student1",
-            InstructorId = "instructor1",
-            TeachingCategoryId = 1,
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = DateTime.Today,
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        // Mistakes: 3*3 + 4*3 = 21 points (edge case - exactly at limit)
-        var sessionForm = new SessionForm
-        {
-            SessionFormId = 1,
-            AppointmentId = 100,
-            FormId = 1,
-            MistakesJson = "[{\"id_item\":1,\"count\":7}]",  // 7*3=21
-            IsLocked = false,
-            CreatedAt = DateTime.UtcNow
-        };
-        db.SessionForms.Add(sessionForm);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Instructor", "instructor1");
-
-        // Act
-        var result = await controller.Finalize(1);
-
-        // Assert
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var response = okResult.Value.Should().BeOfType<FinalizeResponse>().Subject;
-        response.id.Should().Be(1);
-        response.totalPoints.Should().Be(21);
-        response.maxPoints.Should().Be(21);
-        response.result.Should().Be("OK");
-
-        // Verify in database
-        var updated = await db.SessionForms.FindAsync(1);
-        updated.Should().NotBeNull();
-        updated!.IsLocked.Should().BeTrue();
-        updated.TotalPoints.Should().Be(21);
-        updated.Result.Should().Be("OK");
-        updated.FinalizedAt.Should().NotBeNull();
-    }
-
-    [Fact]
-    public async Task Finalize_ShouldReturn200_WithFAILEDResult_When22Points()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var instructor = new ApplicationUser
-        {
-            Id = "instructor1",
-            UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(instructor, "Password123!");
-
-        var category = new TeachingCategory
-        {
-            TeachingCategoryId = 1,
-            Code = "B",
-            AutoSchoolId = 1
-        };
-        db.TeachingCategories.Add(category);
-
-        var examForm = new ExamForm
-        {
-            FormId = 1,
-            TeachingCategoryId = 1,
-            MaxPoints = 21
-        };
-        db.ExamForms.Add(examForm);
-
-        db.ExamItems.AddRange(
-            new ExamItem { ItemId = 1, FormId = 1, Description = "Item 1", PenaltyPoints = 3, OrderIndex = 1 },
-            new ExamItem { ItemId = 2, FormId = 1, Description = "Item 2", PenaltyPoints = 5, OrderIndex = 2 }
-        );
-
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "student1",
-            InstructorId = "instructor1",
-            TeachingCategoryId = 1,
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = DateTime.Today,
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        // Mistakes: 5*3 + 2*5 = 25 points (over limit)
-        var sessionForm = new SessionForm
-        {
-            SessionFormId = 1,
-            AppointmentId = 100,
-            FormId = 1,
-            MistakesJson = "[{\"id_item\":1,\"count\":5},{\"id_item\":2,\"count\":2}]",
-            IsLocked = false,
-            CreatedAt = DateTime.UtcNow
-        };
-        db.SessionForms.Add(sessionForm);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Instructor", "instructor1");
-
-        // Act
-        var result = await controller.Finalize(1);
-
-        // Assert
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var response = okResult.Value.Should().BeOfType<FinalizeResponse>().Subject;
-        response.id.Should().Be(1);
-        response.totalPoints.Should().Be(25);
-        response.maxPoints.Should().Be(21);
-        response.result.Should().Be("FAILED");
-
-        // Verify in database
-        var updated = await db.SessionForms.FindAsync(1);
-        updated.Should().NotBeNull();
-        updated!.IsLocked.Should().BeTrue();
-        updated.TotalPoints.Should().Be(25);
-        updated.Result.Should().Be("FAILED");
-    }
-
-    [Fact]
-    public async Task Finalize_ShouldReturn200_WithZeroPoints_WhenNoMistakes()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var instructor = new ApplicationUser
-        {
-            Id = "instructor1",
-            UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(instructor, "Password123!");
-
-        var category = new TeachingCategory
-        {
-            TeachingCategoryId = 1,
-            Code = "B",
-            AutoSchoolId = 1
-        };
-        db.TeachingCategories.Add(category);
-
-        var examForm = new ExamForm
-        {
-            FormId = 1,
-            TeachingCategoryId = 1,
-            MaxPoints = 21
-        };
-        db.ExamForms.Add(examForm);
-
-        db.ExamItems.Add(new ExamItem { ItemId = 1, FormId = 1, Description = "Item 1", PenaltyPoints = 3, OrderIndex = 1 });
-
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "student1",
-            InstructorId = "instructor1",
-            TeachingCategoryId = 1,
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = DateTime.Today,
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        var sessionForm = new SessionForm
-        {
-            SessionFormId = 1,
-            AppointmentId = 100,
-            FormId = 1,
-            MistakesJson = "[]",  // No mistakes
-            IsLocked = false,
-            CreatedAt = DateTime.UtcNow
-        };
-        db.SessionForms.Add(sessionForm);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Instructor", "instructor1");
-
-        // Act
-        var result = await controller.Finalize(1);
-
-        // Assert
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var response = okResult.Value.Should().BeOfType<FinalizeResponse>().Subject;
-        response.totalPoints.Should().Be(0);
-        response.result.Should().Be("OK");
-    }
-
-    [Fact]
-    public async Task Finalize_ShouldReturn423_WhenAlreadyLocked()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var instructor = new ApplicationUser
-        {
-            Id = "instructor1",
-            UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(instructor, "Password123!");
-
-        var category = new TeachingCategory
-        {
-            TeachingCategoryId = 1,
-            Code = "B",
-            AutoSchoolId = 1
-        };
-        db.TeachingCategories.Add(category);
-
-        var examForm = new ExamForm
-        {
-            FormId = 1,
-            TeachingCategoryId = 1,
-            MaxPoints = 21
-        };
-        db.ExamForms.Add(examForm);
-
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "student1",
-            InstructorId = "instructor1",
-            TeachingCategoryId = 1,
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = DateTime.Today,
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        var sessionForm = new SessionForm
-        {
-            SessionFormId = 1,
-            AppointmentId = 100,
-            FormId = 1,
-            MistakesJson = "[]",
-            IsLocked = true,  // Already locked
-            TotalPoints = 15,
-            Result = "OK",
-            CreatedAt = DateTime.UtcNow,
-            FinalizedAt = DateTime.UtcNow
-        };
-        db.SessionForms.Add(sessionForm);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Instructor", "instructor1");
-
-        // Act
-        var result = await controller.Finalize(1);
-
-        // Assert
-        var statusResult = result.Result.Should().BeOfType<ObjectResult>().Subject;
-        statusResult.StatusCode.Should().Be(423);
-    }
-
-    [Fact]
-    public async Task Finalize_ShouldReturn403_WhenInstructorNotOwner()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var instructor = new ApplicationUser
-        {
-            Id = "instructor1",
-            UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(instructor, "Password123!");
-
-        var category = new TeachingCategory
-        {
-            TeachingCategoryId = 1,
-            Code = "B",
-            AutoSchoolId = 1
-        };
-        db.TeachingCategories.Add(category);
-
-        var examForm = new ExamForm
-        {
-            FormId = 1,
-            TeachingCategoryId = 1,
-            MaxPoints = 21
-        };
-        db.ExamForms.Add(examForm);
-
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "student1",
-            InstructorId = "other_instructor",  // Different instructor
-            TeachingCategoryId = 1,
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = DateTime.Today,
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        var sessionForm = new SessionForm
-        {
-            SessionFormId = 1,
-            AppointmentId = 100,
-            FormId = 1,
-            MistakesJson = "[]",
-            IsLocked = false,
-            CreatedAt = DateTime.UtcNow
-        };
-        db.SessionForms.Add(sessionForm);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Instructor", "instructor1");
-
-        // Act
-        var result = await controller.Finalize(1);
-
-        // Assert
-        result.Result.Should().BeOfType<ForbidResult>();
-    }
-
-    [Fact]
-    public async Task Finalize_AndThenUpdateItem_ShouldReturn423()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var instructor = new ApplicationUser
-        {
-            Id = "instructor1",
-            UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(instructor, "Password123!");
-
-        var category = new TeachingCategory
-        {
-            TeachingCategoryId = 1,
-            Code = "B",
-            AutoSchoolId = 1
-        };
-        db.TeachingCategories.Add(category);
-
-        var examForm = new ExamForm
-        {
-            FormId = 1,
-            TeachingCategoryId = 1,
-            MaxPoints = 21
-        };
-        db.ExamForms.Add(examForm);
-
-        db.ExamItems.Add(new ExamItem { ItemId = 1, FormId = 1, Description = "Item 1", PenaltyPoints = 3, OrderIndex = 1 });
 
         var file = new DriveFlow_CRM_API.Models.File
         {
@@ -1358,110 +715,9 @@ public class SessionFormControllerTests
             AppointmentId = 100,
             FormId = 1,
             MistakesJson = "[{\"id_item\":1,\"count\":2}]",
-            IsLocked = false,
-            CreatedAt = DateTime.UtcNow
-        };
-        db.SessionForms.Add(sessionForm);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Instructor", "instructor1");
-
-        // Act - Finalize first
-        var finalizeResult = await controller.Finalize(1);
-        finalizeResult.Result.Should().BeOfType<OkObjectResult>();
-
-        // Try to update after finalization
-        var updateRequest = new UpdateMistakeRequest(id_item: 1, delta: 1);
-        var updateResult = await controller.UpdateItem(1, updateRequest);
-
-        // Assert - Should be locked
-        var statusResult = updateResult.Result.Should().BeOfType<ObjectResult>().Subject;
-        statusResult.StatusCode.Should().Be(423);
-    }
-
-    [Fact]
-    public async Task Get_ShouldReturn200_WithCorrectData_ForInstructor()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var instructor = new ApplicationUser
-        {
-            Id = "instructor1",
-            UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            FirstName = "Ion",
-            LastName = "Popescu",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(instructor, "Password123!");
-
-        var student = new ApplicationUser
-        {
-            Id = "student1",
-            UserName = "student@test.com",
-            Email = "student@test.com",
-            FirstName = "Maria",
-            LastName = "Ionescu",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(student, "Password123!");
-
-        var category = new TeachingCategory
-        {
-            TeachingCategoryId = 1,
-            Code = "B",
-            AutoSchoolId = 1
-        };
-        db.TeachingCategories.Add(category);
-
-        var examForm = new ExamForm
-        {
-            FormId = 1,
-            TeachingCategoryId = 1,
-            MaxPoints = 21
-        };
-        db.ExamForms.Add(examForm);
-
-        db.ExamItems.AddRange(
-            new ExamItem { ItemId = 1, FormId = 1, Description = "Semnalizare la schimbarea direc?iei", PenaltyPoints = 3, OrderIndex = 1 },
-            new ExamItem { ItemId = 2, FormId = 1, Description = "Respectarea regulilor", PenaltyPoints = 5, OrderIndex = 2 }
-        );
-
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "student1",
-            InstructorId = "instructor1",
-            TeachingCategoryId = 1,
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = new DateTime(2025, 11, 1),
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        var sessionForm = new SessionForm
-        {
-            SessionFormId = 1,
-            AppointmentId = 100,
-            FormId = 1,
-            MistakesJson = "[{\"id_item\":1,\"count\":3},{\"id_item\":2,\"count\":2}]",
-            IsLocked = true,
-            TotalPoints = 19,  // 3*3 + 2*5 = 19
-            Result = "OK",
             CreatedAt = DateTime.UtcNow,
-            FinalizedAt = DateTime.UtcNow
+            TotalPoints = 6,
+            Result = "OK"
         };
         db.SessionForms.Add(sessionForm);
 
@@ -1476,218 +732,16 @@ public class SessionFormControllerTests
         // Assert
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var dto = okResult.Value.Should().BeOfType<SessionFormViewDto>().Subject;
-        
+
         dto.id.Should().Be(1);
-        dto.appointmentDate.Should().Be(new DateOnly(2025, 11, 1));
-        dto.studentName.Should().Be("Maria Ionescu");
-        dto.instructorName.Should().Be("Ion Popescu");
-        dto.totalPoints.Should().Be(19);
+        dto.totalPoints.Should().Be(6);
         dto.maxPoints.Should().Be(21);
         dto.result.Should().Be("OK");
-        dto.isLocked.Should().BeTrue();
-        dto.mistakes.Should().HaveCount(2);
-
-        var mistake1 = dto.mistakes.First(m => m.id_item == 1);
-        mistake1.description.Should().Be("Semnalizare la schimbarea direc?iei");
-        mistake1.count.Should().Be(3);
-        mistake1.penaltyPoints.Should().Be(3);
-    }
-
-    [Fact]
-    public async Task Get_ShouldReturn200_ForStudent()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var instructor = new ApplicationUser
-        {
-            Id = "instructor1",
-            UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            FirstName = "Ion",
-            LastName = "Popescu",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(instructor, "Password123!");
-
-        var student = new ApplicationUser
-        {
-            Id = "student1",
-            UserName = "student@test.com",
-            Email = "student@test.com",
-            FirstName = "Maria",
-            LastName = "Ionescu",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(student, "Password123!");
-
-        var category = new TeachingCategory
-        {
-            TeachingCategoryId = 1,
-            Code = "B",
-            AutoSchoolId = 1
-        };
-        db.TeachingCategories.Add(category);
-
-        var examForm = new ExamForm
-        {
-            FormId = 1,
-            TeachingCategoryId = 1,
-            MaxPoints = 21
-        };
-        db.ExamForms.Add(examForm);
-
-        db.ExamItems.Add(new ExamItem { ItemId = 1, FormId = 1, Description = "Test Item", PenaltyPoints = 5, OrderIndex = 1 });
-
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "student1",
-            InstructorId = "instructor1",
-            TeachingCategoryId = 1,
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = new DateTime(2025, 11, 1),
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        var sessionForm = new SessionForm
-        {
-            SessionFormId = 1,
-            AppointmentId = 100,
-            FormId = 1,
-            MistakesJson = "[{\"id_item\":1,\"count\":5}]",
-            IsLocked = true,
-            TotalPoints = 25,
-            Result = "FAILED",
-            CreatedAt = DateTime.UtcNow,
-            FinalizedAt = DateTime.UtcNow
-        };
-        db.SessionForms.Add(sessionForm);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Student", "student1");
-
-        // Act
-        var result = await controller.Get(1);
-
-        // Assert
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var dto = okResult.Value.Should().BeOfType<SessionFormViewDto>().Subject;
-        dto.studentName.Should().Be("Maria Ionescu");
-    }
-
-    [Fact]
-    public async Task Get_ShouldReturn200_ForSchoolAdmin()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var schoolAdmin = new ApplicationUser
-        {
-            Id = "admin1",
-            UserName = "admin@test.com",
-            Email = "admin@test.com",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(schoolAdmin, "Password123!");
-
-        var instructor = new ApplicationUser
-        {
-            Id = "instructor1",
-            UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            FirstName = "Ion",
-            LastName = "Popescu",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(instructor, "Password123!");
-
-        var student = new ApplicationUser
-        {
-            Id = "student1",
-            UserName = "student@test.com",
-            Email = "student@test.com",
-            FirstName = "Maria",
-            LastName = "Ionescu",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(student, "Password123!");
-
-        var category = new TeachingCategory
-        {
-            TeachingCategoryId = 1,
-            Code = "B",
-            AutoSchoolId = 1
-        };
-        db.TeachingCategories.Add(category);
-
-        var examForm = new ExamForm
-        {
-            FormId = 1,
-            TeachingCategoryId = 1,
-            MaxPoints = 21
-        };
-        db.ExamForms.Add(examForm);
-
-        db.ExamItems.Add(new ExamItem { ItemId = 1, FormId = 1, Description = "Test Item", PenaltyPoints = 3, OrderIndex = 1 });
-
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "student1",
-            InstructorId = "instructor1",
-            TeachingCategoryId = 1,
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = new DateTime(2025, 11, 1),
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        var sessionForm = new SessionForm
-        {
-            SessionFormId = 1,
-            AppointmentId = 100,
-            FormId = 1,
-            MistakesJson = "[]",
-            IsLocked = true,
-            TotalPoints = 0,
-            Result = "OK",
-            CreatedAt = DateTime.UtcNow,
-            FinalizedAt = DateTime.UtcNow
-        };
-        db.SessionForms.Add(sessionForm);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "SchoolAdmin", "admin1");
-
-        // Act
-        var result = await controller.Get(1);
-
-        // Assert
-        result.Result.Should().BeOfType<OkObjectResult>();
+        dto.studentName.Should().Be("Jane Smith");
+        dto.instructorName.Should().Be("John Doe");
+        dto.mistakes.Should().HaveCount(1);
+        dto.mistakes.First().id_item.Should().Be(1);
+        dto.mistakes.First().count.Should().Be(2);
     }
 
     [Fact]
@@ -1701,25 +755,19 @@ public class SessionFormControllerTests
         {
             Id = "instructor1",
             UserName = "instructor@test.com",
-            Email = "instructor@test.com",
-            AutoSchoolId = 1
+            Email = "instructor@test.com"
         };
         await userManager.CreateAsync(instructor, "Password123!");
-
-        var student = new ApplicationUser
-        {
-            Id = "student1",
-            UserName = "student@test.com",
-            Email = "student@test.com",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(student, "Password123!");
 
         var category = new TeachingCategory
         {
             TeachingCategoryId = 1,
             Code = "B",
-            AutoSchoolId = 1
+            AutoSchoolId = 1,
+            SessionCost = 100,
+            SessionDuration = 60,
+            ScholarshipPrice = 1000,
+            MinDrivingLessonsReq = 20
         };
         db.TeachingCategories.Add(category);
 
@@ -1757,7 +805,6 @@ public class SessionFormControllerTests
             AppointmentId = 100,
             FormId = 1,
             MistakesJson = "[]",
-            IsLocked = true,
             CreatedAt = DateTime.UtcNow
         };
         db.SessionForms.Add(sessionForm);
@@ -1766,81 +813,6 @@ public class SessionFormControllerTests
 
         var controller = new SessionFormController(db, userManager);
         AttachIdentity(controller, "Instructor", "instructor1");
-
-        // Act
-        var result = await controller.Get(1);
-
-        // Assert
-        result.Result.Should().BeOfType<ForbidResult>();
-    }
-
-    [Fact]
-    public async Task Get_ShouldReturn403_WhenStudentNotOwner()
-    {
-        // Arrange
-        var db = InMemDb();
-        var userManager = GetMockedUserManager(db);
-
-        var student = new ApplicationUser
-        {
-            Id = "student1",
-            UserName = "student@test.com",
-            Email = "student@test.com",
-            AutoSchoolId = 1
-        };
-        await userManager.CreateAsync(student, "Password123!");
-
-        var category = new TeachingCategory
-        {
-            TeachingCategoryId = 1,
-            Code = "B",
-            AutoSchoolId = 1
-        };
-        db.TeachingCategories.Add(category);
-
-        var examForm = new ExamForm
-        {
-            FormId = 1,
-            TeachingCategoryId = 1,
-            MaxPoints = 21
-        };
-        db.ExamForms.Add(examForm);
-
-        var file = new DriveFlow_CRM_API.Models.File
-        {
-            FileId = 1,
-            StudentId = "other_student",  // Different student
-            InstructorId = "instructor1",
-            TeachingCategoryId = 1,
-            Status = FileStatus.APPROVED
-        };
-        db.Files.Add(file);
-
-        var appointment = new Appointment
-        {
-            AppointmentId = 100,
-            FileId = 1,
-            Date = DateTime.Today,
-            StartHour = new TimeSpan(10, 0, 0),
-            EndHour = new TimeSpan(11, 0, 0)
-        };
-        db.Appointments.Add(appointment);
-
-        var sessionForm = new SessionForm
-        {
-            SessionFormId = 1,
-            AppointmentId = 100,
-            FormId = 1,
-            MistakesJson = "[]",
-            IsLocked = true,
-            CreatedAt = DateTime.UtcNow
-        };
-        db.SessionForms.Add(sessionForm);
-
-        await db.SaveChangesAsync();
-
-        var controller = new SessionFormController(db, userManager);
-        AttachIdentity(controller, "Student", "student1");
 
         // Act
         var result = await controller.Get(1);
