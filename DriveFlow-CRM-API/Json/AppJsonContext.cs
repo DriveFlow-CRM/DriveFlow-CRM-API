@@ -130,6 +130,24 @@ namespace DriveFlow_CRM_API.Json
     [JsonSerializable(typeof(List<InstructorAvailabilityDto>))]
     [JsonSerializable(typeof(CreateInstructorAvailabilityDto))]
 
+    // ───────────────────────── AI CONTROLLER ─────────────────────────
+    [JsonSerializable(typeof(AiStudentContextRequest))]
+    [JsonSerializable(typeof(AiStudentContextResponse))]
+    [JsonSerializable(typeof(StudentContextDto))]
+    [JsonSerializable(typeof(StudentSummaryDto))]
+    [JsonSerializable(typeof(CategoryProgressDto))]
+    [JsonSerializable(typeof(List<CategoryProgressDto>))]
+    [JsonSerializable(typeof(OverallProgressDto))]
+    [JsonSerializable(typeof(MistakeSummaryDto))]
+    [JsonSerializable(typeof(List<MistakeSummaryDto>))]
+    [JsonSerializable(typeof(SessionEvaluationDto))]
+    [JsonSerializable(typeof(List<SessionEvaluationDto>))]
+    [JsonSerializable(typeof(MistakeDetailDto))]
+    [JsonSerializable(typeof(List<MistakeDetailDto>))]
+    [JsonSerializable(typeof(SessionHighlightDto))]
+    [JsonSerializable(typeof(List<SessionHighlightDto>))]
+    [JsonSerializable(typeof(DataAvailabilityDto))]
+
     internal partial class AppJsonContext : JsonSerializerContext
     {
     }
