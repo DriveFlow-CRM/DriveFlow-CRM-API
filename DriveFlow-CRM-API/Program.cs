@@ -14,6 +14,7 @@ using DriveFlow_CRM_API.Authentication.Tokens.Handlers;
 using DriveFlow_CRM_API.Auth;
 using Microsoft.AspNetCore.Authorization;
 using DriveFlow_CRM_API.Json;
+using DriveFlow_CRM_API.Services;
 
 /// <summary>
 /// Configures services (Swagger, EF Core, Identity, JWT, rate-limit), builds the HTTP
@@ -261,7 +262,10 @@ public partial class Program
         // 4) Refresh-token storage / validation service.
         builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
-        // 5) HttpClient factory for external service communications
+        // 5) AI Context Builder service (builds LLM context for student chatbot)
+        builder.Services.AddScoped<IAiContextBuilder, AiContextBuilder>();
+
+        // 6) HttpClient factory for external service communications
         builder.Services.AddHttpClient();
 
         // ─────────────────────────────── Rate-Limit / Cool-down ──────────────────────────────
