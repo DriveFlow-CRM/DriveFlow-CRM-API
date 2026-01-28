@@ -257,16 +257,17 @@ public class SessionFormController : ControllerBase
         if (existingForm != null)
             return Conflict(new { message = "Session form already exists for this appointment." });
 
-        // 7. Get the exam form for this teaching category
-        if (appointment.File?.TeachingCategoryId == null)
-            return NotFound(new { message = "Appointment file has no teaching category assigned." });
+        // 7. Get the exam form for this teaching category's license
+        var teachingCategory = appointment.File?.TeachingCategory;
+        if (teachingCategory?.LicenseId == null)
+            return NotFound(new { message = "Appointment file has no teaching category with license assigned." });
 
         var examForm = await _db.ExamForms
             .Include(ef => ef.Items)
-            .FirstOrDefaultAsync(ef => ef.TeachingCategoryId == appointment.File.TeachingCategoryId);
+            .FirstOrDefaultAsync(ef => ef.LicenseId == teachingCategory.LicenseId);
 
         if (examForm == null)
-            return NotFound(new { message = "No exam form found for this teaching category." });
+            return NotFound(new { message = "No exam form found for this license." });
 
         // 8. Validate all items exist in the exam form and calculate total points
         var mistakes = request.Mistakes ?? new List<MistakeItemDto>();
