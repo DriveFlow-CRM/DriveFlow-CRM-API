@@ -9,7 +9,7 @@ namespace DriveFlow_CRM_API.Controllers;
 
 /// <summary>
 /// Controller for managing exam forms and their items.
-/// Each teaching category has one immutable exam form with standardized penalty items.
+/// Each license has one immutable exam form with standardized penalty items.
 /// </summary>
 [ApiController]
 [Route("api/forms")]
@@ -26,9 +26,9 @@ public class ExamFormController : ControllerBase
         _users = users;
     }
 
-    // ─────────────────────── GET FORM BY CATEGORY ───────────────────────
+    // ─────────────────────── GET FORM BY LICENSE ───────────────────────
     /// <summary>
-    /// Retrieves the exam form and all its items for a specific teaching category.
+    /// Retrieves the exam form and all its items for a specific license.
     /// </summary>
     /// <remarks>
     /// <para><strong>Sample response (200 OK)</strong></para>
@@ -36,12 +36,13 @@ public class ExamFormController : ControllerBase
     /// ```json
     /// {
     ///   "id_formular": 1,
-    ///   "id_categ": 1,
+    ///   "licenseId": 6,
+    ///   "licenseType": "B",
     ///   "maxPoints": 21,
     ///   "items": [
     ///     {
     ///       "id_item": 1,
-    ///       "description": "Semnalizare la schimbarea direc?iei",
+    ///       "description": "Semnalizare la schimbarea direcției",
     ///       "penaltyPoints": 3,
     ///       "orderIndex": 1
     ///     },
@@ -55,27 +56,28 @@ public class ExamFormController : ControllerBase
     /// }
     /// ```
     /// </remarks>
-    /// <param name="id_categ">Teaching category ID.</param>
+    /// <param name="licenseId">License ID.</param>
     /// <response code="200">Form retrieved successfully.</response>
-    /// <response code="400">Invalid category ID.</response>
+    /// <response code="400">Invalid license ID.</response>
     /// <response code="401">No valid JWT supplied.</response>
-    /// <response code="404">Category or form not found.</response>
-    [HttpGet("by-category/{id_categ:int}")]
+    /// <response code="404">License or form not found.</response>
+    [HttpGet("by-license/{licenseId:int}")]
     [Authorize]
     [ProducesResponseType(typeof(ExamFormDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetFormByCategory(int id_categ)
+    public async Task<IActionResult> GetFormByLicense(int licenseId)
     {
-        if (id_categ <= 0)
-            return BadRequest(new { message = "Category ID must be positive." });
+        if (licenseId <= 0)
+            return BadRequest(new { message = "License ID must be positive." });
 
         var form = await _db.ExamForms
             .AsNoTracking()
-            .Where(f => f.TeachingCategoryId == id_categ)
+            .Where(f => f.LicenseId == licenseId)
+            .Include(f => f.License)
             .Include(f => f.Items.OrderBy(i => i.OrderIndex))
             .FirstOrDefaultAsync();
 
         if (form == null)
-            return NotFound(new { message = "Exam form not found for this category." });
+            return NotFound(new { message = "Exam form not found for this license." });
 
         var itemDtos = form.Items
             .Select(i => new ExamItemDto(
@@ -88,7 +90,8 @@ public class ExamFormController : ControllerBase
 
         var formDto = new ExamFormDto(
             id_formular: form.FormId,
-            id_categ: form.TeachingCategoryId,
+            licenseId: form.LicenseId,
+            licenseType: form.License?.Type,
             maxPoints: form.MaxPoints,
             items: itemDtos
         );
@@ -96,9 +99,69 @@ public class ExamFormController : ControllerBase
         return Ok(formDto);
     }
 
-    // ─────────────────────── SEED FORM (OPTIONAL - SchoolAdmin only) ───────────────────────
+    // ─────────────────────── GET FORM BY CATEGORY (legacy/convenience) ───────────────────────
     /// <summary>
-    /// Seeds or updates the exam form for a teaching category (SchoolAdmin only, same school).
+    /// Retrieves the exam form for a teaching category by resolving its license.
+    /// </summary>
+    /// <param name="id_categ">Teaching category ID.</param>
+    /// <response code="200">Form retrieved successfully.</response>
+    /// <response code="400">Invalid category ID.</response>
+    /// <response code="401">No valid JWT supplied.</response>
+    /// <response code="404">Category, license, or form not found.</response>
+    [HttpGet("by-category/{id_categ:int}")]
+    [Authorize]
+    [ProducesResponseType(typeof(ExamFormDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetFormByCategory(int id_categ)
+    {
+        if (id_categ <= 0)
+            return BadRequest(new { message = "Category ID must be positive." });
+
+        // Get the teaching category and its license
+        var category = await _db.TeachingCategories
+            .AsNoTracking()
+            .Where(tc => tc.TeachingCategoryId == id_categ)
+            .FirstOrDefaultAsync();
+
+        if (category == null)
+            return NotFound(new { message = "Teaching category not found." });
+
+        if (category.LicenseId == null)
+            return NotFound(new { message = "Teaching category has no license assigned." });
+
+        // Get the form by license ID
+        var form = await _db.ExamForms
+            .AsNoTracking()
+            .Where(f => f.LicenseId == category.LicenseId)
+            .Include(f => f.License)
+            .Include(f => f.Items.OrderBy(i => i.OrderIndex))
+            .FirstOrDefaultAsync();
+
+        if (form == null)
+            return NotFound(new { message = "Exam form not found for this license." });
+
+        var itemDtos = form.Items
+            .Select(i => new ExamItemDto(
+                id_item: i.ItemId,
+                description: i.Description,
+                penaltyPoints: i.PenaltyPoints,
+                orderIndex: i.OrderIndex
+            ))
+            .ToList();
+
+        var formDto = new ExamFormDto(
+            id_formular: form.FormId,
+            licenseId: form.LicenseId,
+            licenseType: form.License?.Type,
+            maxPoints: form.MaxPoints,
+            items: itemDtos
+        );
+
+        return Ok(formDto);
+    }
+
+    // ─────────────────────── SEED FORM (SuperAdmin only) ───────────────────────
+    /// <summary>
+    /// Seeds or updates the exam form for a license (SuperAdmin only).
     /// Idempotent: if form already exists, returns 200; otherwise creates it with status 201.
     /// </summary>
     /// <remarks>
@@ -109,7 +172,7 @@ public class ExamFormController : ControllerBase
     ///   "maxPoints": 21,
     ///   "items": [
     ///     {
-    ///       "description": "Semnalizare la schimbarea direc?iei",
+    ///       "description": "Semnalizare la schimbarea direcției",
     ///       "penaltyPoints": 3,
     ///       "orderIndex": 1
     ///     },
@@ -122,31 +185,32 @@ public class ExamFormController : ControllerBase
     /// }
     /// ```
     /// </remarks>
-    /// <param name="teachingCategoryId">Teaching category ID.</param>
+    /// <param name="licenseId">License ID.</param>
     /// <param name="dto">Form data (maxPoints and items).</param>
     /// <response code="200">Form already existed; updated with new data.</response>
     /// <response code="201">Form created successfully.</response>
-    /// <response code="400">Invalid data or category not found.</response>
+    /// <response code="400">Invalid data or license not found.</response>
     /// <response code="401">No valid JWT supplied.</response>
     /// <response code="403">User is not a SuperAdmin.</response>
-    /// <response code="404">Teaching category not found.</response>
-    [HttpPost("seed/{teachingCategoryId:int}")]
+    /// <response code="404">License not found.</response>
+    [HttpPost("seed/{licenseId:int}")]
     [Authorize(Roles = "SuperAdmin")]
-    public async Task<IActionResult> SeedForm(int teachingCategoryId, [FromBody] CreateExamFormDto dto)
+    public async Task<IActionResult> SeedForm(int licenseId, [FromBody] CreateExamFormDto dto)
     {
-        if (teachingCategoryId <= 0)
-            return BadRequest(new { message = "Teaching category ID must be positive." });
+        if (licenseId <= 0)
+            return BadRequest(new { message = "License ID must be positive." });
 
-        var category = await _db.TeachingCategories
+        var license = await _db.Licenses
             .AsNoTracking()
-            .FirstOrDefaultAsync(tc => tc.TeachingCategoryId == teachingCategoryId);
+            .FirstOrDefaultAsync(l => l.LicenseId == licenseId);
 
-        if (category == null)
-            return NotFound(new { message = "Teaching category not found." });
+        if (license == null)
+            return NotFound(new { message = "License not found." });
 
         // Check if form already exists
         var existingForm = await _db.ExamForms
-            .FirstOrDefaultAsync(f => f.TeachingCategoryId == teachingCategoryId);
+            .Include(f => f.Items)
+            .FirstOrDefaultAsync(f => f.LicenseId == licenseId);
 
         if (existingForm != null)
         {
@@ -173,7 +237,7 @@ public class ExamFormController : ControllerBase
         // Create new form
         var newForm = new ExamForm
         {
-            TeachingCategoryId = teachingCategoryId,
+            LicenseId = licenseId,
             MaxPoints = dto.maxPoints,
             Items = dto.items
                 .OrderBy(i => i.orderIndex)
@@ -189,7 +253,7 @@ public class ExamFormController : ControllerBase
         _db.ExamForms.Add(newForm);
         await _db.SaveChangesAsync();
 
-        return Created($"/api/examform/by-category/{teachingCategoryId}", 
+        return Created($"/api/forms/by-license/{licenseId}", 
             new { message = "Form created successfully.", formId = newForm.FormId });
     }
 }

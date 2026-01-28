@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -23,7 +23,28 @@ public sealed class ApplicationDbContextFactory
 
     public ApplicationDbContext CreateDbContext(string[] args)
     {
-        DotNetEnv.Env.Load();
+        // Try to load .env from current directory first, then parent directories
+        var currentDir = Directory.GetCurrentDirectory();
+        var envPath = Path.Combine(currentDir, ".env");
+        
+        if (!File.Exists(envPath))
+        {
+            // Try parent directory (for when running from DriveFlow-CRM-API\DriveFlow-CRM-API)
+            var parentDir = Directory.GetParent(currentDir)?.FullName;
+            if (parentDir != null)
+            {
+                var parentEnvPath = Path.Combine(parentDir, ".env");
+                if (File.Exists(parentEnvPath))
+                {
+                    envPath = parentEnvPath;
+                }
+            }
+        }
+        
+        if (File.Exists(envPath))
+        {
+            DotNetEnv.Env.Load(envPath);
+        }
 
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())

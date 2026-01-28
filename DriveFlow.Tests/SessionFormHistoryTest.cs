@@ -71,10 +71,15 @@ public sealed class SessionFormHistoryTest
         var instructor = new ApplicationUser { Id = instructorId, UserName = $"{instructorId}@test.com", AutoSchoolId = 1 };
         db.Users.AddRange(student, instructor);
 
+        // Setup license
+        var license = new DriveFlow_CRM_API.Models.License { LicenseId = 1, Type = "B" };
+        db.Licenses.Add(license);
+
         // Setup category
         var category = new TeachingCategory
         {
             TeachingCategoryId = 1,
+            LicenseId = 1,
             Code = "B",
             AutoSchoolId = 1,
             SessionCost = 100,
@@ -84,11 +89,11 @@ public sealed class SessionFormHistoryTest
         };
         db.TeachingCategories.Add(category);
 
-        // Setup exam form
+        // Setup exam form (linked to license)
         var examForm = new ExamForm
         {
             FormId = 1,
-            TeachingCategoryId = 1,
+            LicenseId = 1,
             MaxPoints = 21,
             Items = new List<ExamItem>
             {
@@ -157,7 +162,7 @@ public sealed class SessionFormHistoryTest
 
         var result = await controller.ListStudentForms(studentId);
 
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         okResult.StatusCode.Should().Be(200);
 
         var pagedResult = okResult.Value.Should().BeOfType<PagedResult<SessionFormListItemDto>>().Subject;
@@ -202,7 +207,7 @@ public sealed class SessionFormHistoryTest
         var fromDate = DateTime.Today.AddDays(-6).ToString("yyyy-MM-dd");
         var result = await controller.ListStudentForms(studentId, from: fromDate);
 
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var pagedResult = okResult.Value.Should().BeOfType<PagedResult<SessionFormListItemDto>>().Subject;
 
         pagedResult.total.Should().Be(2); // Only forms from -5 and -1
@@ -228,7 +233,7 @@ public sealed class SessionFormHistoryTest
         var toDate = DateTime.Today.AddDays(-6).ToString("yyyy-MM-dd");
         var result = await controller.ListStudentForms(studentId, to: toDate);
 
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var pagedResult = okResult.Value.Should().BeOfType<PagedResult<SessionFormListItemDto>>().Subject;
 
         pagedResult.total.Should().Be(1); // Only form from -10
@@ -255,7 +260,7 @@ public sealed class SessionFormHistoryTest
         // Get page 2 with pageSize=2
         var result = await controller.ListStudentForms(studentId, page: 2, pageSize: 2);
 
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var pagedResult = okResult.Value.Should().BeOfType<PagedResult<SessionFormListItemDto>>().Subject;
 
         pagedResult.total.Should().Be(5);
@@ -279,7 +284,7 @@ public sealed class SessionFormHistoryTest
 
         var result = await controller.ListStudentForms(studentId);
 
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         okResult.StatusCode.Should().Be(200);
     }
 
@@ -301,7 +306,7 @@ public sealed class SessionFormHistoryTest
 
         var result = await controller.ListStudentForms(studentId);
 
-        result.Result.Should().BeOfType<ForbidResult>();
+        result.Should().BeOfType<ForbidResult>();
     }
 
     // ????????????? SchoolAdmin can view school students ?????????????
@@ -323,7 +328,7 @@ public sealed class SessionFormHistoryTest
 
         var result = await controller.ListStudentForms(studentId);
 
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         okResult.StatusCode.Should().Be(200);
     }
 
@@ -344,7 +349,7 @@ public sealed class SessionFormHistoryTest
 
         var result = await controller.ListStudentForms(studentId);
 
-        result.Result.Should().BeOfType<ForbidResult>();
+        result.Should().BeOfType<ForbidResult>();
     }
 
     // ????????????? Student forbidden to view other students ?????????????
@@ -364,7 +369,7 @@ public sealed class SessionFormHistoryTest
 
         var result = await controller.ListStudentForms(studentId);
 
-        result.Result.Should().BeOfType<ForbidResult>();
+        result.Should().BeOfType<ForbidResult>();
     }
 
     // ????????????? Student not found ?????????????
@@ -383,7 +388,7 @@ public sealed class SessionFormHistoryTest
 
         var result = await controller.ListStudentForms("nonexistent");
 
-        var notFoundResult = result.Result.Should().BeOfType<NotFoundObjectResult>().Subject;
+        var notFoundResult = result.Should().BeOfType<NotFoundObjectResult>().Subject;
         notFoundResult.StatusCode.Should().Be(404);
     }
 
@@ -400,7 +405,7 @@ public sealed class SessionFormHistoryTest
 
         var result = await controller.ListStudentForms(studentId, page: 0);
 
-        var badResult = result.Result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        var badResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
         badResult.StatusCode.Should().Be(400);
     }
 
@@ -416,7 +421,7 @@ public sealed class SessionFormHistoryTest
 
         var result = await controller.ListStudentForms(studentId, pageSize: 101);
 
-        var badResult = result.Result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        var badResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
         badResult.StatusCode.Should().Be(400);
     }
 
@@ -433,7 +438,7 @@ public sealed class SessionFormHistoryTest
 
         var result = await controller.ListStudentForms(studentId);
 
-        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var pagedResult = okResult.Value.Should().BeOfType<PagedResult<SessionFormListItemDto>>().Subject;
 
         pagedResult.total.Should().Be(0);

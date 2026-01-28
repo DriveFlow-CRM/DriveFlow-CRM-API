@@ -90,9 +90,13 @@ public class SessionFormControllerTests
         };
         await userManager.CreateAsync(student, "Password123!");
 
+        var license = new DriveFlow_CRM_API.Models.License { LicenseId = 1, Type = "B" };
+        db.Licenses.Add(license);
+
         var category = new TeachingCategory
         {
             TeachingCategoryId = 1,
+            LicenseId = 1,
             Code = "B",
             AutoSchoolId = 1,
             SessionCost = 100,
@@ -105,7 +109,7 @@ public class SessionFormControllerTests
         var examForm = new ExamForm
         {
             FormId = 1,
-            TeachingCategoryId = 1,
+            LicenseId = 1,
             MaxPoints = 21
         };
         db.ExamForms.Add(examForm);
@@ -195,9 +199,13 @@ public class SessionFormControllerTests
         };
         await userManager.CreateAsync(instructor, "Password123!");
 
+        var license = new DriveFlow_CRM_API.Models.License { LicenseId = 1, Type = "B" };
+        db.Licenses.Add(license);
+
         var category = new TeachingCategory
         {
             TeachingCategoryId = 1,
+            LicenseId = 1,
             Code = "B",
             AutoSchoolId = 1,
             SessionCost = 100,
@@ -210,7 +218,7 @@ public class SessionFormControllerTests
         var examForm = new ExamForm
         {
             FormId = 1,
-            TeachingCategoryId = 1,
+            LicenseId = 1,
             MaxPoints = 21
         };
         db.ExamForms.Add(examForm);
@@ -344,9 +352,13 @@ public class SessionFormControllerTests
         };
         await userManager.CreateAsync(instructor, "Password123!");
 
+        var license = new DriveFlow_CRM_API.Models.License { LicenseId = 1, Type = "B" };
+        db.Licenses.Add(license);
+
         var category = new TeachingCategory
         {
             TeachingCategoryId = 1,
+            LicenseId = 1,
             Code = "B",
             AutoSchoolId = 1,
             SessionCost = 100,
@@ -408,9 +420,13 @@ public class SessionFormControllerTests
         };
         await userManager.CreateAsync(instructor, "Password123!");
 
+        var license = new DriveFlow_CRM_API.Models.License { LicenseId = 1, Type = "B" };
+        db.Licenses.Add(license);
+
         var category = new TeachingCategory
         {
             TeachingCategoryId = 1,
+            LicenseId = 1,
             Code = "B",
             AutoSchoolId = 1,
             SessionCost = 100,
@@ -423,7 +439,7 @@ public class SessionFormControllerTests
         var examForm = new ExamForm
         {
             FormId = 1,
-            TeachingCategoryId = 1,
+            LicenseId = 1,
             MaxPoints = 21
         };
         db.ExamForms.Add(examForm);
@@ -491,9 +507,13 @@ public class SessionFormControllerTests
         };
         await userManager.CreateAsync(instructor, "Password123!");
 
+        var license = new DriveFlow_CRM_API.Models.License { LicenseId = 1, Type = "B" };
+        db.Licenses.Add(license);
+
         var category = new TeachingCategory
         {
             TeachingCategoryId = 1,
+            LicenseId = 1,
             Code = "B",
             AutoSchoolId = 1,
             SessionCost = 100,
@@ -506,7 +526,7 @@ public class SessionFormControllerTests
         var examForm = new ExamForm
         {
             FormId = 1,
-            TeachingCategoryId = 1,
+            LicenseId = 1,
             MaxPoints = 21
         };
         db.ExamForms.Add(examForm);
@@ -568,9 +588,13 @@ public class SessionFormControllerTests
         };
         await userManager.CreateAsync(instructor, "Password123!");
 
+        var license = new DriveFlow_CRM_API.Models.License { LicenseId = 1, Type = "B" };
+        db.Licenses.Add(license);
+
         var category = new TeachingCategory
         {
             TeachingCategoryId = 1,
+            LicenseId = 1,
             Code = "B",
             AutoSchoolId = 1,
             SessionCost = 100,
@@ -583,7 +607,7 @@ public class SessionFormControllerTests
         var examForm = new ExamForm
         {
             FormId = 1,
-            TeachingCategoryId = 1,
+            LicenseId = 1,
             MaxPoints = 21
         };
         db.ExamForms.Add(examForm);
@@ -660,9 +684,13 @@ public class SessionFormControllerTests
         };
         await userManager.CreateAsync(student, "Password123!");
 
+        var license = new DriveFlow_CRM_API.Models.License { LicenseId = 1, Type = "B" };
+        db.Licenses.Add(license);
+
         var category = new TeachingCategory
         {
             TeachingCategoryId = 1,
+            LicenseId = 1,
             Code = "B",
             AutoSchoolId = 1,
             SessionCost = 100,
@@ -675,7 +703,7 @@ public class SessionFormControllerTests
         var examForm = new ExamForm
         {
             FormId = 1,
-            TeachingCategoryId = 1,
+            LicenseId = 1,
             MaxPoints = 21
         };
         db.ExamForms.Add(examForm);
@@ -759,9 +787,13 @@ public class SessionFormControllerTests
         };
         await userManager.CreateAsync(instructor, "Password123!");
 
+        var license = new DriveFlow_CRM_API.Models.License { LicenseId = 1, Type = "B" };
+        db.Licenses.Add(license);
+
         var category = new TeachingCategory
         {
             TeachingCategoryId = 1,
+            LicenseId = 1,
             Code = "B",
             AutoSchoolId = 1,
             SessionCost = 100,
@@ -774,7 +806,7 @@ public class SessionFormControllerTests
         var examForm = new ExamForm
         {
             FormId = 1,
-            TeachingCategoryId = 1,
+            LicenseId = 1,
             MaxPoints = 21
         };
         db.ExamForms.Add(examForm);

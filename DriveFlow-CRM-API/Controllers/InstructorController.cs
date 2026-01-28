@@ -320,6 +320,7 @@ public class InstructorController : ControllerBase
                 LastName = student?.LastName,
                 PhoneNo = student?.PhoneNumber,
                 LicensePlateNumber = vehicle?.LicensePlateNumber,
+                LicenseId = teachingCategory?.LicenseId,
                 Type = teachingCategory?.License?.Type ?? teachingCategory?.Code
             };
         }).ToList();
@@ -783,6 +784,9 @@ public sealed class InstructorAppointmentDto
     
     /// <summary>Vehicle license plate number</summary>
     public string? LicensePlateNumber { get; init; }
+    
+    /// <summary>License identifier</summary>
+    public int? LicenseId { get; init; }
     
     /// <summary>License type</summary>
     public string? Type { get; init; }
