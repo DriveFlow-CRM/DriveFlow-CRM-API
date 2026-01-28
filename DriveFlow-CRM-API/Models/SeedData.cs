@@ -16,6 +16,13 @@ namespace DriveFlow_CRM_API.Models;
     /// </summary>
     public static void Initialize(IServiceProvider serviceProvider)
     {
+        // Use proper DI scope pattern for DbContext - ensures proper connection lifecycle
+        using var scope = serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        
+        // Set longer timeout for seeding operations
+        context.Database.SetCommandTimeout(TimeSpan.FromMinutes(10));
+
         void LogDebug(string hypothesisId, string location, string message, object data)
         {
             try
@@ -39,10 +46,6 @@ namespace DriveFlow_CRM_API.Models;
                 // avoid breaking startup on log failure
             }
         }
-
-        // Resolve ApplicationDbContext with the DI‑configured options.
-        using var context = new ApplicationDbContext(
-            serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
 
         // Seed configuration/constants (keep IDs stable for relationships).
         var schoolIds = new[] { 1, 2, 3, 4 };
@@ -106,7 +109,7 @@ namespace DriveFlow_CRM_API.Models;
             return result != null && Convert.ToInt32(result) > 0;
         }
 
-        // ──────────────── Roles ────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Roles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         try
         {
             if (!context.Roles.Any())
@@ -345,7 +348,7 @@ namespace DriveFlow_CRM_API.Models;
 
 
 
-        // ──────────────── Geography (County, City, Address) ────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Geography (County, City, Address) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!context.Counties.Any())
         {
             context.Counties.AddRange(
@@ -399,7 +402,7 @@ namespace DriveFlow_CRM_API.Models;
             context.SaveChanges();
         }
 
-        // ──────────────── AutoSchool ────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ AutoSchool â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!context.AutoSchools.Any())
         {
             context.AutoSchools.AddRange(
@@ -451,7 +454,7 @@ namespace DriveFlow_CRM_API.Models;
             context.SaveChanges();
         }
 
-        // ──────────────── License ────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ License â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!context.Licenses.Any())
         {
             var licenses = new List<License>();
@@ -471,7 +474,7 @@ namespace DriveFlow_CRM_API.Models;
             .AsNoTracking()
             .ToDictionary(l => l.Type, l => l.LicenseId);
 
-        // ──────────────── TeachingCategory ────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ TeachingCategory â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!context.TeachingCategories.Any())
         {
             var teachingCategories = new List<TeachingCategory>();
@@ -514,33 +517,25 @@ namespace DriveFlow_CRM_API.Models;
             .GroupBy(tc => tc.AutoSchoolId)
             .ToDictionary(g => g.Key, g => g.Select(tc => tc.TeachingCategoryId).OrderBy(id => id).ToList());
 
-        // ──────────────── ExamForm ────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ExamForm â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Create one ExamForm for each of the 15 licenses (FormId = LicenseId for simplicity)
         if (!context.ExamForms.Any())
         {
-            context.ExamForms.AddRange(
-                new ExamForm
+            var examForms = new List<ExamForm>();
+            for (var i = 1; i <= 15; i++)
+            {
+                examForms.Add(new ExamForm
                 {
-                    FormId = 1,
-                    TeachingCategoryId = 1,
+                    FormId = i,
+                    LicenseId = i,
                     MaxPoints = 21
-                },
-                new ExamForm
-                {
-                    FormId = 3,
-                    TeachingCategoryId = 2,
-                    MaxPoints = 21
-                },
-                new ExamForm
-                {
-                    FormId = 4,
-                    TeachingCategoryId = 3,
-                    MaxPoints = 21
-                }
-            );
+                });
+            }
+            context.ExamForms.AddRange(examForms);
             context.SaveChanges();
         }
 
-        // ──────────────── Users ────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Users â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!context.Users.Any())
         {
             var hasher = new PasswordHasher<ApplicationUser>();
@@ -642,7 +637,7 @@ namespace DriveFlow_CRM_API.Models;
             context.SaveChanges();
         }
 
-        // ──────────────── ApplicationUserTeachingCategory ────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ApplicationUserTeachingCategory â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!context.ApplicationUserTeachingCategories.Any())
         {
             var assignments = new List<ApplicationUserTeachingCategory>();
@@ -695,1038 +690,169 @@ namespace DriveFlow_CRM_API.Models;
             context.SaveChanges();
         }
 
-        // ──────────────── ExamItems ────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ExamItems â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Generate items for ALL 15 licenses using 3 templates:
+        // - Template CAR (B): for B1, B, BE (LicenseId 5, 6, 7)
+        // - Template MOTO (A): for AM, A1, A2, A (LicenseId 1, 2, 3, 4)
+        // - Template TRUCK (C/D): for C1, C1E, C, CE, D1, D1E, D, DE (LicenseId 8-15)
         if (!context.ExamItems.Any())
         {
-            context.ExamItems.AddRange(
-                ////////////// categ B traseu //////////////
-                new ExamItem
-                {
-                    ItemId = 1,
-                    FormId = 1,
-                    Description = "Neverificarea, prin intermediul aparaturii de bord sau al comenzilor autovehiculului, a funcţionării direcţiei, frânei, a instalaţiei de ungere/răcire, a luminilor, a semnalizării, a avertizorului sonor",
-                    PenaltyPoints = 3,
-                    OrderIndex = 1
-                },
-                new ExamItem
-                {
-                    ItemId = 2,
-                    FormId = 1,
-                    Description = "Neverificarea dispozitivului de cuplare şi conexiunilor instalaţiei de frânare/electrice a catadioptrilor (numai BE)",
-                    PenaltyPoints = 9,
-                    OrderIndex = 2
-                },
-                new ExamItem
-                {
-                    ItemId = 3,
-                    FormId = 1,
-                    Description = "Neverificarea elementelor de siguranţă legate de încărcătura vehiculului, fixare, închidere uşi/obloane (numai BE)",
-                    PenaltyPoints = 9,
-                    OrderIndex = 3
-                },
-                new ExamItem
-                {
-                    ItemId = 4,
-                    FormId = 1,
-                    Description = "Nereglarea scaunului, a oglinzilor retrovizoare, nefixarea centurii de siguranţă, neeliberarea frânei de ajutor",
-                    PenaltyPoints = 3,
-                    OrderIndex = 4
-                },
-                new ExamItem
-                {
-                    ItemId = 5,
-                    FormId = 1,
-                    Description = "Necunoaşterea aparaturii de bord sau a comenzilor autovehiculului",
-                    PenaltyPoints = 3,
-                    OrderIndex = 5
-                },
-                new ExamItem
-                {
-                    ItemId = 6,
-                    FormId = 1,
-                    Description = "Nesincronizarea comenzilor (oprirea motorului, accelerarea excesivă, folosirea incorectă a treptelor de viteză)",
-                    PenaltyPoints = 5,
-                    OrderIndex = 6
-                },
-                new ExamItem
-                {
-                    ItemId = 7,
-                    FormId = 1,
-                    Description = "Nemenţinerea direcţiei de mers",
-                    PenaltyPoints = 9,
-                    OrderIndex = 7
-                },
-                new ExamItem
-                {
-                    ItemId = 8,
-                    FormId = 1,
-                    Description = "Folosirea incorectă a drumului cu sau fără marcaj",
-                    PenaltyPoints = 6,
-                    OrderIndex = 8
-                },
-                new ExamItem
-                {
-                    ItemId = 9,
-                    FormId = 1,
-                    Description = "Manevrarea incorectă la încrucişarea cu alte vehicule, inclusiv în spaţii restrânse",
-                    PenaltyPoints = 6,
-                    OrderIndex = 9
-                },
-                new ExamItem
-                {
-                    ItemId = 10,
-                    FormId = 1,
-                    Description = "Întoarcerea incorectă pe o stradă cu mai multe benzi de circulaţie pe sens",
-                    PenaltyPoints = 5,
-                    OrderIndex = 10
-                },
-                new ExamItem
-                {
-                    ItemId = 11,
-                    FormId = 1,
-                    Description = "Manevrarea incorectă la urcarea rampelor/coborrea pantelor lungi, la circulaţia în tuneluri",
-                    PenaltyPoints = 5,
-                    OrderIndex = 11
-                },
-                new ExamItem
-                {
-                    ItemId = 12,
-                    FormId = 1,
-                    Description = "Folosirea incorectă a luminilor de întâlnire/luminilor de drum",
-                    PenaltyPoints = 3,
-                    OrderIndex = 12
-                },
-                new ExamItem
-                {
-                    ItemId = 13,
-                    FormId = 1,
-                    Description = "Conducerea în mod neeconomic şi agresiv pentru mediul înconjurător (turaţie excesivă, frânare/accelerare nejustificate)",
-                    PenaltyPoints = 5,
-                    OrderIndex = 13
-                },
-                new ExamItem
-                {
-                    ItemId = 14,
-                    FormId = 1,
-                    Description = "Executarea incorectă a mersului înapoi",
-                    PenaltyPoints = 5,
-                    OrderIndex = 14
-                },
-                new ExamItem
-                {
-                    ItemId = 15,
-                    FormId = 1,
-                    Description = "Executarea incorectă a întoarcerii vehiculului cu faţa în sens opus prin efectuarea manevrelor de mers înainte şi înapoi",
-                    PenaltyPoints = 5,
-                    OrderIndex = 15
-                },
-                new ExamItem
-                {
-                    ItemId = 16,
-                    FormId = 1,
-                    Description = "Executarea incorectă a parcării cu faţa, spatele sau lateral",
-                    PenaltyPoints = 5,
-                    OrderIndex = 16
-                },
-                new ExamItem
-                {
-                    ItemId = 17,
-                    FormId = 1,
-                    Description = "Executarea incorectă a frânării cu precizie",
-                    PenaltyPoints = 5,
-                    OrderIndex = 17
-                },
-                new ExamItem
-                {
-                    ItemId = 18,
-                    FormId = 1,
-                    Description = "Executarea incorectă a cuplării/decuplării remorcii la/de la autovehiculul trăgător (numai BE)",
-                    PenaltyPoints = 5,
-                    OrderIndex = 18
-                },
-                new ExamItem
-                {
-                    ItemId = 19,
-                    FormId = 1,
-                    Description = "Neasigurarea la schimbarea direcţiei de mers/la părăsirea locului de staţionare",
-                    PenaltyPoints = 9,
-                    OrderIndex = 19
-                },
-                new ExamItem
-                {
-                    ItemId = 20,
-                    FormId = 1,
-                    Description = "Executarea neregulamentară a virajelor",
-                    PenaltyPoints = 6,
-                    OrderIndex = 20
-                },
-                new ExamItem
-                {
-                    ItemId = 21,
-                    FormId = 1,
-                    Description = "Nesemnalizarea sau semnalizarea greşită a schimbării direcţiei de mers",
-                    PenaltyPoints = 6,
-                    OrderIndex = 21
-                },
-                new ExamItem
-                {
-                    ItemId = 22,
-                    FormId = 1,
-                    Description = "Încadrarea necorespunzătoare în raport cu direcţia de mers indicată",
-                    PenaltyPoints = 6,
-                    OrderIndex = 22
-                },
-                new ExamItem
-                {
-                    ItemId = 23,
-                    FormId = 1,
-                    Description = "Efectuarea unor manevre interzise (oprire, staţionare, întoarcere, mers înapoi)",
-                    PenaltyPoints = 6,
-                    OrderIndex = 23
-                },
-                new ExamItem
-                {
-                    ItemId = 24,
-                    FormId = 1,
-                    Description = "Neasigurarea la pătrunderea în intersecţii",
-                    PenaltyPoints = 9,
-                    OrderIndex = 24
-                },
-                new ExamItem
-                {
-                    ItemId = 25,
-                    FormId = 1,
-                    Description = "Folosirea incorectă a benzilor la intrarea/ieşirea pe/de pe autostradă/artere similare",
-                    PenaltyPoints = 5,
-                    OrderIndex = 25
-                },
-                new ExamItem
-                {
-                    ItemId = 26,
-                    FormId = 1,
-                    Description = "Nepăstrarea distanţei suficiente faţă de cei care rulează înainte sau vin din sens opus",
-                    PenaltyPoints = 9,
-                    OrderIndex = 26
-                },
-                new ExamItem
-                {
-                    ItemId = 27,
-                    FormId = 1,
-                    Description = "Ezitarea repetată de a depăşi alte vehicule",
-                    PenaltyPoints = 3,
-                    OrderIndex = 27
-                },
-                new ExamItem
-                {
-                    ItemId = 28,
-                    FormId = 1,
-                    Description = "Nerespectarea regulilor de executare a depăşirii ori efectuarea acestora în locuri şi situaţii interzise",
-                    PenaltyPoints = 21,
-                    OrderIndex = 28
-                },
-                new ExamItem
-                {
-                    ItemId = 29,
-                    FormId = 1,
-                    Description = "Neacordarea priorităţii vehiculelor şi pietonilor care au acest drept (la plecarea de pe loc, în intersecţii, sens giratoriu, staţie de mijloc de transport în comun prevăzută cu alveolă, staţie de tramvai fără refugiu pentru pietoni, trecere de pietoni)",
-                    PenaltyPoints = 21,
-                    OrderIndex = 29
-                },
-                new ExamItem
-                {
-                    ItemId = 30,
-                    FormId = 1,
-                    Description = "Tendinţe repetate de a ceda trecerea vehiculelor şi pietonilor care nu au prioritate",
-                    PenaltyPoints = 6,
-                    OrderIndex = 30
-                },
-                new ExamItem
-                {
-                    ItemId = 31,
-                    FormId = 1,
-                    Description = "Nerespectarea semnificaţiei indicatoarelor/marcajelor/culorilor semaforului (cu excepţia culorii roşii)",
-                    PenaltyPoints = 9,
-                    OrderIndex = 31
-                },
-                new ExamItem
-                {
-                    ItemId = 32,
-                    FormId = 1,
-                    Description = "Nerespectarea semnificaţiei culorii roşii a semaforului/a semnalelor poliţistului rutier/a semnalelor altor persoane cu atribuţii legale similare",
-                    PenaltyPoints = 21,
-                    OrderIndex = 32
-                },
-                new ExamItem
-                {
-                    ItemId = 33,
-                    FormId = 1,
-                    Description = "Depăşirea vitezei maxime admise",
-                    PenaltyPoints = 5,
-                    OrderIndex = 33
-                },
-                new ExamItem
-                {
-                    ItemId = 34,
-                    FormId = 1,
-                    Description = "Conducerea cu viteză redusă în mod nejustificat, neîncadrarea în ritmul impus de ceilalţi participanţi la trafic",
-                    PenaltyPoints = 3,
-                    OrderIndex = 34
-                },
-                new ExamItem
-                {
-                    ItemId = 35,
-                    FormId = 1,
-                    Description = "Neîndemânarea în conducerea în condiţii de ploaie, zăpadă, mâzgă, polei",
-                    PenaltyPoints = 9,
-                    OrderIndex = 35
-                },
-                new ExamItem
-                {
-                    ItemId = 36,
-                    FormId = 1,
-                    Description = "Deplasarea cu viteză neadaptată condiţiilor atmosferice şi de drum",
-                    PenaltyPoints = 9,
-                    OrderIndex = 36
-                },
-                new ExamItem
-                {
-                    ItemId = 37,
-                    FormId = 1,
-                    Description = "Prezentarea la examen sub influenţa băuturilor alcoolice, substanţelor sau produselor stupefiante, a medicamentelor cu efecte similare acestora sau manifestări de natură să perturbe examinarea celorlalţi candidaţi",
-                    PenaltyPoints = 21,
-                    OrderIndex = 37
-                },
-                new ExamItem
-                {
-                    ItemId = 38,
-                    FormId = 1,
-                    Description = "Intervenţia examinatorului pentru evitarea unui pericol iminent/producerea unui eveniment rutier",
-                    PenaltyPoints = 21,
-                    OrderIndex = 38
-                },
-                /*
-                ////////////// categ A poligon //////////////
+            // Template items (Description, PenaltyPoints) - without diacritics for encoding compatibility
+            var carTemplateItems = new List<(string Description, int PenaltyPoints)>
+            {
+                ("Neverificarea, prin intermediul aparaturii de bord sau al comenzilor autovehiculului, a functionarii directiei, franei, a instalatiei de ungere/racire, a luminilor, a semnalizarii, a avertizorului sonor", 3),
+                ("Neverificarea dispozitivului de cuplare si conexiunilor instalatiei de franare/electrice a catadioptrilor (numai BE)", 9),
+                ("Neverificarea elementelor de siguranta legate de incarcatura vehiculului, fixare, inchidere usi/obloane (numai BE)", 9),
+                ("Nereglarea scaunului, a oglinzilor retrovizoare, nefixarea centurii de siguranta, neeliberarea franei de ajutor", 3),
+                ("Necunoasterea aparaturii de bord sau a comenzilor autovehiculului", 3),
+                ("Nesincronizarea comenzilor (oprirea motorului, accelerarea excesiva, folosirea incorecta a treptelor de viteza)", 5),
+                ("Nementinerea directiei de mers", 9),
+                ("Folosirea incorecta a drumului cu sau fara marcaj", 6),
+                ("Manevrarea incorecta la incrucisarea cu alte vehicule, inclusiv in spatii restranse", 6),
+                ("Intoarcerea incorecta pe o strada cu mai multe benzi de circulatie pe sens", 5),
+                ("Manevrarea incorecta la urcarea rampelor/coborarea pantelor lungi, la circulatia in tuneluri", 5),
+                ("Folosirea incorecta a luminilor de intalnire/luminilor de drum", 3),
+                ("Conducerea in mod neeconomic si agresiv pentru mediul inconjurator (turatie excesiva, franare/accelerare nejustificate)", 5),
+                ("Executarea incorecta a mersului inapoi", 5),
+                ("Executarea incorecta a intoarcerii vehiculului cu fata in sens opus prin efectuarea manevrelor de mers inainte si inapoi", 5),
+                ("Executarea incorecta a parcarii cu fata, spatele sau lateral", 5),
+                ("Executarea incorecta a franarii cu precizie", 5),
+                ("Executarea incorecta a cuplarii/decuplarii remorcii la/de la autovehiculul tragator (numai BE)", 5),
+                ("Neasigurarea la schimbarea directiei de mers/la parasirea locului de stationare", 9),
+                ("Executarea nereglementara a virajelor", 6),
+                ("Nesemnalizarea sau semnalizarea gresita a schimbarii directiei de mers", 6),
+                ("Incadrarea necorespunzatoare in raport cu directia de mers indicata", 6),
+                ("Efectuarea unor manevre interzise (oprire, stationare, intoarcere, mers inapoi)", 6),
+                ("Neasigurarea la patrunderea in intersectii", 9),
+                ("Folosirea incorecta a benzilor la intrarea/iesirea pe/de pe autostrada/artere similare", 5),
+                ("Nepastrarea distantei suficiente fata de cei care ruleaza inainte sau vin din sens opus", 9),
+                ("Ezitarea repetata de a depasi alte vehicule", 3),
+                ("Nerespectarea regulilor de executare a depasirii ori efectuarea acestora in locuri si situatii interzise", 21),
+                ("Neacordarea prioritatii vehiculelor si pietonilor care au acest drept (la plecarea de pe loc, in intersectii, sens giratoriu, statie de mijloc de transport in comun prevazuta cu alveola, statie de tramvai fara refugiu pentru pietoni, trecere de pietoni)", 21),
+                ("Tendinte repetate de a ceda trecerea vehiculelor si pietonilor care nu au prioritate", 6),
+                ("Nerespectarea semnificatiei indicatoarelor/marcajelor/culorilor semaforului (cu exceptia culorii rosii)", 9),
+                ("Nerespectarea semnificatiei culorii rosii a semaforului/a semnalelor politistului rutier/a semnalelor altor persoane cu atributii legale similare", 21),
+                ("Depasirea vitezei maxime admise", 5),
+                ("Conducerea cu viteza redusa in mod nejustificat, neincadrarea in ritmul impus de ceilalti participanti la trafic", 3),
+                ("Neindemanarea in conducerea in conditii de ploaie, zapada, mazga, polei", 9),
+                ("Deplasarea cu viteza neadaptata conditiilor atmosferice si de drum", 9),
+                ("Prezentarea la examen sub influenta bauturilor alcoolice, substantelor sau produselor stupefiante, a medicamentelor cu efecte similare acestora sau manifestari de natura sa perturbe examinarea celorlalti candidati", 21),
+                ("Interventia examinatorului pentru evitarea unui pericol iminent/producerea unui eveniment rutier", 21)
+            };
 
-                new ExamItem
-                {
-                    ItemId = 39,
-                    FormId = 2,
-                    Description = "Neutilizarea echipamentului de protecţie: mănuşi, cizme, îmbrăcăminte şi casca de protecţie (pentru AM, numai casca de protecţie)",
-                    PenaltyPoints = 3,
-                    OrderIndex = 1
-                },
-                new ExamItem
-                {
-                    ItemId = 40,
-                    FormId = 2,
-                    Description = "Neverificarea stării anvelopelor/a comutatorului de oprire în caz de urgenţă",
-                    PenaltyPoints = 3,
-                    OrderIndex = 2
-                },
-                new ExamItem
-                {
-                    ItemId = 41,
-                    FormId = 2,
-                    Description = "Verificarea, prin intermediul aparaturii de bord sau comenzilor autovehiculului, a funcţionalităţii direcţiei, frânei, transmisiei, a instalaţiei de ungere/răcire, a luminilor, a semnalizării, a catadioptrilor, a avertizorului sonor",
-                    PenaltyPoints = 3,
-                    OrderIndex = 3
-                },
-                new ExamItem
-                {
-                    ItemId = 42,
-                    FormId = 2,
-                    Description = "Aşezarea/coborârea vehiculului pe/de pe suportul de sprijin/cric şi deplasarea pe jos, pe lângă vehicul",
-                    PenaltyPoints = 3,
-                    OrderIndex = 4
-                },
-                new ExamItem
-                {
-                    ItemId = 43,
-                    FormId = 2,
-                    Description = "Pornirea motorului şi demararea uşoară, fără bruscarea vehiculului",
-                    PenaltyPoints = 3,
-                    OrderIndex = 5
-                },
-                new ExamItem
-                {
-                    ItemId = 44,
-                    FormId = 2,
-                    Description = "Accelerarea progresivă, menţinerea direcţiei de mers, inclusiv la schimbarea vitezelor",
-                    PenaltyPoints = 5,
-                    OrderIndex = 6
-                },
-                new ExamItem
-                {
-                    ItemId = 45,
-                    FormId = 2,
-                    Description = "Menţinerea poziţiei pe vehicul, tehnica menţinerii direcţiei (echilibrul permanent fără sprijinirea de carosabil)",
-                    PenaltyPoints = 5,
-                    OrderIndex = 7
-                },
-                new ExamItem
-                {
-                    ItemId = 46,
-                    FormId = 2,
-                    Description = "Manevrarea ambreiajului în combinaţie cu frâna, schimbarea vitezelor",
-                    PenaltyPoints = 3,
-                    OrderIndex = 8
-                },
-                new ExamItem
-                {
-                    ItemId = 47,
-                    FormId = 2,
-                    Description = "Executarea slalomului printre 5 jaloane",
-                    PenaltyPoints = 5,
-                    OrderIndex = 9
-                },
-                new ExamItem
-                {
-                    ItemId = 48,
-                    FormId = 2,
-                    Description = "Executarea de opturi printre 4 jaloane",
-                    PenaltyPoints = 5,
-                    OrderIndex = 10
-                },
-                new ExamItem
-                {
-                    ItemId = 49,
-                    FormId = 2,
-                    Description = "Ocolirea jalonului, fără lovirea/răsturnarea acestuia",
-                    PenaltyPoints = 3,
-                    OrderIndex = 11
-                },
-                new ExamItem
-                {
-                    ItemId = 50,
-                    FormId = 2,
-                    Description = "Îndemânarea privind manevrarea frânei faţă/spate la frânarea de urgenţă (menţinerea direcţiei vizuale, poziţia pe vehicul)",
-                    PenaltyPoints = 5,
-                    OrderIndex = 12
-                },
-                new ExamItem
-                {
-                    ItemId = 51,
-                    FormId = 2,
-                    Description = "Executarea manevrei de evitare a unui obstacol la viteză de peste 30 km/h",
-                    PenaltyPoints = 5,
-                    OrderIndex = 13
-                },
-                new ExamItem
-                {
-                    ItemId = 52,
-                    FormId = 2,
-                    Description = "Executarea manevrei de evitare a unui obstacol la o viteză minimă de 50 km/h",
-                    PenaltyPoints = 5,
-                    OrderIndex = 14
-                },
-                new ExamItem
-                {
-                    ItemId = 53,
-                    FormId = 2,
-                    Description = "Executarea frânării, inclusiv frânarea de urgenţă, la o viteză minimă de 50 km/h",
-                    PenaltyPoints = 5,
-                    OrderIndex = 15
-                },
-                new ExamItem
-                {
-                    ItemId = 54,
-                    FormId = 2,
-                    Description = "A depăşit timpul alocat executării manevrelor în poligon",
-                    PenaltyPoints = 16,
-                    OrderIndex = 16
-                },
-                new ExamItem
-                {
-                    ItemId = 55,
-                    FormId = 2,
-                    Description = "A căzut cu mopedul/motocicleta",
-                    PenaltyPoints = 16,
-                    OrderIndex = 17
-                },
-                new ExamItem
-                {
-                    ItemId = 56,
-                    FormId = 2,
-                    Description = "Nu a respectat traseul stabilit în poligon",
-                    PenaltyPoints = 16,
-                    OrderIndex = 18
-                },*/
-                ////////////// categ A traseu //////////////
-                new ExamItem
-                {
-                    ItemId = 57,
-                    FormId = 3,
-                    Description = "Nesincronizarea comenzilor (oprirea motorului, accelerarea excesivă, folosirea incorectă a treptelor de viteză)",
-                    PenaltyPoints = 6,
-                    OrderIndex = 1
-                },
-                new ExamItem
-                {
-                    ItemId = 58,
-                    FormId = 3,
-                    Description = "Nemenţinerea direcţiei de mers",
-                    PenaltyPoints = 9,
-                    OrderIndex = 2
-                },
-                new ExamItem
-                {
-                    ItemId = 59,
-                    FormId = 3,
-                    Description = "Folosirea incorectă a drumului cu sau fără marcaj",
-                    PenaltyPoints = 6,
-                    OrderIndex = 3
-                },
-                new ExamItem
-                {
-                    ItemId = 60,
-                    FormId = 3,
-                    Description = "Manevrarea incorectă la încrucişarea cu alte vehicule, inclusiv în spaţii restrânse",
-                    PenaltyPoints = 6,
-                    OrderIndex = 4
-                },
-                new ExamItem
-                {
-                    ItemId = 61,
-                    FormId = 3,
-                    Description = "Neasigurarea la schimbarea direcţiei de mers",
-                    PenaltyPoints = 9,
-                    OrderIndex = 5
-                },
-                new ExamItem
-                {
-                    ItemId = 62,
-                    FormId = 3,
-                    Description = "Executarea neregulamentară a virajelor",
-                    PenaltyPoints = 6,
-                    OrderIndex = 6
-                },
-                new ExamItem
-                {
-                    ItemId = 63,
-                    FormId = 3,
-                    Description = "Nesemnalizarea sau semnalizarea greşită a schimbării direcţiei de mers",
-                    PenaltyPoints = 6,
-                    OrderIndex = 7
-                },
-                new ExamItem
-                {
-                    ItemId = 64,
-                    FormId = 3,
-                    Description = "Folosirea incorectă a luminilor de întâlnire/luminilor de drum",
-                    PenaltyPoints = 3,
-                    OrderIndex = 8
-                },
-                new ExamItem
-                {
-                    ItemId = 65,
-                    FormId = 3,
-                    Description = "Neîncadrarea corespunzătoare în raport cu direcţia de mers indicată",
-                    PenaltyPoints = 6,
-                    OrderIndex = 9
-                },
-                new ExamItem
-                {
-                    ItemId = 66,
-                    FormId = 3,
-                    Description = "Efectuarea unor manevre interzise (oprire, staţionare, întoarcere)",
-                    PenaltyPoints = 6,
-                    OrderIndex = 10
-                },
-                new ExamItem
-                {
-                    ItemId = 67,
-                    FormId = 3,
-                    Description = "Neasigurarea la pătrunderea în intersecţii/la părăsirea zonei de staţionare",
-                    PenaltyPoints = 9,
-                    OrderIndex = 11
-                },
-                new ExamItem
-                {
-                    ItemId = 68,
-                    FormId = 3,
-                    Description = "Folosirea incorectă a benzilor la intrarea/ieşirea pe/de pe autostradă/artere similare",
-                    PenaltyPoints = 5,
-                    OrderIndex = 12
-                },
-                new ExamItem
-                {
-                    ItemId = 69,
-                    FormId = 3,
-                    Description = "Nepăstrarea distanţei suficiente faţă de cei care rulează înainte sau vin din sens opus",
-                    PenaltyPoints = 9,
-                    OrderIndex = 13
-                },
-                new ExamItem
-                {
-                    ItemId = 70,
-                    FormId = 3,
-                    Description = "Conducerea în mod neeconomic şi agresiv pentru mediul înconjurător (turaţie excesivă, frânare/accelerare nejustificate)",
-                    PenaltyPoints = 5,
-                    OrderIndex = 14
-                },
-                new ExamItem
-                {
-                    ItemId = 71,
-                    FormId = 3,
-                    Description = "Manevrarea incorectă la urcarea rampelor/coborârea pantelor lungi, la circulaţia în tuneluri",
-                    PenaltyPoints = 5,
-                    OrderIndex = 15
-                },
-                new ExamItem
-                {
-                    ItemId = 72,
-                    FormId = 3,
-                    Description = "Nerespectarea normelor legale referitoare la manevra de depăşire",
-                    PenaltyPoints = 21,
-                    OrderIndex = 16
-                },
-                new ExamItem
-                {
-                    ItemId = 73,
-                    FormId = 3,
-                    Description = "Ezitarea repetată de a depăşi alte vehicule",
-                    PenaltyPoints = 6,
-                    OrderIndex = 17
-                },
-                new ExamItem
-                {
-                    ItemId = 74,
-                    FormId = 3,
-                    Description = "Neacordarea priorităţii de trecere vehiculelor şi pietonilor care au acest drept (la plecarea de pe loc, în intersecţii, sens giratoriu, staţie mijloc de transport în comun prevăzută cu alveolă, staţie de tramvai fără refugiu pentru pietoni, trecere de pietoni)",
-                    PenaltyPoints = 21,
-                    OrderIndex = 18
-                },
-                new ExamItem
-                {
-                    ItemId = 75,
-                    FormId = 3,
-                    Description = "Nerespectarea semnificaţiei culorii roşii a semaforului/a semnalelor poliţistului rutier/a semnalelor altor persoane cu atribuţii legale similare",
-                    PenaltyPoints = 21,
-                    OrderIndex = 19
-                },
-                new ExamItem
-                {
-                    ItemId = 76,
-                    FormId = 3,
-                    Description = "Nerespectarea semnificaţiei indicatoarelor/marcajelor/culorii semaforului (cu excepţia culorii roşii)",
-                    PenaltyPoints = 9,
-                    OrderIndex = 20
-                },
-                new ExamItem
-                {
-                    ItemId = 77,
-                    FormId = 3,
-                    Description = "Nerespectarea normelor legale referitoare la trecerea la nivel cu calea ferată",
-                    PenaltyPoints = 21,
-                    OrderIndex = 21
-                },
-                new ExamItem
-                {
-                    ItemId = 78,
-                    FormId = 3,
-                    Description = "Depăşirea vitezei legale maxime admise",
-                    PenaltyPoints = 9,
-                    OrderIndex = 22
-                },
-                new ExamItem
-                {
-                    ItemId = 79,
-                    FormId = 3,
-                    Description = "Tendinţe repetate de a ceda trecerea vehiculelor şi pietonilor care nu au prioritate",
-                    PenaltyPoints = 6,
-                    OrderIndex = 23
-                },
-                new ExamItem
-                {
-                    ItemId = 80,
-                    FormId = 3,
-                    Description = "Conducerea cu viteză redusă în mod nejustificat, neîncadrarea în ritmul impus de ceilalţi participanţi la trafic",
-                    PenaltyPoints = 6,
-                    OrderIndex = 24
-                },
-                new ExamItem
-                {
-                    ItemId = 81,
-                    FormId = 3,
-                    Description = "Neîndemânarea în conducere în condiţii de carosabil alunecos (reducerea vitezei, conduită preventivă)",
-                    PenaltyPoints = 9,
-                    OrderIndex = 25
-                },
-                new ExamItem
-                {
-                    ItemId = 82,
-                    FormId = 3,
-                    Description = "Nerespectarea comenzii examinatorului privind traseul de urmat",
-                    PenaltyPoints = 6,
-                    OrderIndex = 26
-                },
-                new ExamItem
-                {
-                    ItemId = 83,
-                    FormId = 3,
-                    Description = "Prezentarea la examen sub influenţa băuturilor alcoolice, substanţelor sau produselor stupefiante, a medicamentelor cu efecte similare acestora sau manifestări de natură să perturbe examinarea candidaţilor",
-                    PenaltyPoints = 21,
-                    OrderIndex = 27
-                },
-                new ExamItem
-                {
-                    ItemId = 84,
-                    FormId = 3,
-                    Description = "Intervenţia instructorului pentru evitarea unui pericol iminent/producerea unui eveniment rutier",
-                    PenaltyPoints = 21,
-                    OrderIndex = 28
-                },
+            var motoTemplateItems = new List<(string Description, int PenaltyPoints)>
+            {
+                ("Nesincronizarea comenzilor (oprirea motorului, accelerarea excesiva, folosirea incorecta a treptelor de viteza)", 6),
+                ("Nementinerea directiei de mers", 9),
+                ("Folosirea incorecta a drumului cu sau fara marcaj", 6),
+                ("Manevrarea incorecta la incrucisarea cu alte vehicule, inclusiv in spatii restranse", 6),
+                ("Neasigurarea la schimbarea directiei de mers", 9),
+                ("Executarea nereglementara a virajelor", 6),
+                ("Nesemnalizarea sau semnalizarea gresita a schimbarii directiei de mers", 6),
+                ("Folosirea incorecta a luminilor de intalnire/luminilor de drum", 3),
+                ("Neincadrarea corespunzatoare in raport cu directia de mers indicata", 6),
+                ("Efectuarea unor manevre interzise (oprire, stationare, intoarcere)", 6),
+                ("Neasigurarea la patrunderea in intersectii/la parasirea zonei de stationare", 9),
+                ("Folosirea incorecta a benzilor la intrarea/iesirea pe/de pe autostrada/artere similare", 5),
+                ("Nepastrarea distantei suficiente fata de cei care ruleaza inainte sau vin din sens opus", 9),
+                ("Conducerea in mod neeconomic si agresiv pentru mediul inconjurator (turatie excesiva, franare/accelerare nejustificate)", 5),
+                ("Manevrarea incorecta la urcarea rampelor/coborarea pantelor lungi, la circulatia in tuneluri", 5),
+                ("Nerespectarea normelor legale referitoare la manevra de depasire", 21),
+                ("Ezitarea repetata de a depasi alte vehicule", 6),
+                ("Neacordarea prioritatii de trecere vehiculelor si pietonilor care au acest drept (la plecarea de pe loc, in intersectii, sens giratoriu, statie mijloc de transport in comun prevazuta cu alveola, statie de tramvai fara refugiu pentru pietoni, trecere de pietoni)", 21),
+                ("Nerespectarea semnificatiei culorii rosii a semaforului/a semnalelor politistului rutier/a semnalelor altor persoane cu atributii legale similare", 21),
+                ("Nerespectarea semnificatiei indicatoarelor/marcajelor/culorii semaforului (cu exceptia culorii rosii)", 9),
+                ("Nerespectarea normelor legale referitoare la trecerea la nivel cu calea ferata", 21),
+                ("Depasirea vitezei legale maxime admise", 9),
+                ("Tendinte repetate de a ceda trecerea vehiculelor si pietonilor care nu au prioritate", 6),
+                ("Conducerea cu viteza redusa in mod nejustificat, neincadrarea in ritmul impus de ceilalti participanti la trafic", 6),
+                ("Neindemanarea in conducere in conditii de carosabil alunecos (reducerea vitezei, conduita preventiva)", 9),
+                ("Nerespectarea comenzii examinatorului privind traseul de urmat", 6),
+                ("Prezentarea la examen sub influenta bauturilor alcoolice, substantelor sau produselor stupefiante, a medicamentelor cu efecte similare acestora sau manifestari de natura sa perturbe examinarea candidatilor", 21),
+                ("Interventia instructorului pentru evitarea unui pericol iminent/producerea unui eveniment rutier", 21)
+            };
 
-            ////////////// categ C/D traseu //////////////
-            ///
-                new ExamItem
+            var truckTemplateItems = new List<(string Description, int PenaltyPoints)>
+            {
+                ("Neefectuarea controlului vizual, in ordine aleatorie, privind: starea anvelopelor, fixarea rotilor (starea piulitelor), starea elementelor suspensiei, a rezervoarelor de aer, a parbrizului, ferestrelor, a fluidelor (ulei motor, lichid racire, fluid spalare parbriz), a blocului de lumini/semnalizare fata/spate, catadioptrii, trusa medicala, triunghiul reflectorizant, stingatorul de incendiu", 3),
+                ("Neefectuarea controlului caroseriei, a invelisului usilor pentru marfa, a mecanismului de incarcare, a fixarii incarcaturii (numai pentru C, CE, C1, C1E, Tr)", 9),
+                ("Neverificarea, prin intermediul aparaturii de bord sau al comenzilor autovehiculului, a functionarii directiei, franei, a instalatiei de ungere/racire, a luminilor, a semnalizarii, a avertizorului sonor", 3),
+                ("Necunoasterea aparaturii de inregistrare a activitatii conducatorului auto [cu exceptia C1, C1E, Tr, care nu intra in domeniul Regulamentului (CEE) nr. 3.821/85]", 3),
+                ("Neverificarea dispozitivului de cuplare si a conexiunilor instalatiei de franare/electrice, a catadioptrilor (numai pentru CE, C1E, D1E, DE, Tr)", 9),
+                ("Neverificarea caroseriei, a usilor de serviciu, a iesirilor de urgenta, a echipamentului de prim ajutor, a stingatoarelor de incendiu si a altor echipamente de siguranta (numai pentru D, DE, D1, D1E, Tb, Tv)", 5),
+                ("Nereglarea scaunului, a oglinzilor retrovizoare, nefixarea centurii de siguranta, neeliberarea franei de ajutor", 3),
+                ("Necunoasterea aparaturii de bord sau a comenzilor autovehiculului", 3),
+                ("Cuplarea unei remorci de autovehiculul tragator din/cu revenire la pozitia initiala in stationare paralel", 5),
+                ("Mersul inapoi", 5),
+                ("Parcarea in siguranta cu fata/cu spatele/laterala pentru incarcare/descarcare, sau la o rampa/platforma de incarcare, sau la o instalatie similara", 7),
+                ("Oprirea pentru a permite calatorilor urcarea/coborarea in/din autobuz/tramvai/troleibuz, in siguranta", 7),
+                ("Nesincronizarea comenzilor (oprirea motorului, accelerarea excesiva, folosirea incorecta a treptelor de viteza)", 5),
+                ("Nementinerea directiei de mers", 9),
+                ("Folosirea incorecta a drumului, cu sau fara marcaje", 6),
+                ("Manevrarea incorecta la incrucisarea cu alte vehicule, inclusiv in spatii restranse", 6),
+                ("Executarea incorecta a mersului inapoi, a parcarii cu fata, spatele sau lateral", 5),
+                ("Executarea incorecta a intoarcerii vehiculului cu fata in sens opus prin efectuarea manevrelor de mers inainte si inapoi", 5),
+                ("Intoarcerea incorecta pe o strada cu mai multe benzi de circulatie pe sens", 5),
+                ("Manevrarea incorecta la urcarea rampelor/coborarea pantelor lungi, la circulatia in tuneluri", 5),
+                ("Folosirea incorecta a luminilor de intalnire/luminilor de drum", 3),
+                ("Conducerea in mod neeconomic si agresiv pentru mediul inconjurator (turatie excesiva, franare/accelerare nejustificate)", 5),
+                ("Neasigurarea la schimbarea directiei de mers/parasirea locului de stationare", 9),
+                ("Executarea nereglementara a virajelor", 6),
+                ("Nesemnalizarea sau semnalizarea gresita a schimbarii directiei de mers", 6),
+                ("Incadrarea necorespunzatoare in raport cu directia de mers indicata", 6),
+                ("Efectuarea unor manevre interzise (oprire, stationare, intoarcere, mers inapoi)", 6),
+                ("Neasigurarea la patrunderea in intersectii", 9),
+                ("Folosirea incorecta a benzilor la intrarea/iesirea pe/de pe autostrada/artere similare", 5),
+                ("Nepastrarea distantei suficiente fata de cei care ruleaza inainte sau vin din sens opus", 9),
+                ("Ezitarea repetata de a depasi alte vehicule", 6),
+                ("Nerespectarea regulilor de executare a depasirii ori efectuarea acesteia in locuri si situatii interzise", 21),
+                ("Neacordarea prioritatii vehiculelor si pietonilor care au acest drept (la plecarea de pe loc, in intersectii, sens giratoriu, statie mijloc de transport in comun prevazuta cu alveola, statie de tramvai fara refugiu pentru pietoni, trecere de pietoni)", 21),
+                ("Tendinte repetate de a ceda trecerea vehiculelor si pietonilor care nu au prioritate", 6),
+                ("Nerespectarea semnificatiei indicatoarelor/marcajelor/culorii semaforului (cu exceptia culorii rosii)", 9),
+                ("Nerespectarea semnificatiei culorii rosii a semaforului/semnalelor politistului rutier/semnalelor altor persoane cu atributii legale similare", 21),
+                ("Depasirea vitezei legale maxime admise", 9),
+                ("Conducerea cu viteza redusa in mod nejustificat, neincadrarea in ritmul impus de ceilalti participanti la trafic", 6),
+                ("Neindemanarea in conducere in conditii de carosabil alunecos (reducerea vitezei, conduita preventiva)", 9),
+                ("Deplasarea cu viteza neadaptata conditiilor atmosferice si de drum", 9),
+                ("Nerespectarea normelor legale la trecerile la nivel cu calea ferata", 21),
+                ("Prezentarea la examen sub influenta bauturilor alcoolice, substantelor sau produselor stupefiante, a medicamentelor cu efecte similare acestora sau manifestari de natura sa perturbe examinarea celorlalti candidati", 21),
+                ("Interventia examinatorului pentru evitarea unui pericol iminent/producerea unui eveniment rutier", 21)
+            };
+
+            // License mapping: which template to use for each LicenseId
+            // LicenseId 1-4 (AM, A1, A2, A) -> moto template
+            // LicenseId 5-7 (B1, B, BE) -> car template
+            // LicenseId 8-15 (C1, C1E, C, CE, D1, D1E, D, DE) -> truck template
+            var examItems = new List<ExamItem>();
+            var itemId = 1;
+
+            for (var licenseId = 1; licenseId <= 15; licenseId++)
+            {
+                var templateItems = licenseId switch
                 {
-                    ItemId = 85,
-                    FormId = 4,
-                    Description = "Neefectuarea controlului vizual, în ordine aleatorie, privind: starea anvelopelor, fixarea roţilor (starea piuliţelor), starea elementelor suspensiei, a rezervoarelor de aer, a parbrizului, ferestrelor, a fluidelor (ulei motor, lichid răcire, fluid spălare parbriz), a blocului de lumini/semnalizare faţă/spate, catadioptrii, trusa medicală, triunghiul reflectorizant, stingătorul de incendiu",
-                    PenaltyPoints = 3,
-                    OrderIndex = 1
-                },
-                new ExamItem
+                    >= 1 and <= 4 => motoTemplateItems,  // AM, A1, A2, A
+                    >= 5 and <= 7 => carTemplateItems,   // B1, B, BE
+                    _ => truckTemplateItems              // C1, C1E, C, CE, D1, D1E, D, DE
+                };
+
+                var orderIndex = 1;
+                foreach (var (description, penaltyPoints) in templateItems)
                 {
-                    ItemId = 86,
-                    FormId = 4,
-                    Description = "Neefectuarea controlului caroseriei, a învelişului uşilor pentru marfă, a mecanismului de încărcare, a fixării încărcăturii (numai pentru C, CE, C1, C1E, Tr)",
-                    PenaltyPoints = 9,
-                    OrderIndex = 2
-                },
-                new ExamItem
-                {
-                    ItemId = 87,
-                    FormId = 4,
-                    Description = "Neverificarea, prin intermediul aparaturii de bord sau al comenzilor autovehiculului, a funcţionării direcţiei, frânei, a instalaţiei de ungere/răcire, a luminilor, a semnalizării, a avertizorului sonor",
-                    PenaltyPoints = 3,
-                    OrderIndex = 3
-                },
-                new ExamItem
-                {
-                    ItemId = 88,
-                    FormId = 4,
-                    Description = "Necunoaşterea aparaturii de înregistrare a activităţii conducătorului auto [cu excepţia C1, C1E, Tr, care nu intră în domeniul Regulamentului (CEE) nr. 3.821/85]",
-                    PenaltyPoints = 3,
-                    OrderIndex = 4
-                },
-                new ExamItem
-                {
-                    ItemId = 89,
-                    FormId = 4,
-                    Description = "Neverificarea dispozitivului de cuplare şi a conexiunilor instalaţiei de frânare/electrice, a catadioptrilor (numai pentru CE, C1E, D1E, DE, Tr)",
-                    PenaltyPoints = 9,
-                    OrderIndex = 5
-                },
-                new ExamItem
-                {
-                    ItemId = 90,
-                    FormId = 4,
-                    Description = "Neverificarea caroseriei, a uşilor de serviciu, a ieşirilor de urgenţă, a echipamentului de prim ajutor, a stingătoarelor de incendiu şi a altor echipamente de siguranţă (numai pentru D, DE, D1, D1E, Tb, Tv)",
-                    PenaltyPoints = 5,
-                    OrderIndex = 6
-                },
-                new ExamItem
-                {
-                    ItemId = 91,
-                    FormId = 4,
-                    Description = "Nereglarea scaunului, a oglinzilor retrovizoare, nefixarea centurii de siguranţă, neeliberarea frânei de ajutor",
-                    PenaltyPoints = 3,
-                    OrderIndex = 7
-                },
-                new ExamItem
-                {
-                    ItemId = 92,
-                    FormId = 4,
-                    Description = "Necunoaşterea aparaturii de bord sau a comenzilor autovehiculului",
-                    PenaltyPoints = 3,
-                    OrderIndex = 8
-                },
-                new ExamItem
-                {
-                    ItemId = 93,
-                    FormId = 4,
-                    Description = "Cuplarea unei remorci de autovehiculul trăgător din/cu revenire la poziţia iniţială în staţionare paralel",
-                    PenaltyPoints = 5,
-                    OrderIndex = 9
-                },
-                new ExamItem
-                {
-                    ItemId = 94,
-                    FormId = 4,
-                    Description = "Mersul înapoi",
-                    PenaltyPoints = 5,
-                    OrderIndex = 10
-                },
-                new ExamItem
-                {
-                    ItemId = 95,
-                    FormId = 4,
-                    Description = "Parcarea în siguranţă cu faţa/cu spatele/laterală pentru încărcare/descărcare, sau la o rampă/platformă de încărcare, sau la o instalaţie similară",
-                    PenaltyPoints = 7,
-                    OrderIndex = 11
-                },
-                new ExamItem
-                {
-                    ItemId = 96,
-                    FormId = 4,
-                    Description = "Oprirea pentru a permite călătorilor urcarea/coborârea în/din autobuz/tramvai/troleibuz, în siguranţă",
-                    PenaltyPoints = 7,
-                    OrderIndex = 12
-                },
-                new ExamItem
-                {
-                    ItemId = 97,
-                    FormId = 4,
-                    Description = "Nesincronizarea comenzilor (oprirea motorului, accelerarea excesivă, folosirea incorectă a treptelor de viteză)",
-                    PenaltyPoints = 5,
-                    OrderIndex = 13
-                },
-                new ExamItem
-                {
-                    ItemId = 98,
-                    FormId = 4,
-                    Description = "Nemenţinerea direcţiei de mers",
-                    PenaltyPoints = 9,
-                    OrderIndex = 14
-                },
-                new ExamItem
-                {
-                    ItemId = 99,
-                    FormId = 4,
-                    Description = "Folosirea incorectă a drumului, cu sau fără marcaje",
-                    PenaltyPoints = 6,
-                    OrderIndex = 15
-                },
-                new ExamItem
-                {
-                    ItemId = 100,
-                    FormId = 4,
-                    Description = "Manevrarea incorectă la încrucişarea cu alte vehicule, inclusiv în spaţii restrânse",
-                    PenaltyPoints = 6,
-                    OrderIndex = 16
-                },
-                new ExamItem
-                {
-                    ItemId = 101,
-                    FormId = 4,
-                    Description = "Executarea incorectă a mersului înapoi, a parcării cu faţa, spatele sau lateral",
-                    PenaltyPoints = 5,
-                    OrderIndex = 17
-                },
-                new ExamItem
-                {
-                    ItemId = 102,
-                    FormId = 4,
-                    Description = "Executarea incorectă a întoarcerii vehiculului cu faţa în sens opus prin efectuarea manevrelor de mers înainte şi înapoi",
-                    PenaltyPoints = 5,
-                    OrderIndex = 18
-                },
-                new ExamItem
-                {
-                    ItemId = 103,
-                    FormId = 4,
-                    Description = "Întoarcerea incorectă pe o stradă cu mai multe benzi de circulaţie pe sens",
-                    PenaltyPoints = 5,
-                    OrderIndex = 19
-                },
-                new ExamItem
-                {
-                    ItemId = 104,
-                    FormId = 4,
-                    Description = "Manevrarea incorectă la urcarea rampelor/coborrea pantelor lungi, la circulaţia în tuneluri",
-                    PenaltyPoints = 5,
-                    OrderIndex = 20
-                },
-                new ExamItem
-                {
-                    ItemId = 105,
-                    FormId = 4,
-                    Description = "Folosirea incorectă a luminilor de întâlnire/luminilor de drum",
-                    PenaltyPoints = 3,
-                    OrderIndex = 21
-                },
-                new ExamItem
-                {
-                    ItemId = 106,
-                    FormId = 4,
-                    Description = "Conducerea în mod neeconomic şi agresiv pentru mediul înconjurător (turaţie excesivă, frânare/accelerare nejustificate)",
-                    PenaltyPoints = 5,
-                    OrderIndex = 22
-                },
-                new ExamItem
-                {
-                    ItemId = 107,
-                    FormId = 4,
-                    Description = "Neasigurarea la schimbarea direcţiei de mers/părăsirea locului de staţionare",
-                    PenaltyPoints = 9,
-                    OrderIndex = 23
-                },
-                new ExamItem
-                {
-                    ItemId = 108,
-                    FormId = 4,
-                    Description = "Executarea neregulamentară a virajelor",
-                    PenaltyPoints = 6,
-                    OrderIndex = 24
-                },
-                new ExamItem
-                {
-                    ItemId = 109,
-                    FormId = 4,
-                    Description = "Nesemnalizarea sau semnalizarea greşită a schimbării direcţiei de mers",
-                    PenaltyPoints = 6,
-                    OrderIndex = 25
-                },
-                new ExamItem
-                {
-                    ItemId = 110,
-                    FormId = 4,
-                    Description = "Încadrarea necorespunzătoare în raport cu direcţia de mers indicată",
-                    PenaltyPoints = 6,
-                    OrderIndex = 26
-                },
-                new ExamItem
-                {
-                    ItemId = 111,
-                    FormId = 4,
-                    Description = "Efectuarea unor manevre interzise (oprire, staţionare, întoarcere, mers înapoi)",
-                    PenaltyPoints = 6,
-                    OrderIndex = 27
-                },
-                new ExamItem
-                {
-                    ItemId = 112,
-                    FormId = 4,
-                    Description = "Neasigurarea la pătrunderea în intersecţii",
-                    PenaltyPoints = 9,
-                    OrderIndex = 28
-                },
-                new ExamItem
-                {
-                    ItemId = 113,
-                    FormId = 4,
-                    Description = "Folosirea incorectă a benzilor la intrarea/ieşirea pe/de pe autostradă/artere similare",
-                    PenaltyPoints = 5,
-                    OrderIndex = 29
-                },
-                new ExamItem
-                {
-                    ItemId = 114,
-                    FormId = 4,
-                    Description = "Nepăstrarea distanţei suficiente faţă de cei care rulează înainte sau vin din sens opus",
-                    PenaltyPoints = 9,
-                    OrderIndex = 30
-                },
-                new ExamItem
-                {
-                    ItemId = 115,
-                    FormId = 4,
-                    Description = "Ezitarea repetată de a depăşi alte vehicule",
-                    PenaltyPoints = 6,
-                    OrderIndex = 31
-                },
-                new ExamItem
-                {
-                    ItemId = 116,
-                    FormId = 4,
-                    Description = "Nerespectarea regulilor de executare a depăşirii ori efectuarea acesteia în locuri şi situaţii interzise",
-                    PenaltyPoints = 21,
-                    OrderIndex = 32
-                },
-                new ExamItem
-                {
-                    ItemId = 117,
-                    FormId = 4,
-                    Description = "Neacordarea priorităţii vehiculelor şi pietonilor care au acest drept (la plecarea de pe loc, în intersecţii, sens giratoriu, staţie mijloc de transport în comun prevăzută cu alveolă, staţie de tramvai fără refugiu pentru pietoni, trecere de pietoni)",
-                    PenaltyPoints = 21,
-                    OrderIndex = 33
-                },
-                new ExamItem
-                {
-                    ItemId = 118,
-                    FormId = 4,
-                    Description = "Tendinţe repetate de a ceda trecerea vehiculelor şi pietonilor care nu au prioritate",
-                    PenaltyPoints = 6,
-                    OrderIndex = 34
-                },
-                new ExamItem
-                {
-                    ItemId = 119,
-                    FormId = 4,
-                    Description = "Nerespectarea semnificaţiei indicatoarelor/marcajelor/culorii semaforului (cu excepţia culorii roşii)",
-                    PenaltyPoints = 9,
-                    OrderIndex = 35
-                },
-                new ExamItem
-                {
-                    ItemId = 120,
-                    FormId = 4,
-                    Description = "Nerespectarea semnificaţiei culorii roşii a semaforului/semnalelor poliţistului rutier/semnalelor altor persoane cu atribuţii legale similare",
-                    PenaltyPoints = 21,
-                    OrderIndex = 36
-                },
-                new ExamItem
-                {
-                    ItemId = 121,
-                    FormId = 4,
-                    Description = "Depăşirea vitezei legale maxime admise",
-                    PenaltyPoints = 9,
-                    OrderIndex = 37
-                },
-                new ExamItem
-                {
-                    ItemId = 122,
-                    FormId = 4,
-                    Description = "Conducerea cu viteză redusă în mod nejustificat, neîncadrarea în ritmul impus de ceilalţi participanţi la trafic",
-                    PenaltyPoints = 6,
-                    OrderIndex = 38
-                },
-                new ExamItem
-                {
-                    ItemId = 123,
-                    FormId = 4,
-                    Description = "Neîndemânarea în conducere în condiţii de carosabil alunecos (reducerea vitezei, conduită preventivă)",
-                    PenaltyPoints = 9,
-                    OrderIndex = 39
-                },
-                new ExamItem
-                {
-                    ItemId = 124,
-                    FormId = 4,
-                    Description = "Deplasarea cu viteză neadaptată condiţiilor atmosferice şi de drum",
-                    PenaltyPoints = 9,
-                    OrderIndex = 40
-                },
-                new ExamItem
-                {
-                    ItemId = 125,
-                    FormId = 4,
-                    Description = "Nerespectarea normelor legale la trecerile la nivel cu calea ferată",
-                    PenaltyPoints = 21,
-                    OrderIndex = 41
-                },
-                new ExamItem
-                {
-                    ItemId = 126,
-                    FormId = 4,
-                    Description = "Prezentarea la examen sub influenţa băuturilor alcoolice, substanţelor sau produselor stupefiante, a medicamentelor cu efecte similare acestora sau manifestări de natură să perturbe examinarea celorlalţi candidaţi",
-                    PenaltyPoints = 21,
-                    OrderIndex = 42
-                },
-                new ExamItem
-                {
-                    ItemId = 127,
-                    FormId = 4,
-                    Description = "Intervenţia examinatorului pentru evitarea unui pericol iminent/producerea unui eveniment rutier",
-                    PenaltyPoints = 21,
-                    OrderIndex = 43
+                    examItems.Add(new ExamItem
+                    {
+                        ItemId = itemId++,
+                        FormId = licenseId, // FormId = LicenseId
+                        Description = description,
+                        PenaltyPoints = penaltyPoints,
+                        OrderIndex = orderIndex++
+                    });
                 }
-            );
+            }
+
+            context.ExamItems.AddRange(examItems);
             context.SaveChanges();
         }
-        // ──────────────── Vehicle ────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Vehicle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!context.Vehicles.Any())
         {
             var vehicles = new List<Vehicle>();
@@ -1787,7 +913,7 @@ namespace DriveFlow_CRM_API.Models;
                 .ToDictionary(g => g.Key, g => g.Select(v => v.VehicleId).OrderBy(id => id).ToList());
         }
 
-        // ──────────────── File (Student enrollment) ────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ File (Student enrollment) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!context.Files.Any())
         {
             var files = new List<File>();
@@ -1831,7 +957,7 @@ namespace DriveFlow_CRM_API.Models;
             context.SaveChanges();
         }
 
-        // ──────────────── Payment ────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Payment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!context.Payments.Any())
         {
             var payments = new List<Payment>();
@@ -1850,7 +976,7 @@ namespace DriveFlow_CRM_API.Models;
             context.SaveChanges();
         }
 
-        // ──────────────── Request ────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Request â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!context.Requests.Any())
         {
             var requestId = 1;
@@ -1952,7 +1078,7 @@ namespace DriveFlow_CRM_API.Models;
             }
         }
 
-        // ──────────────── InstructorAvailability ────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ InstructorAvailability â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!context.InstructorAvailabilities.Any())
         {
             var intervals = new List<InstructorAvailability>();
@@ -1985,7 +1111,7 @@ namespace DriveFlow_CRM_API.Models;
             context.SaveChanges();
         }
 
-        // ──────────────── Appointment (ready for SessionForm) ────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Appointment (ready for SessionForm) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!context.Appointments.Any())
         {
             var appointments = new List<Appointment>();
@@ -2011,9 +1137,17 @@ namespace DriveFlow_CRM_API.Models;
         {
             var sessionForms = new List<SessionForm>();
             var sessionFormId = 1;
+            
+            // Get file -> teachingCategoryId mapping
             var fileTeachingCategories = context.Files
                 .AsNoTracking()
                 .ToDictionary(f => f.FileId, f => f.TeachingCategoryId);
+
+            // Get teachingCategory -> licenseId mapping (used to determine FormId)
+            var categoryToLicense = context.TeachingCategories
+                .AsNoTracking()
+                .Where(tc => tc.LicenseId.HasValue)
+                .ToDictionary(tc => tc.TeachingCategoryId, tc => tc.LicenseId!.Value);
 
             var examItemsByForm = context.ExamItems
                 .AsNoTracking()
@@ -2028,7 +1162,15 @@ namespace DriveFlow_CRM_API.Models;
             {
                 if (!examItemsByForm.TryGetValue(formId, out var items) || items.Count == 0)
                 {
-                    return ("[{\"id_item\":1,\"count\":1}]", 1);
+                    // Fallback to FormId 6 (license B) if no items found for this form
+                    if (examItemsByForm.TryGetValue(6, out var fallbackItems) && fallbackItems.Count > 0)
+                    {
+                        items = fallbackItems;
+                    }
+                    else
+                    {
+                        return ("[{\"id_item\":1,\"count\":1}]", 1);
+                    }
                 }
 
                 var firstIndex = seed % items.Count;
@@ -2058,16 +1200,18 @@ namespace DriveFlow_CRM_API.Models;
 
             foreach (var appointment in appointments)
             {
-                int? teachingCategoryId = null;
+                int? licenseId = null;
                 if (appointment.FileId.HasValue &&
-                    fileTeachingCategories.TryGetValue(appointment.FileId.Value, out var categoryId))
+                    fileTeachingCategories.TryGetValue(appointment.FileId.Value, out var categoryId) &&
+                    categoryId.HasValue &&
+                    categoryToLicense.TryGetValue(categoryId.Value, out var lId))
                 {
-                    teachingCategoryId = categoryId;
+                    licenseId = lId;
                 }
 
-                var formId = teachingCategoryId == 2 ? 3
-                    : teachingCategoryId == 3 ? 4
-                    : 1;
+                // FormId = LicenseId (since ExamForm is now linked to License)
+                // Default to FormId 6 (license B) if no license found
+                var formId = licenseId ?? 6;
 
                 var createdAt = appointment.Date.Date.AddHours(appointment.StartHour.Hours);
                 var (mistakesJson, totalPoints) = BuildMistakesJson(formId, appointment.AppointmentId);

@@ -26,7 +26,28 @@ public partial class Program
     // Load variables from .env FIRST, so they are visible to the configuration builder.
     public static void Main(string[] args)
     {
-        DotNetEnv.Env.Load();
+        // Try to load .env from current directory first, then parent directories
+        var currentDir = Directory.GetCurrentDirectory();
+        var envPath = Path.Combine(currentDir, ".env");
+        
+        if (!System.IO.File.Exists(envPath))
+        {
+            // Try parent directory (for when running from DriveFlow-CRM-API\DriveFlow-CRM-API)
+            var parentDir = Directory.GetParent(currentDir)?.FullName;
+            if (parentDir != null)
+            {
+                var parentEnvPath = Path.Combine(parentDir, ".env");
+                if (System.IO.File.Exists(parentEnvPath))
+                {
+                    envPath = parentEnvPath;
+                }
+            }
+        }
+        
+        if (System.IO.File.Exists(envPath))
+        {
+            DotNetEnv.Env.Load(envPath);
+        }
 
         var builder = WebApplication.CreateBuilder(args);
         // #region agent log
@@ -133,7 +154,12 @@ public partial class Program
                 $"Server={uri.Host};Database={uri.AbsolutePath.Trim('/')};" +
                 $"User ID={uri.UserInfo.Split(':')[0]};" +
                 $"Password={uri.UserInfo.Split(':')[1]};" +
-                $"Port={uri.Port};SSL Mode=Required;";
+                $"Port={uri.Port};SSL Mode=Required;" +
+                // Connection resilience settings for remote MySQL server
+                $"Connection Timeout=120;Default Command Timeout=300;" +
+                $"Keepalive=30;Connection Lifetime=300;" +
+                $"Pooling=true;Min Pool Size=0;Max Pool Size=100;" +
+                $"Connection Reset=false;";
         }
         else
         {
@@ -171,7 +197,14 @@ public partial class Program
         // 5. Register the application's DbContext (Pomelo MySQL provider).
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
         {
-            options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+            options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), mySqlOptions =>
+            {
+                mySqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+                mySqlOptions.CommandTimeout(300); // 5 minutes
+            });
         });
 
         // 6. Configure ASP.NET Core Identity with role support.

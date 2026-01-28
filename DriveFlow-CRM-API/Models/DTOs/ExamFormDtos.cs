@@ -11,7 +11,8 @@ public sealed record ExamItemDto(
 /// <summary>Represents the complete exam form with all items.</summary>
 public sealed record ExamFormDto(
     int id_formular,
-    int id_categ,
+    int licenseId,
+    string? licenseType,
     int maxPoints,
     IEnumerable<ExamItemDto> items
 );

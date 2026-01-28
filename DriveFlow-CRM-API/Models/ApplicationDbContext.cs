@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using DriveFlow_CRM_API.Models;
 using File = DriveFlow_CRM_API.Models.File;
@@ -56,7 +56,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     /// <summary>Driving lessons and exam appointments.</summary>
     public DbSet<Appointment> Appointments { get; set; }
 
-    /// <summary>Official exam forms (one per teaching category).</summary>
+    /// <summary>Official exam forms (one per license).</summary>
     public DbSet<ExamForm> ExamForms { get; set; }
 
     /// <summary>Individual items/infractions on exam forms.</summary>
@@ -216,15 +216,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                .HasForeignKey(ia => ia.InstructorId)
                .OnDelete(DeleteBehavior.Cascade);
 
-        // ───────── TeachingCategory ↔ ExamForm (1 : 1, cascade) ─────────
+        // ───────── License ↔ ExamForm (1 : 1, cascade) ─────────
         builder.Entity<ExamForm>(entity =>
         {
-            entity.HasIndex(ef => ef.TeachingCategoryId)
+            entity.HasIndex(ef => ef.LicenseId)
                   .IsUnique();
 
-            entity.HasOne(ef => ef.TeachingCategory)
-                  .WithOne()
-                  .HasForeignKey<ExamForm>(ef => ef.TeachingCategoryId)
+            entity.HasOne(ef => ef.License)
+                  .WithOne(l => l.ExamForm)
+                  .HasForeignKey<ExamForm>(ef => ef.LicenseId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
 

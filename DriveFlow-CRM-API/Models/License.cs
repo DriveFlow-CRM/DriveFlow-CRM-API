@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;          
+using System.ComponentModel.DataAnnotations;          
 using Microsoft.EntityFrameworkCore;                 
 
 namespace DriveFlow_CRM_API.Models;                  
@@ -35,4 +35,7 @@ public class License
 
     /// <summary>Teaching categories associated with this licence.</summary>
     public virtual ICollection<TeachingCategory> TeachingCategories { get; set; } = new List<TeachingCategory>();
+
+    /// <summary>Exam form for this license (1:1 relationship).</summary>
+    public virtual ExamForm? ExamForm { get; set; }
 }
