@@ -4,17 +4,48 @@ namespace DriveFlow_CRM_API.Models.DTOs;
 //  AI CONTEXT DTOs - Request/Response for the AI chatbot context endpoint
 // ═══════════════════════════════════════════════════════════════════════════════
 
-#region Request/Response DTOs
+#region Chat Request/Response DTOs
 
 /// <summary>
-/// Request DTO for building AI student context.
+/// Request DTO for the AI chat streaming endpoint.
 /// </summary>
-/// <param name="HistorySessions">Number of recent sessions to include per file (default: 5)</param>
-/// <param name="Language">Language code for the system prompt (default: "ro")</param>
-public sealed record AiStudentContextRequest(
-    int HistorySessions = 5,
-    string? Language = "ro"
-);
+public sealed class ChatRequest
+{
+    /// <summary>
+    /// Conversation messages (user and assistant history).
+    /// </summary>
+    public List<ChatMessage> Messages { get; set; } = new();
+
+    /// <summary>
+    /// Number of recent sessions to include per category for context (default: 5).
+    /// </summary>
+    public int? HistorySessions { get; set; } = 5;
+
+    /// <summary>
+    /// Language code for the system prompt ("ro" or "en", default: "ro").
+    /// </summary>
+    public string? Language { get; set; } = "ro";
+}
+
+/// <summary>
+/// A single message in the chat conversation.
+/// </summary>
+public sealed class ChatMessage
+{
+    /// <summary>
+    /// Message role: "user" or "assistant".
+    /// </summary>
+    public string Role { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Message content/text.
+    /// </summary>
+    public string Content { get; set; } = string.Empty;
+}
+
+#endregion
+
+#region Internal Context DTOs
 
 /// <summary>
 /// Response DTO containing the system prompt and student context for the LLM.
