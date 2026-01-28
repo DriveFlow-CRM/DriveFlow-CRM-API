@@ -131,8 +131,10 @@ namespace DriveFlow_CRM_API.Json
     [JsonSerializable(typeof(CreateInstructorAvailabilityDto))]
 
     // ───────────────────────── AI CONTROLLER ─────────────────────────
-    [JsonSerializable(typeof(AiStudentContextRequest))]
-    [JsonSerializable(typeof(AiStudentContextResponse))]
+    [JsonSerializable(typeof(ChatRequest))]
+    [JsonSerializable(typeof(ChatMessage))]
+    [JsonSerializable(typeof(List<ChatMessage>))]
+    [JsonSerializable(typeof(AiStudentContextResponse))]  // Used internally by AiContextBuilder
     [JsonSerializable(typeof(StudentContextDto))]
     [JsonSerializable(typeof(StudentSummaryDto))]
     [JsonSerializable(typeof(CategoryProgressDto))]

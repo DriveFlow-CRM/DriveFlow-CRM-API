@@ -298,7 +298,10 @@ public partial class Program
         // 5) AI Context Builder service (builds LLM context for student chatbot)
         builder.Services.AddScoped<IAiContextBuilder, AiContextBuilder>();
 
-        // 6) HttpClient factory for external service communications
+        // 6) AI Streaming Service (proxies requests to OpenRouter API)
+        builder.Services.AddScoped<IAiStreamingService, AiStreamingService>();
+
+        // 7) HttpClient factory for external service communications (used by AI streaming)
         builder.Services.AddHttpClient();
 
         // ─────────────────────────────── Rate-Limit / Cool-down ──────────────────────────────
